@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Latheon ZK Toolkit — Trusted Setup & Proof Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/snarkjs@0.7.4/build/snarkjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
+<style>
+  body { font-family: -apple-system, Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #14121C; color: #F2EFE9; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin-top: 36px; border-top: 1px solid #333; padding-top: 20px; }
+  .step { background: #1C1927; border: 1px solid #333; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  button { background: #F6C55A; color: #14121C; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 8px; margin-top: 8px; }
+  button:disabled { background: #555; color: #999; cursor: not-allowed; }
+  input[type=file] { color: #F2EFE9; margin: 8px 0; display: block; }
+  .log { background: #0d0c12; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 220px; overflow-y: auto; margin-top: 10px; }
+  .status { font-size: 13px; margin-top: 8px; }
+  .ok { color: #5DCAA5; }
+  .err { color: #e06c75; }
+  a.download { color: #5DCAA5; display: block; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<h1>Latheon ZK Toolkit</h1>
+<p>Проходим по шагам сверху вниз. Каждый шаг выдаёт файл, который может понадобиться в следующем — скачивайте по ходу дела.</p>
+
+<div class="step">
+  <h2 style="margin-top:0;border:none;padding-top:0;">Шаг 1 — Загрузите файлы из zkrepl</h2>
+  <p>Нужны два файла, которые zkrepl уже создал для вас: <code>withdraw.r1cs</code> и <code>withdraw.wtns</code> (скачайте их из панели Artifacts в zkrepl, если ещё не скачивали).</p>
+  <label>withdraw.r1cs: <input type="file" id="r1csInput"></label>
+  <label>withdraw.wtns: <input type="file" id="wtnsInput"></label>
+  <div class="status" id="step1status"></div>
+</div>
+
+<div class="step">
+  <h2 style="margin-top:0;border:none;padding-top:0;">Шаг 2 — Powers of Tau</h2>
+  <p>Сначала скачайте файл обычным способом — просто откройте эту ссылку в новой вкладке браузера, файл сохранится на компьютер (~40-60 МБ, может занять минуту-две):</p>
+  <p><a href="https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_14.ptau" target="_blank" style="color:#5DCAA5;">https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_14.ptau</a></p>
+  <p>Затем выберите скачанный файл здесь:</p>
+  <label>powersOfTau28_hez_final_14.ptau: <input type="file" id="ptauInput"></label>
+  <div class="status" id="ptauStatus"></div>
+</div>
+
+<div class="step">
+  <h2 style="margin-top:0;border:none;padding-top:0;">Шаг 3 — Trusted Setup (генерация ключей для этой конкретной схемы)</h2>
+  <button id="setupBtn" disabled>Запустить Setup</button>
+  <div class="status" id="setupStatus"></div>
+  <div id="zkeyDownload"></div>
+</div>
+
+<div class="step">
+  <h2 style="margin-top:0;border:none;padding-top:0;">Шаг 4 — Сгенерировать доказательство</h2>
+  <button id="proveBtn" disabled>Сгенерировать proof</button>
+  <div class="status" id="proveStatus"></div>
+  <div id="proofDownload"></div>
+  <div id="calldataBox" style="display:none; margin-top:16px;">
+    <p><strong>Готовые значения для Remix</strong> (сгенерированы автоматически, без ручного переноса чисел):</p>
+    <textarea id="calldataText" readonly style="width:100%; height:120px; background:#0d0c12; color:#5DCAA5; font-family:monospace; font-size:12px; border:1px solid #333; border-radius:6px; padding:10px;"></textarea>
+    <p style="font-size:12px; color:#9793A8;">Скопируйте текст выше целиком — это готовый JSON-массив из четырёх частей [_pA, _pB, _pC, _pubSignals] в правильном порядке. В Remix у verifyProof четыре отдельных поля — просто скопируйте соответствующую часть (между квадратными скобками верхнего уровня) в каждое поле по порядку.</p>
+  </div>
+</div>
+
+<div class="step">
+  <h2 style="margin-top:0;border:none;padding-top:0;">Шаг 5 — Проверить доказательство (локально, для уверенности)</h2>
+  <button id="verifyBtn" disabled>Проверить</button>
+  <div class="status" id="verifyStatus"></div>
+</div>
+
+<div class="step">
+  <h2 style="margin-top:0;border:none;padding-top:0;">Шаг 6 — Экспортировать Solidity-верификатор</h2>
+  <button id="exportSolBtn" disabled>Сгенерировать Verifier.sol</button>
+  <div class="status" id="solStatus"></div>
+  <div id="solDownload"></div>
+</div>
+
+<h2>Журнал (для отладки, если что-то пойдёт не так)</h2>
+<div class="log" id="log">Ожидание...</div>
+
+<script>
+const PTAU_URL = "https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_14.ptau";
+
+let r1csBuffer = null;
+let wtnsBuffer = null;
+let ptauBuffer = null;
+let zkeyBuffer = null;
+let vkeyJson = null;
+let proofData = null;
+
+function log(msg) {
+  const el = document.getElementById('log');
+  el.textContent += "\n" + msg;
+  el.scrollTop = el.scrollHeight;
+  console.log(msg);
+}
+
+function setStatus(id, msg, isError) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status ' + (isError ? 'err' : 'ok');
+}
+
+function downloadBlob(filename, data, mime) {
+  const blob = new Blob([data], { type: mime || 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.className = 'download';
+  a.textContent = "⬇ Скачать " + filename;
+  return a;
+}
+
+document.getElementById('r1csInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  r1csBuffer = new Uint8Array(await file.arrayBuffer());
+  log("r1cs загружен: " + file.name + " (" + r1csBuffer.length + " bytes)");
+  checkStep1();
+});
+
+document.getElementById('wtnsInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  wtnsBuffer = new Uint8Array(await file.arrayBuffer());
+  log("witness загружен: " + file.name + " (" + wtnsBuffer.length + " bytes)");
+  checkStep1();
+});
+
+function checkStep1() {
+  if (r1csBuffer && wtnsBuffer) {
+    setStatus('step1status', '✓ Оба файла загружены', false);
+  }
+}
+
+document.getElementById('ptauInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setStatus('ptauStatus', 'Читаю файл...', false);
+  log("Читаю ptau файл: " + file.name + " (" + (file.size / 1024 / 1024).toFixed(1) + " МБ)");
+  try {
+    ptauBuffer = new Uint8Array(await file.arrayBuffer());
+    setStatus('ptauStatus', '✓ Загружено: ' + (ptauBuffer.length / 1024 / 1024).toFixed(1) + ' МБ', false);
+    log("Powers of Tau прочитан успешно");
+    document.getElementById('setupBtn').disabled = !(r1csBuffer && wtnsBuffer && ptauBuffer);
+  } catch (err) {
+    setStatus('ptauStatus', 'Ошибка чтения: ' + err.message, true);
+    log("ОШИБКА при чтении ptau: " + err.message);
+  }
+});
+
+document.getElementById('setupBtn').addEventListener('click', async () => {
+  if (!(r1csBuffer && wtnsBuffer && ptauBuffer)) {
+    setStatus('setupStatus', 'Сначала загрузите r1cs, witness и Powers of Tau', true);
+    return;
+  }
+  setStatus('setupStatus', 'Выполняю trusted setup...', false);
+  log("Запуск snarkjs.zKey.newZKey...");
+  try {
+    const zkeyFile = { type: "mem" };
+    await snarkjs.zKey.newZKey(
+      { type: "mem", data: r1csBuffer },
+      { type: "mem", data: ptauBuffer },
+      zkeyFile,
+      { info: log, warn: log, error: log, debug: () => {} }
+    );
+    // Add one random contribution for extra safety (avoids trivial toxic waste)
+    const zkeyFile2 = { type: "mem" };
+    await snarkjs.zKey.contribute(
+      zkeyFile,
+      zkeyFile2,
+      "Latheon browser contribution",
+      "random entropy " + Math.random().toString(36) + Date.now(),
+      { info: log, warn: log, error: log, debug: () => {} }
+    );
+    zkeyBuffer = zkeyFile2.data;
+    vkeyJson = await snarkjs.zKey.exportVerificationKey(zkeyFile2);
+
+    setStatus('setupStatus', '✓ Setup завершён, ключ сгенерирован', false);
+    log("Trusted setup завершён успешно.");
+    const dl = document.getElementById('zkeyDownload');
+    dl.innerHTML = '';
+    dl.appendChild(downloadBlob('withdraw_final.zkey', zkeyBuffer));
+    const vkDl = downloadBlob('verification_key.json', JSON.stringify(vkeyJson, null, 2), 'application/json');
+    dl.appendChild(vkDl);
+
+    document.getElementById('proveBtn').disabled = false;
+  } catch (err) {
+    setStatus('setupStatus', 'Ошибка: ' + err.message, true);
+    log("ОШИБКА на этапе setup: " + err.stack);
+  }
+});
+
+document.getElementById('proveBtn').addEventListener('click', async () => {
+  setStatus('proveStatus', 'Генерирую доказательство...', false);
+  log("Запуск snarkjs.groth16.prove...");
+  try {
+    const zkeyFileForProve = { type: "mem", data: zkeyBuffer };
+    const { proof, publicSignals } = await snarkjs.groth16.prove(
+      zkeyFileForProve,
+      { type: "mem", data: wtnsBuffer },
+      { info: log, warn: log, error: log, debug: () => {} }
+    );
+    proofData = { proof, publicSignals };
+    setStatus('proveStatus', '✓ Доказательство сгенерировано', false);
+    log("Proof: " + JSON.stringify(proof).slice(0, 200) + "...");
+    log("Public signals: " + JSON.stringify(publicSignals));
+
+    const dl = document.getElementById('proofDownload');
+    dl.innerHTML = '';
+    dl.appendChild(downloadBlob('proof.json', JSON.stringify(proof, null, 2), 'application/json'));
+    dl.appendChild(downloadBlob('public.json', JSON.stringify(publicSignals, null, 2), 'application/json'));
+
+    log("Формирую готовый calldata для Remix через snarkjs.groth16.exportSolidityCallData...");
+    const calldata = await snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
+    document.getElementById('calldataText').value = calldata;
+    document.getElementById('calldataBox').style.display = 'block';
+    log("Calldata готов, скопируйте значения из текстового поля на странице.");
+
+    document.getElementById('verifyBtn').disabled = false;
+    document.getElementById('exportSolBtn').disabled = false;
+  } catch (err) {
+    setStatus('proveStatus', 'Ошибка: ' + err.message, true);
+    log("ОШИБКА на этапе prove: " + err.stack);
+  }
+});
+
+document.getElementById('verifyBtn').addEventListener('click', async () => {
+  setStatus('verifyStatus', 'Проверяю...', false);
+  try {
+    const isValid = await snarkjs.groth16.verify(vkeyJson, proofData.publicSignals, proofData.proof);
+    if (isValid) {
+      setStatus('verifyStatus', '✓✓✓ Доказательство ВАЛИДНО', false);
+      log("Верификация: OK, доказательство корректно.");
+    } else {
+      setStatus('verifyStatus', '✗ Доказательство НЕ прошло проверку', true);
+      log("Верификация: FAILED.");
+    }
+  } catch (err) {
+    setStatus('verifyStatus', 'Ошибка: ' + err.message, true);
+    log("ОШИБКА на этапе verify: " + err.stack);
+  }
+});
+
+document.getElementById('exportSolBtn').addEventListener('click', async () => {
+  setStatus('solStatus', 'Генерирую Solidity-код...', false);
+  try {
+    log("Получаю verification key для шаблона...");
+    const vKeyForTemplate = await snarkjs.zKey.exportVerificationKey({ type: "mem", data: zkeyBuffer });
+
+    log("Загружаю шаблон verifier_groth16.sol.ejs с CDN...");
+    const templateResp = await fetch('https://cdn.jsdelivr.net/npm/snarkjs@0.7.4/templates/verifier_groth16.sol.ejs');
+    if (!templateResp.ok) throw new Error("Не удалось загрузить шаблон, HTTP " + templateResp.status);
+    const templateText = await templateResp.text();
+    log("Шаблон загружен, " + templateText.length + " символов. Рендерю через ejs.render напрямую...");
+
+    const solidityCode = ejs.render(templateText, vKeyForTemplate);
+
+    setStatus('solStatus', '✓ Verifier.sol сгенерирован', false);
+    log("Solidity verifier сгенерирован, размер: " + solidityCode.length + " символов");
+    const dl = document.getElementById('solDownload');
+    dl.innerHTML = '';
+    dl.appendChild(downloadBlob('Verifier.sol', solidityCode, 'text/plain'));
+  } catch (err) {
+    setStatus('solStatus', 'Ошибка: ' + err.message, true);
+    log("ОШИБКА на этапе export Solidity: " + err.stack);
+  }
+});
+</script>
+
+</body>
+</html>
