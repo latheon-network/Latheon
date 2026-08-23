@@ -6,13 +6,13 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 
 ---
 
-## NOW — Working prototype (🟢 status: live)
+## NOW — Working prototype, fully on-chain privacy (🟢 status: live)
 
 - LTH token deployed on Ethereum Sepolia.
 - Shielded pool deployed, using fixed-denomination deposits.
-- Groth16 verifier deployed.
-- Zero-knowledge proof generated off-chain and verified fully on-chain.
-- A complete shielded withdrawal demonstrated end-to-end on Sepolia.
+- **On-chain Merkle commitment tree** — deposits update the tree automatically, in the same transaction, using an on-chain Poseidon hash. No operator or off-chain step involved. *(This item has moved here from NEXT — it is now complete.)*
+- Groth16 verifier deployed, checking proofs against the pool's own on-chain root history.
+- A complete shielded withdrawal — deposit, on-chain tree update, off-chain proof, on-chain verification, withdrawal to an unlinked address — demonstrated end-to-end on Sepolia.
 - Contracts, circuit, and tooling published as open source.
 
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
@@ -22,8 +22,8 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## NEXT — Public developer testnet (target: 0–3 months)
 
 **Protocol**
-- [ ] On-chain Merkle commitment tree (replaces the current owner-maintained off-chain root — see `THREAT-MODEL.md` §7).
 - [ ] Expanded contract test coverage, invariant and fuzz testing.
+- [ ] Independent review pass on the zero-knowledge circuit.
 
 **Developer experience**
 - [ ] Public faucet.
@@ -32,7 +32,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Developer documentation and an initial SDK.
 
 **Open source foundation**
-- [x] Contributing guide, security policy, threat model (this update).
+- [x] Contributing guide, security policy, threat model.
 - [ ] Good-first-issue backlog.
 
 **Target outcome:** an external developer can use the testnet without direct help from the core team.
@@ -68,7 +68,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ## VISION — Sovereign modular network (12–18+ months, funding-dependent)
 
-These are long-term research directions, explicitly **not** current capabilities (see `STATUS.md` §5 for the same list with status labels):
+These are long-term research directions, explicitly **not** current capabilities (see `STATUS.md` §6 for the same list with status labels):
 
 - A dedicated Latheon consensus layer, decoupled from execution.
 - DAG-based mempool with BFT finality.
@@ -85,4 +85,4 @@ This phase is deliberately last. It is the reward for getting NOW/NEXT/THEN righ
 
 ## Funding dependency
 
-Grant or investment funding is expected to accelerate, in order: core protocol engineering → zero-knowledge engineering → developer tooling → public testnet infrastructure → external developer/validator onboarding → security review. See the project's grant materials for a detailed use-of-funds breakdown.
+Grant or investment funding is expected to accelerate, in order: zero-knowledge circuit review → developer tooling → public testnet infrastructure → external developer/validator onboarding → security audit. See the project's grant materials for a detailed use-of-funds breakdown.
