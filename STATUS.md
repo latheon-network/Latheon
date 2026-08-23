@@ -22,34 +22,40 @@ All on Ethereum Sepolia:
 | Contract | Address |
 |---|---|
 | LatheonToken (LTH) | `0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D` |
-| LatheonShieldedPool (zk-SNARK) | `0x22dEe9507b9a00A12bc6aB8B63Ab5CD3868543e4` |
-| Groth16Verifier | `0xB38399602B6Fd721E371abAD675a6f28BB3E7344` |
+| LatheonShieldedPoolV3 (zk-SNARK, on-chain Merkle tree) | `0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C` |
+| Groth16Verifier | `0x5E4D51352153513A9085e4e65B8541f393E4D470` |
+| PoseidonT3 (hashing library) | `0x33bA81C2f2ef705910Ee7022d8e2481eD83aDD1B` |
 
 Source code is verified on Sourcify and Blockscout — inspect it directly from the Etherscan links above.
 
 ## 2. Demonstrated flow (🟢 LIVE)
 
-1. LTH is deposited into the shielded pool (fixed denomination: 100 LTH).
+1. LTH is deposited into the shielded pool (fixed denomination: 100 LTH). The deposit inserts the commitment into an **on-chain** incremental Merkle tree in the same transaction — no separate step, no operator involved.
 2. A zero-knowledge proof is generated off-chain, proving knowledge of a secret tied to a deposit — without revealing which one.
-3. The proof is submitted to `Groth16Verifier.verifyProof(...)`.
-4. The proof is verified fully on-chain.
+3. The proof is submitted to `Groth16Verifier.verifyProof(...)` via `LatheonShieldedPoolV3.withdraw(...)`.
+4. The proof is verified fully on-chain, checked against the contract's own known-root history.
 5. Withdrawal completes to a recipient address with no cryptographic link back to the depositor.
 
-This exact flow has been executed and confirmed on Sepolia; transaction hashes are available on request and referenced in the build log under `docs/`.
+This exact flow — including the on-chain Merkle tree update — has been executed and confirmed on Sepolia.
 
-## 3. In development (🟡 IN DEVELOPMENT)
+## 3. What changed since the last update
 
-- **On-chain Merkle commitment tree.** The pool currently relies on an off-chain-maintained deposit record (the pool owner recomputes and publishes the Merkle root after each deposit) rather than an on-chain-updated tree. This is the single most important near-term engineering item — see [`ROADMAP.md`](./ROADMAP.md).
+The Merkle commitment tree is now **fully on-chain** (`LatheonShieldedPoolV3`), using an on-chain Poseidon hash implementation. This replaces the earlier prototype (`LatheonShieldedPoolZK`), which relied on an off-chain-maintained, owner-published root. That centralization point is now closed — no owner or operator action is required anywhere in the deposit → withdraw flow.
+
+## 4. In development (🟡 IN DEVELOPMENT)
+
 - Expanded automated test coverage for contracts and circuits.
 - Developer-facing documentation and SDK.
+- Public testnet infrastructure (faucet, explorer integration).
 
-## 4. Near-term targets (🔵 TARGET)
+## 5. Near-term targets (🔵 TARGET)
 
 - Public testnet: faucet, block explorer integration, external deployment instructions.
 - Genesis Cohort: onboarding external builders, integration partners, and validator operators.
+- Independent review of the zero-knowledge circuit.
 - Security audit ahead of any mainnet consideration.
 
-## 5. Long-term vision (⚪ VISION)
+## 6. Long-term vision (⚪ VISION)
 
 The following are **not implemented today** and should not be read as current capabilities:
 
@@ -62,16 +68,16 @@ The following are **not implemented today** and should not be read as current ca
 - A permissionless validator network with staking and slashing.
 - Mainnet deployment.
 
-These are research directions for a 12–18 month horizon, contingent on funding and team growth, and are described further in [`ROADMAP.md`](./ROADMAP.md).
+These are research directions for a 12–18 month horizon, contingent on funding and team growth — see `ROADMAP.md`.
 
-## 6. Known limitations
+## 7. Known limitations
 
 - No formal third-party security audit has been performed.
-- The Merkle tree bookkeeping described in §3 is currently centralized (owner-updated), a deliberate and disclosed simplification — see [`THREAT-MODEL.md`](./THREAT-MODEL.md) for what this does and does not affect.
 - The circuit and contracts have had limited external review.
 - This is a solo-founder prototype built with AI-assisted development, not yet a funded team effort.
+- Metadata (transaction timing, gas usage) remains publicly visible on-chain — see `THREAT-MODEL.md` for the full picture of what is and isn't protected.
 
-## 7. Verification
+## 8. Verification
 
 Anyone can independently confirm the claims in §1–2 via the Etherscan links above, or by cloning this repository and reproducing the flow using `tools/zk-toolkit.html` and `circuits/withdraw.circom`.
 
