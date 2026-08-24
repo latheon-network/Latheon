@@ -10,7 +10,7 @@ Before diving in, please read [`STATUS.md`](./STATUS.md) so you know exactly wha
 Circom circuits, Groth16 proving/verification, circuit testing, proof-generation performance.
 
 **Smart contracts**
-Solidity, on-chain Merkle tree implementation (the current top priority — see `ROADMAP.md`), security testing, gas optimization.
+Solidity, independent review of the zero-knowledge circuit (the current top priority — see `ROADMAP.md`), security testing, gas optimization.
 
 **Developer tooling**
 TypeScript/JavaScript, SDK development, example applications, wallet integrations.
