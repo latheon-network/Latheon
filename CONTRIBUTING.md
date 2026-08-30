@@ -16,7 +16,7 @@ Solidity, independent review of the zero-knowledge circuit (the current top prio
 TypeScript/JavaScript, SDK development, example applications, wallet integrations.
 
 **Testnet infrastructure**
-Faucet, explorer integration, deployment automation, monitoring.
+Explorer integration, deployment automation, monitoring.
 
 **Documentation**
 Tutorials, examples, architecture write-ups.
