@@ -25,6 +25,9 @@ All on Ethereum Sepolia:
 | LatheonShieldedPoolV3 (zk-SNARK, on-chain Merkle tree) | `0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C` |
 | Groth16Verifier | `0x5E4D51352153513A9085e4e65B8541f393E4D470` |
 | PoseidonT3 (hashing library) | `0x33bA81C2f2ef705910Ee7022d8e2481eD83aDD1B` |
+| LatheonFaucet | `0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214` |
+
+**LatheonFaucet (🟢 LIVE):** anyone can call `claim()` to receive 500 test LTH, once every 24 hours per address — no need to request tokens from the team directly. Funded with 50,000 LTH at launch (100 claims). This closes the "public faucet" item from the NEXT section of the roadmap.
 
 Source code is verified on Sourcify and Blockscout — inspect it directly from the Etherscan links above.
 
