@@ -14,7 +14,7 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 - Groth16 verifier deployed, checking proofs against the pool's own on-chain root history.
 - A complete shielded withdrawal — deposit, on-chain tree update, off-chain proof, on-chain verification, withdrawal to an unlinked address — demonstrated end-to-end on Sepolia.
 - Contracts, circuit, and tooling published as open source.
-
+- Public faucet.
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
@@ -26,7 +26,6 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Independent review pass on the zero-knowledge circuit.
 
 **Developer experience**
-- [ ] Public faucet.
 - [ ] Block explorer integration.
 - [ ] Deployment automation and reproducible build instructions.
 - [ ] Developer documentation and an initial SDK.
