@@ -26,7 +26,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Independent review pass on the zero-knowledge circuit.
 
 **Developer experience**
-- [ ] Block explorer integration.
+- [x] Block explorer integration — live activity feed on the website, pulling real-time deposit/withdrawal/claim data directly from Blockscout's public API.
 - [x] Deployment automation and reproducible build instructions — see DEPLOYMENT-CHECKLIST.en.md in the repository root.
 - [ ] Developer documentation and an initial SDK.
 
