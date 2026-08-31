@@ -1,0 +1,17 @@
+{
+  "name": "@latheon/sdk",
+  "version": "0.1.0",
+  "description": "JavaScript SDK for interacting with Latheon's shielded pool — deposits, Merkle proof construction, and withdrawals, without needing to understand the on-chain tree structure by hand.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "license": "MIT",
+  "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "ethers": "^6.13.0"
+  },
+  "keywords": ["latheon", "zero-knowledge", "privacy", "ethereum", "merkle-tree"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/latheon-network/latheon.git"
+  }
+}
