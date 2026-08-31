@@ -27,7 +27,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 **Developer experience**
 - [ ] Block explorer integration.
-- [ ] Deployment automation and reproducible build instructions.
+- [x] Deployment automation and reproducible build instructions — see DEPLOYMENT-CHECKLIST.en.md in the repository root.
 - [ ] Developer documentation and an initial SDK.
 
 **Open source foundation**
