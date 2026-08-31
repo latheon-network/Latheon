@@ -22,7 +22,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## NEXT — Public developer testnet (target: 0–3 months)
 
 **Protocol**
-- [ ] Expanded contract test coverage, invariant and fuzz testing.
+- [x] Automated test coverage for all three core contracts (18 tests, 0 failures) — see test/ in the repository.
 - [ ] Independent review pass on the zero-knowledge circuit.
 
 **Developer experience**
