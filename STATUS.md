@@ -31,6 +31,8 @@ Source code is verified on Sourcify and Blockscout — inspect it directly from 
 
 **LatheonFaucet (🟢 LIVE):** anyone can call `claim()` to receive 500 test LTH, once every 24 hours per address — no need to request tokens from the team directly. Funded with 50,000 LTH at launch (100 claims). This closes the "public faucet" item from the NEXT section of the roadmap.
 
+**Test coverage (🟢 LIVE):** all three core contracts — LatheonToken, LatheonFaucet, LatheonShieldedPoolV3 — have automated Solidity unit tests (18 checks total, all passing), runnable directly in Remix with no local setup. Pool tests use a mock verifier to test contract logic (deposits, root tracking, double-spend prevention) independently of the real cryptography, which is separately confirmed by the actual on-chain proof already verified on Sepolia.
+
 ## 2. Demonstrated flow (🟢 LIVE)
 
 1. LTH is deposited into the shielded pool (fixed denomination: 100 LTH). The deposit inserts the commitment into an **on-chain** incremental Merkle tree in the same transaction — no separate step, no operator involved.
@@ -47,7 +49,6 @@ The Merkle commitment tree is now **fully on-chain** (`LatheonShieldedPoolV3`), 
 
 ## 4. In development (🟡 IN DEVELOPMENT)
 
-- Expanded automated test coverage for contracts and circuits.
 - Developer-facing documentation and SDK.
 - Public testnet infrastructure (faucet, explorer integration).
 
