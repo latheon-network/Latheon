@@ -14,8 +14,25 @@ const { hash2, computeZeroCascade } = require("./poseidon");
  */
 async function fetchDeposits(provider, poolAddress) {
   const pool = new ethers.Contract(poolAddress, POOL_ABI, provider);
-  const events = await pool.queryFilter(pool.filters.Deposit());
-  const deposits = events.map((e) => ({
+  const filter = pool.filters.Deposit();
+
+  const latestBlock = await provider.getBlockNumber();
+  // NOTE: many public RPC providers cap eth_getLogs at a 10,000-block range
+  // per request. Querying from block 0 fails on Sepolia once the chain has
+  // moved far enough past deployment — this bit us in the demo app first.
+  // Chunking avoids it. If you know your pool's exact deployment block,
+  // pass it in instead of 0 for a faster first sync.
+  const startBlock = 0;
+  const CHUNK_SIZE = 9000;
+
+  let allEvents = [];
+  for (let from = startBlock; from <= latestBlock; from += CHUNK_SIZE) {
+    const to = Math.min(from + CHUNK_SIZE - 1, latestBlock);
+    const events = await pool.queryFilter(filter, from, to);
+    allEvents = allEvents.concat(events);
+  }
+
+  const deposits = allEvents.map((e) => ({
     commitment: BigInt(e.args.commitment),
     leafIndex: Number(e.args.leafIndex),
   }));
