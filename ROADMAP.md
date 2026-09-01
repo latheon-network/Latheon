@@ -41,7 +41,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## THEN — Genesis Cohort & validator testnet (target: 3–9 months)
 
 **Developer ecosystem**
-- [ ] SDK release and example integrations.
+- [x] SDK release and example integrations — sdk/ (JavaScript SDK) and sdk/demo-app.html (a real, wallet-connected reference app: deposit, automatic Merkle proof construction from on-chain events, and withdrawal, confirmed working end-to-end on Sepolia — not a mockup).
 - [ ] Genesis Cohort onboarding: builders, integration partners, validator operators (tracks already open — see the project site).
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
