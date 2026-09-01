@@ -45,6 +45,7 @@ Usually, no. The token almost never needs to change. Figure out what you're actu
 
 ## Step 2: Groth16Verifier — ⚠️ the most important note in this whole checklist
 
+
 **If you are NOT changing the proving system itself** — do not generate a new Verifier.sol. Reuse the existing one (`0x5E4D...4D470`). Every fresh run of zk-toolkit produces **new cryptographic keys**, incompatible with any previously-generated proof.
 
 **If you genuinely need a new verifier**:
@@ -52,7 +53,14 @@ Usually, no. The token almost never needs to change. Figure out what you're actu
 2. Deploy the resulting `Verifier.sol`
 3. Copy the new address
 4. **Remember**: any test proof for a withdrawal must now be generated from that same tool session — calldata from older sessions will not work against this verifier
+   
+### 💡 Lesson learned: save your .zkey file
 
+After running Setup in `tools/zk-toolkit.html`, **download and keep `withdraw_final.zkey`** somewhere safe (not just the Verifier.sol it produces). This one file lets you generate additional valid proofs later — for a different deposit, in a completely separate browser session, days later — without redeploying the verifier or the pool at all.
+
+`zk-toolkit.html` now has a "load existing zkey" option in Step 3 specifically for this: skip Setup entirely, upload a previously-saved `.zkey`, and go straight to generating a new proof that's still compatible with your already-deployed verifier.
+
+This was learned the hard way — an earlier version of this checklist assumed every new proof required either reusing the exact same continuous browser session, or a fresh full redeploy. Neither is true if you kept the zkey file.
 ---
 
 ## Step 3: PoseidonT3 (library)
