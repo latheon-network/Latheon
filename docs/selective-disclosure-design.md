@@ -83,7 +83,7 @@ This is **not** a change to the currently deployed `LatheonShieldedPoolV3`. It w
 ## 6. Next steps
 
 1. [x] ~~Prototype `disclose.circom` in zkrepl.dev~~ — **done and verified**: compiles cleanly (729 non-linear constraints, notably lighter than `withdraw.circom`'s 2446, as expected since there's no Merkle tree membership check), and a test witness was generated successfully against independently-computed Poseidon values, confirming the circuit's logic matches the design in §3.4 exactly. See `circuits/disclose.circom`.
-2. Prototype the modified `withdraw.circom` (two secrets instead of one).
+2. [x] ~~Prototype the modified `withdraw.circom` (two secrets instead of one)~~ — **done and verified**: compiles cleanly (2689 non-linear constraints — 243 more than the original `withdraw.circom`'s 2446, exactly matching the cost of one additional Poseidon(2) call, as expected), with public inputs: 2 and private inputs: 18 (spendKey, viewKey, 8 pathElements, 8 pathIndices), and a test witness generated successfully. See `circuits/withdraw_v2.circom`.
 3. Only after both circuits are independently verified: design the V4 contract and repeat the deployment process documented in `DEPLOYMENT-CHECKLIST.en.md`.
 
 This document intentionally stops at the design stage — see `ROADMAP.md` for when circuit prototyping is scheduled.
