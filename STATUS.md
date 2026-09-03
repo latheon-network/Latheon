@@ -79,20 +79,19 @@ Nothing currently open on either track — see §5 for near-term targets.
 - Security audit ahead of any mainnet consideration.
 - A decision on whether/how the selective-disclosure track (§3) merges into the production track, once it's fully tested.
 
-## 6. Long-term vision (⚪ VISION)
+## 6. Long-term vision (⚪ VISION) — Ethereum L2, not a sovereign L1
 
-The following are **not implemented today** and should not be read as current capabilities:
+**This section changed.** The vision is now an Ethereum Layer 2 (built on an existing ZK-rollup framework), not a sovereign Layer 1 built from scratch — see `ROADMAP.md` for the full reasoning. In short: bootstrapping an L1's own consensus and validator security is a multi-year undertaking with no real precedent among small teams; an L2 inherits Ethereum's security instead, which is a categorically smaller and more achievable engineering problem, and keeps the team's actual expertise (privacy circuits) as the differentiator rather than requiring separate consensus-research work.
 
-- A sovereign Latheon consensus layer (own validator set).
-- DAG-based mempool with BFT finality.
-- Modular data availability (including data availability sampling).
-- Native EVM + WASM dual execution environment.
-- Native light clients for Ethereum/Bitcoin interoperability.
-- PLONK/Halo-style proving as an alternative to Groth16.
-- A permissionless validator network with staking and slashing.
-- Mainnet deployment.
+Not implemented today, and not decided in detail — this is a direction, not a plan:
 
-These are research directions for a 12–18 month horizon, contingent on funding and team growth — see `ROADMAP.md`.
+- Deploy as an Ethereum L2 using an existing ZK-rollup framework (candidates under consideration: Polygon CDK, ZK Stack — undecided).
+- Latheon's shielded pool and selective disclosure mechanism become the appchain's core application.
+- Realistic inherited properties: fast finality, low fees, and — honestly — a centralized sequencer at launch, matching virtually every production ZK rollup today. Full decentralization of sequencing/proving is an open, industry-wide problem.
+- PLONK/Halo as an alternative to Groth16 remains an open question, independent of this change.
+- Dropped from the earlier plan: a dedicated Latheon consensus layer, a DAG-based mempool, a permissionless validator set, and native light clients — an L2 doesn't need or want its own validator set; it inherits Ethereum's.
+
+This is a 12–18 month horizon, contingent on funding and team growth — see `ROADMAP.md`.
 
 ## 7. Known limitations
 
