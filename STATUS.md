@@ -47,7 +47,7 @@ Source code is verified on Sourcify and Blockscout — inspect it directly from 
 
 This exact flow — including the on-chain Merkle tree update — has been executed and confirmed on Sepolia.
 
-## 3. Structured selective disclosure — experimental parallel track (🟡 PROTOTYPE, PARTIALLY LIVE)
+## 3. Structured selective disclosure — experimental parallel track (🟢 LIVE, both flows confirmed)
 
 Separate from the production track above, and **not a replacement for it** — see `docs/selective-disclosure-design.md` for the full design. This addresses a real limitation of the production track's disclosure mechanism (§7 below): sharing your `secret` today grants full spending power, not just proof of authorship. The design splits a single secret into `spendKey` (spend-only) and `viewKey` (disclosure-only).
 
@@ -55,18 +55,20 @@ Separate from the production track above, and **not a replacement for it** — s
 |---|---|---|
 | LatheonShieldedPoolV4 | `0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7` | 🟢 Deployed, deposit→withdraw tested end-to-end |
 | Groth16Verifier (for `withdraw_v2.circom`) | `0x7d957dA586C00010e69e5Ed1192171F9a117626C` | 🟢 Deployed, confirmed matching on-chain |
+| Groth16Verifier (for `disclose.circom`) | `0xd56e6125b2dF850D32F8c3538fF840528c53caf5` | 🟢 Deployed, confirmed matching on-chain |
 | PoseidonT3 (separate instance for V4) | `0x4EB857fEb8FC91F438122270aBbb16F6a5891720` | 🟢 Deployed |
 
-**What's actually confirmed working (🟢 LIVE):** the modified withdrawal path. `circuits/withdraw_v2.circom` (commitment now depends on both `spendKey` and `viewKey`) compiles cleanly and a real deposit → proof → withdraw cycle has been executed and confirmed on-chain against `LatheonShieldedPoolV4` — including a pre-submission check confirming the generated proof matched the deployed verifier before any gas was spent.
+**What's confirmed working end-to-end (🟢 LIVE) — both halves:**
+- **Withdrawal:** `circuits/withdraw_v2.circom` (commitment depends on both `spendKey` and `viewKey`) compiles cleanly and a real deposit → proof → withdraw cycle has been executed and confirmed on-chain against `LatheonShieldedPoolV4`.
+- **Disclosure:** `circuits/disclose.circom` compiles cleanly, and a real proof — binding `viewKey` to an auditor's nonce without revealing either `spendKey` or `viewKey` — has been generated and independently verified via a direct, read-only on-chain call to its deployed `Groth16Verifier`. This is exactly the flow a real auditor would perform: no wallet, no gas, no trust in the depositor's word required.
 
-**What's designed but NOT yet deployed or tested (🟡 PROTOTYPE ONLY):** the disclosure side. `circuits/disclose.circom` compiles successfully in zkrepl.dev and produces a valid witness against independently-computed test values — but it has **not** been deployed as an on-chain verifier, and the full disclosure flow (depositor generates a proof → auditor verifies it via a read-only call, per §3.5 of the design doc) has never been executed end-to-end. Circuit compiling correctly is not the same claim as "disclosure works" — that step remains open.
+Both circuits reuse a saved `.zkey` across sessions rather than requiring a fresh trusted setup each time — see `DEPLOYMENT-CHECKLIST.en.md`.
 
 This entire track is a solo-founder research prototype, not something we'd currently recommend building on. It exists to prove the design is implementable, ahead of grant-funded work to harden and properly launch it.
 
 ## 4. In development (🟡 IN DEVELOPMENT)
 
-- Deploying and testing the `disclose.circom` verifier and the full disclosure flow (see §3 above).
-- Automated test coverage for `LatheonShieldedPoolV4` (currently only manually tested, unlike V3's 18 automated checks).
+- Automated test coverage for `LatheonShieldedPoolV4` and the disclosure verifier (currently only manually tested, unlike V3's 18 automated checks).
 
 ## 5. Near-term targets (🔵 TARGET)
 
@@ -96,8 +98,8 @@ These are research directions for a 12–18 month horizon, contingent on funding
 - The circuits and contracts have had limited external review.
 - This is a solo-founder prototype built with AI-assisted development, not yet a funded team effort.
 - Metadata (transaction timing, gas usage) remains publicly visible on-chain — see `THREAT-MODEL.md` for the full picture of what is and isn't protected.
-- **Production track (V3):** selective disclosure today means sharing your `secret` directly, which also grants spending power — see §3 above and `docs/selective-disclosure-design.md` for the fix being prototyped.
-- **Experimental track (V4):** the disclosure mechanism itself (the actual point of this track) is not yet deployed or tested — see §3.
+- **Production track (V3):** selective disclosure today means sharing your `secret` directly, which also grants spending power — see §3 above and `docs/selective-disclosure-design.md` for the fix, which is now working on a separate experimental track.
+- **Experimental track (V4):** confirmed working end-to-end on testnet, but has had no independent security review or automated test coverage yet — see §4.
 
 ## 8. Verification
 
