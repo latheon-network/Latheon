@@ -64,11 +64,13 @@ Separate from the production track above, and **not a replacement for it** — s
 
 Both circuits reuse a saved `.zkey` across sessions rather than requiring a fresh trusted setup each time — see `DEPLOYMENT-CHECKLIST.en.md`.
 
+**Test coverage (🟢 LIVE):** `LatheonShieldedPoolV4` has the same 6 automated checks as V3 (mock-verifier-based, testing contract logic). The disclosure verifier additionally has 3 tests using **real cryptography** — the actual, already-on-chain-confirmed proof — rather than a mock, including a test confirming a proof bound to one auditor's nonce is correctly rejected against a different nonce. 27 automated checks pass across the whole project (0 failures).
+
 This entire track is a solo-founder research prototype, not something we'd currently recommend building on. It exists to prove the design is implementable, ahead of grant-funded work to harden and properly launch it.
 
 ## 4. In development (🟡 IN DEVELOPMENT)
 
-- Automated test coverage for `LatheonShieldedPoolV4` and the disclosure verifier (currently only manually tested, unlike V3's 18 automated checks).
+Nothing currently open on either track — see §5 for near-term targets.
 
 ## 5. Near-term targets (🔵 TARGET)
 
@@ -99,7 +101,7 @@ These are research directions for a 12–18 month horizon, contingent on funding
 - This is a solo-founder prototype built with AI-assisted development, not yet a funded team effort.
 - Metadata (transaction timing, gas usage) remains publicly visible on-chain — see `THREAT-MODEL.md` for the full picture of what is and isn't protected.
 - **Production track (V3):** selective disclosure today means sharing your `secret` directly, which also grants spending power — see §3 above and `docs/selective-disclosure-design.md` for the fix, which is now working on a separate experimental track.
-- **Experimental track (V4):** confirmed working end-to-end on testnet, but has had no independent security review or automated test coverage yet — see §4.
+- **Experimental track (V4):** confirmed working end-to-end on testnet, with automated test coverage now in place, but has had no independent security review yet.
 
 ## 8. Verification
 
