@@ -14,7 +14,7 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 - Groth16 verifier deployed, checking proofs against the pool's own on-chain root history.
 - A complete shielded withdrawal — deposit, on-chain tree update, off-chain proof, on-chain verification, withdrawal to an unlinked address — demonstrated end-to-end on Sepolia.
 - Contracts, circuit, and tooling published as open source.
-- Public faucet.
+
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
@@ -22,13 +22,14 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## NEXT — Public developer testnet (target: 0–3 months)
 
 **Protocol**
-- [x] Automated test coverage for all three core contracts (18 tests, 0 failures) — see test/ in the repository.
+- [ ] Expanded contract test coverage, invariant and fuzz testing.
 - [ ] Independent review pass on the zero-knowledge circuit.
 
 **Developer experience**
-- [x] Block explorer integration — live activity feed on the website, pulling real-time deposit/withdrawal/claim data directly from Blockscout's public API.
-- [x] Deployment automation and reproducible build instructions — see DEPLOYMENT-CHECKLIST.en.md in the repository root.
-- [x] Developer documentation and an initial SDK.
+- [ ] Public faucet.
+- [ ] Block explorer integration.
+- [ ] Deployment automation and reproducible build instructions.
+- [ ] Developer documentation and an initial SDK.
 
 **Open source foundation**
 - [x] Contributing guide, security policy, threat model.
@@ -41,7 +42,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## THEN — Genesis Cohort & validator testnet (target: 3–9 months)
 
 **Developer ecosystem**
-- [x] SDK release and example integrations — sdk/ (JavaScript SDK) and sdk/demo-app.html (a real, wallet-connected reference app: deposit, automatic Merkle proof construction from on-chain events, and withdrawal, confirmed working end-to-end on Sepolia — not a mockup).
+- [ ] SDK release and example integrations.
 - [ ] Genesis Cohort onboarding: builders, integration partners, validator operators (tracks already open — see the project site).
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
@@ -65,18 +66,19 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
 
-## VISION — Sovereign modular network (12–18+ months, funding-dependent)
+## VISION — Ethereum L2, not a sovereign L1 (12–18+ months, funding-dependent)
 
-These are long-term research directions, explicitly **not** current capabilities (see `STATUS.md` §6 for the same list with status labels):
+**This section changed.** Earlier versions of this roadmap described a sovereign Layer 1 — Latheon's own consensus layer, validator set, and DAG-based mempool, built entirely from scratch. After weighing the realistic engineering cost against what a solo-founder, AI-assisted project can credibly deliver, the direction has changed: **Latheon's long-term vision is now an Ethereum Layer 2, not a Layer 1.**
 
-- A dedicated Latheon consensus layer, decoupled from execution.
-- DAG-based mempool with BFT finality.
-- Modular data availability, including data availability sampling.
-- Dual EVM + WASM execution environment.
-- Native light clients for Ethereum/Bitcoin interoperability.
-- Alternative proving systems (PLONK/Halo) evaluated against Groth16's trusted-setup tradeoffs.
-- Role-separated node types (collators / validators / archivers) instead of one-node-does-everything.
-- Dynamic, EIP-1559-style fee mechanisms and formal slashing conditions.
+Why this changed: building an L1's consensus and validator security from zero is a multi-year, large-team undertaking with no real precedent among small teams. An L2 built on an existing, audited rollup framework inherits Ethereum's security instead of having to bootstrap its own — a categorically smaller, more achievable problem. It also keeps our actual expertise (the privacy circuits) as the differentiator, rather than requiring us to also become a consensus-research team.
+
+- Deploy on Ethereum mainnet as an L2, using an existing ZK-rollup framework (candidates: Polygon CDK, ZK Stack — not yet decided, see open questions below) rather than building a rollup's validity-proving engine from scratch.
+- Latheon's own contracts (the shielded pool, selective disclosure mechanism) become the appchain's core application, not a separate protocol layered on someone else's general-purpose chain.
+- Realistic near-term ZK-rollup properties inherited from the chosen framework: sub-second-to-seconds finality, fees far below L1 (typically single-digit cents for simple transfers on comparable rollups), and — honestly — a centralized sequencer at launch, same as virtually every production ZK rollup today. Full sequencer/prover decentralization remains an open, industry-wide problem, not something we'd solve alone.
+
+**Open questions, not yet decided:**
+- Polygon CDK (shared liquidity and tooling via AggLayer, faster to stand up) vs. ZK Stack (more sovereignty and configurability, more operational overhead) — see the framework comparison discussion, not yet resolved.
+- What stays true from the old plan and what doesn't: PLONK/Halo as an alternative to Groth16 is still a reasonable question to revisit, independent of the L1→L2 change. Native light clients, a permissionless validator set, and a dedicated consensus layer are dropped — an L2 doesn't need or want its own validator set; it inherits Ethereum's.
 
 This phase is deliberately last. It is the reward for getting NOW/NEXT/THEN right, not a substitute for them.
 
