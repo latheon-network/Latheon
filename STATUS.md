@@ -15,7 +15,7 @@ This document separates what is currently implemented and independently verifiab
 
 ---
 
-## 1. Deployed contracts (🟢 LIVE)
+## 1. Deployed contracts (🟢 LIVE) — production track
 
 All on Ethereum Sepolia:
 
@@ -29,11 +29,15 @@ All on Ethereum Sepolia:
 
 Source code is verified on Sourcify and Blockscout — inspect it directly from the Etherscan links above.
 
-**LatheonFaucet (🟢 LIVE):** anyone can call `claim()` to receive 500 test LTH, once every 24 hours per address — no need to request tokens from the team directly. Funded with 50,000 LTH at launch (100 claims). This closes the "public faucet" item from the NEXT section of the roadmap.
+**LatheonFaucet (🟢 LIVE):** anyone can call `claim()` to receive 500 test LTH, once every 24 hours per address — no need to request tokens from the team directly. Funded with 50,000 LTH at launch (100 claims).
 
-**Test coverage (🟢 LIVE):** all three core contracts — LatheonToken, LatheonFaucet, LatheonShieldedPoolV3 — have automated Solidity unit tests (18 checks total, all passing), runnable directly in Remix with no local setup. Pool tests use a mock verifier to test contract logic (deposits, root tracking, double-spend prevention) independently of the real cryptography, which is separately confirmed by the actual on-chain proof already verified on Sepolia.
+**Test coverage (🟢 LIVE):** all three core contracts above — LatheonToken, LatheonFaucet, LatheonShieldedPoolV3 — have automated Solidity unit tests (18 checks total, all passing), runnable directly in Remix with no local setup. Pool tests use a mock verifier to test contract logic (deposits, root tracking, double-spend prevention) independently of the real cryptography, which is separately confirmed by the actual on-chain proof already verified on Sepolia.
 
-## 2. Demonstrated flow (🟢 LIVE)
+**Developer SDK and reference app (🟢 LIVE):** a JavaScript SDK (`sdk/`) automates commitment/nullifier computation and Merkle proof construction from on-chain events — the part that previously required manually reading `zeros()` and `roots()` by hand. `sdk/demo-app.html` is a real, wallet-connected reference application: connect MetaMask, claim from the faucet, deposit, and withdraw, with the Merkle path built automatically. A full deposit → withdraw cycle through this app has been executed and confirmed on Sepolia — not a mockup.
+
+**Block explorer integration (🟢 LIVE):** the website's documentation section includes a live activity feed, pulling real deposit/withdrawal/claim transactions directly from Blockscout's public API.
+
+## 2. Demonstrated flow (🟢 LIVE) — production track
 
 1. LTH is deposited into the shielded pool (fixed denomination: 100 LTH). The deposit inserts the commitment into an **on-chain** incremental Merkle tree in the same transaction — no separate step, no operator involved.
 2. A zero-knowledge proof is generated off-chain, proving knowledge of a secret tied to a deposit — without revealing which one.
@@ -43,21 +47,33 @@ Source code is verified on Sourcify and Blockscout — inspect it directly from 
 
 This exact flow — including the on-chain Merkle tree update — has been executed and confirmed on Sepolia.
 
-## 3. What changed since the last update
+## 3. Structured selective disclosure — experimental parallel track (🟡 PROTOTYPE, PARTIALLY LIVE)
 
-The Merkle commitment tree is now **fully on-chain** (`LatheonShieldedPoolV3`), using an on-chain Poseidon hash implementation. This replaces the earlier prototype (`LatheonShieldedPoolZK`), which relied on an off-chain-maintained, owner-published root. That centralization point is now closed — no owner or operator action is required anywhere in the deposit → withdraw flow.
+Separate from the production track above, and **not a replacement for it** — see `docs/selective-disclosure-design.md` for the full design. This addresses a real limitation of the production track's disclosure mechanism (§7 below): sharing your `secret` today grants full spending power, not just proof of authorship. The design splits a single secret into `spendKey` (spend-only) and `viewKey` (disclosure-only).
+
+| Contract | Address | Status |
+|---|---|---|
+| LatheonShieldedPoolV4 | `0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7` | 🟢 Deployed, deposit→withdraw tested end-to-end |
+| Groth16Verifier (for `withdraw_v2.circom`) | `0x7d957dA586C00010e69e5Ed1192171F9a117626C` | 🟢 Deployed, confirmed matching on-chain |
+| PoseidonT3 (separate instance for V4) | `0x4EB857fEb8FC91F438122270aBbb16F6a5891720` | 🟢 Deployed |
+
+**What's actually confirmed working (🟢 LIVE):** the modified withdrawal path. `circuits/withdraw_v2.circom` (commitment now depends on both `spendKey` and `viewKey`) compiles cleanly and a real deposit → proof → withdraw cycle has been executed and confirmed on-chain against `LatheonShieldedPoolV4` — including a pre-submission check confirming the generated proof matched the deployed verifier before any gas was spent.
+
+**What's designed but NOT yet deployed or tested (🟡 PROTOTYPE ONLY):** the disclosure side. `circuits/disclose.circom` compiles successfully in zkrepl.dev and produces a valid witness against independently-computed test values — but it has **not** been deployed as an on-chain verifier, and the full disclosure flow (depositor generates a proof → auditor verifies it via a read-only call, per §3.5 of the design doc) has never been executed end-to-end. Circuit compiling correctly is not the same claim as "disclosure works" — that step remains open.
+
+This entire track is a solo-founder research prototype, not something we'd currently recommend building on. It exists to prove the design is implementable, ahead of grant-funded work to harden and properly launch it.
 
 ## 4. In development (🟡 IN DEVELOPMENT)
 
-- Developer-facing documentation and SDK.
-- Public testnet infrastructure (faucet, explorer integration).
+- Deploying and testing the `disclose.circom` verifier and the full disclosure flow (see §3 above).
+- Automated test coverage for `LatheonShieldedPoolV4` (currently only manually tested, unlike V3's 18 automated checks).
 
 ## 5. Near-term targets (🔵 TARGET)
 
-- Public testnet: faucet, block explorer integration, external deployment instructions.
 - Genesis Cohort: onboarding external builders, integration partners, and validator operators.
-- Independent review of the zero-knowledge circuit.
+- Independent review of the zero-knowledge circuit(s).
 - Security audit ahead of any mainnet consideration.
+- A decision on whether/how the selective-disclosure track (§3) merges into the production track, once it's fully tested.
 
 ## 6. Long-term vision (⚪ VISION)
 
@@ -76,14 +92,16 @@ These are research directions for a 12–18 month horizon, contingent on funding
 
 ## 7. Known limitations
 
-- No formal third-party security audit has been performed.
-- The circuit and contracts have had limited external review.
+- No formal third-party security audit has been performed, on either track.
+- The circuits and contracts have had limited external review.
 - This is a solo-founder prototype built with AI-assisted development, not yet a funded team effort.
 - Metadata (transaction timing, gas usage) remains publicly visible on-chain — see `THREAT-MODEL.md` for the full picture of what is and isn't protected.
+- **Production track (V3):** selective disclosure today means sharing your `secret` directly, which also grants spending power — see §3 above and `docs/selective-disclosure-design.md` for the fix being prototyped.
+- **Experimental track (V4):** the disclosure mechanism itself (the actual point of this track) is not yet deployed or tested — see §3.
 
 ## 8. Verification
 
-Anyone can independently confirm the claims in §1–2 via the Etherscan links above, or by cloning this repository and reproducing the flow using `tools/zk-toolkit.html` and `circuits/withdraw.circom`.
+Anyone can independently confirm the claims in §1–2 via the Etherscan links above, or by cloning this repository and reproducing the flow using `tools/zk-toolkit.html` and `circuits/withdraw.circom`. For the experimental track, see `circuits/withdraw_v2.circom`, `circuits/disclose.circom`, and `contracts/LatheonShieldedPoolV4.sol`.
 
 ---
 
