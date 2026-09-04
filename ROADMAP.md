@@ -39,25 +39,22 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
 
-## THEN — Genesis Cohort & validator testnet (target: 3–9 months)
+## THEN — Genesis Cohort growth (target: 3–9 months)
+
+**This section changed too, following the L1→L2 decision.** The original "Validator testnet" subsection assumed Latheon would need its own validator set — that's no longer the plan. An Ethereum L2 inherits Ethereum's validator security; it doesn't bootstrap its own. That entire subsection is dropped rather than carried forward stale.
 
 **Developer ecosystem**
-- [ ] SDK release and example integrations.
-- [ ] Genesis Cohort onboarding: builders, integration partners, validator operators (tracks already open — see the project site).
+- [x] ~~SDK release and example integrations~~ — done, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app.html`, tested end-to-end on Sepolia).
+- [ ] Genesis Cohort onboarding: builders, integration partners (the "validator operators" track is on hold pending clarity on what, if anything, node operation means for an L2 built on Polygon CDK — see `ROADMAP.md` VISION section).
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
-**Validator testnet**
-- [ ] Validator node specification and deployment guide.
-- [ ] Monitoring and onboarding process.
-- [ ] Target: 10+ external validators (a development milestone, not a guarantee).
-
 **Privacy work**
-- [ ] Circuit improvements and proof-generation benchmarks.
-- [ ] Design work on a protocol-level selective disclosure mechanism (today this is a manual, off-protocol action — see `THREAT-MODEL.md` §2.5).
+- [x] ~~Design work on a protocol-level selective disclosure mechanism~~ — done and live. `LatheonShieldedPoolV4` implements the spendKey/viewKey split described in `docs/selective-disclosure-design.md`; both the withdrawal and the disclosure proof are tested end-to-end on Sepolia. See `STATUS.md` §3. This is no longer a manual, off-protocol action for the experimental track — it remains manual only on the production V3 track, which V4 is intended to eventually replace once independently reviewed.
+- [ ] Proof-generation timing benchmark — instrumentation added to `tools/zk-toolkit.html` (see `docs/gas-benchmark.en.md`), but a real measurement hasn't been recorded yet. Gas costs are already benchmarked from real transactions; generation time is the one number still missing.
 
 ---
 
-## Mainnet candidate preparation (target: 9–12 months)
+## Mainnet candidate preparation (target: 9–12 months)## Mainnet candidate preparation (target: 9–12 months)
 
 - [ ] Independent security audit.
 - [ ] Independent cryptographic review.
