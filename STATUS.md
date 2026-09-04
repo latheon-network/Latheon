@@ -79,16 +79,19 @@ Nothing currently open on either track — see §5 for near-term targets.
 - Security audit ahead of any mainnet consideration.
 - A decision on whether/how the selective-disclosure track (§3) merges into the production track, once it's fully tested.
 
-## 6. Long-term vision (⚪ VISION) — Ethereum L2, not a sovereign L1
+## 6. Long-term vision (⚪ VISION) — Ethereum L2 on Polygon CDK, not a sovereign L1
 
-**This section changed.** The vision is now an Ethereum Layer 2 (built on an existing ZK-rollup framework), not a sovereign Layer 1 built from scratch — see `ROADMAP.md` for the full reasoning. In short: bootstrapping an L1's own consensus and validator security is a multi-year undertaking with no real precedent among small teams; an L2 inherits Ethereum's security instead, which is a categorically smaller and more achievable engineering problem, and keeps the team's actual expertise (privacy circuits) as the differentiator rather than requiring separate consensus-research work.
+**This section changed twice.** Earlier: a sovereign Layer 1, built from scratch. Then: an Ethereum L2, framework undecided. Now: both the framework and practical deployment path are decided — see `ROADMAP.md` for the full reasoning behind each choice.
 
-Not implemented today, and not decided in detail — this is a direction, not a plan:
+Not implemented today — this is a direction, not something running yet:
 
-- Deploy as an Ethereum L2 using an existing ZK-rollup framework (candidates under consideration: Polygon CDK, ZK Stack — undecided).
+- **Framework: Polygon CDK**, chosen over ZK Stack for faster small-team deployment, a dedicated compliance-oriented chain offering matching our banking/institutional target segment, a 2026 drop in proof-generation cost that makes low-volume chains viable, and no third-party protocol fee skimmed from activity.
+- **Deployment path: a Rollup-as-a-Service (RaaS) provider**, not Polygon Labs directly (now an enterprise, sales-led product) or self-hosting (the prover alone needs a documented 96-core/740GB server).
+- **Mode: Validium / cheaper external DA**, chosen deliberately now — this is a foundational, hard-to-change-later decision (separate contracts and infrastructure per mode), not a setting to revisit casually. See `ROADMAP.md` for why.
+- **Gas token: LTH.**
 - Latheon's shielded pool and selective disclosure mechanism become the appchain's core application.
-- Realistic inherited properties: fast finality, low fees, and — honestly — a centralized sequencer at launch, matching virtually every production ZK rollup today. Full decentralization of sequencing/proving is an open, industry-wide problem.
-- PLONK/Halo as an alternative to Groth16 remains an open question, independent of this change.
+- Realistic properties: a few seconds for trusted confirmation (not sub-second — corrected from an earlier overstatement, see `docs/gas-benchmark.en.md`), minutes-to-hours for full L1-anchored finality, fees in the fractions-of-a-cent range, and — honestly — a centralized sequencer at launch, matching virtually every production ZK rollup today.
+- **Still open, not solved:** bridge privacy leakage (funding an L2 wallet from a linkable L1 address undermines the privacy guarantee itself — see `THREAT-MODEL.md` and `ROADMAP.md` for mitigation options under consideration) and the exact timing of any L1→L2 transition (the current V3/V4 prototypes on Ethereum L1 are unaffected and keep working as-is).
 - Dropped from the earlier plan: a dedicated Latheon consensus layer, a DAG-based mempool, a permissionless validator set, and native light clients — an L2 doesn't need or want its own validator set; it inherits Ethereum's.
 
 This is a 12–18 month horizon, contingent on funding and team growth — see `ROADMAP.md`.
