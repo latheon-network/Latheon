@@ -22,20 +22,20 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## NEXT — Public developer testnet (target: 0–3 months)
 
 **Protocol**
-- [ ] Expanded contract test coverage, invariant and fuzz testing.
-- [ ] Independent review pass on the zero-knowledge circuit.
+- [x] ~~Expanded contract test coverage, invariant and fuzz testing~~ — done. 27 automated tests, 0 failures, across production and disclosure tracks. See `STATUS.md` §1.
+- [ ] Independent review pass on the zero-knowledge circuit. **The one remaining item in this entire section.**
 
 **Developer experience**
-- [ ] Public faucet.
-- [ ] Block explorer integration.
-- [ ] Deployment automation and reproducible build instructions.
-- [ ] Developer documentation and an initial SDK.
+- [x] ~~Public faucet~~ — done, live. `LatheonFaucet`, 500 test LTH per address every 24h.
+- [x] ~~Block explorer integration~~ — done. Live on-chain activity feed on the website, pulling real-time data from Blockscout.
+- [x] ~~Deployment automation and reproducible build instructions~~ — done. See `DEPLOYMENT-CHECKLIST.en.md`.
+- [x] ~~Developer documentation and an initial SDK~~ — done. See `sdk/`, including a real, wallet-connected demo app tested end-to-end.
 
 **Open source foundation**
 - [x] Contributing guide, security policy, threat model.
 - [ ] Good-first-issue backlog.
 
-**Target outcome:** an external developer can use the testnet without direct help from the core team.
+**Target outcome:** an external developer can use the testnet without direct help from the core team. **Five of six items above are done — independent circuit review is the only gap, and it's external (funding/partner-dependent), not something we can close ourselves.**
 
 ---
 
@@ -54,7 +54,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
 
-## Mainnet candidate preparation (target: 9–12 months)## Mainnet candidate preparation (target: 9–12 months)
+## Mainnet candidate preparation (target: 9–12 months)
 
 - [ ] Independent security audit.
 - [ ] Independent cryptographic review.
