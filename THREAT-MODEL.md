@@ -59,6 +59,14 @@ We do **not** currently assume protection against:
 
 ## 9. Future work
 
+## Long-term cryptographic risk: post-quantum security (not urgent, but not zero)
+
+Latheon's current cryptography — Groth16 proofs over elliptic curves, and Poseidon as the hash function underlying the Merkle tree, commitments, and nullifiers — is not post-quantum secure. Elliptic-curve-based systems are broken by Shor's algorithm on a sufficiently powerful quantum computer, and Poseidon, like other algebraic hash functions designed to be cheap to prove inside a circuit, has meaningfully less mature cryptanalysis behind it than a standard hash like SHA-256.
+
+This is a long-term, industry-wide consideration, not something specific to Latheon and not an urgent one: practical, cryptographically-relevant quantum computers remain a matter of years to decades, not an imminent threat, and the overwhelming majority of production zero-knowledge systems deployed today share the same underlying assumptions we do. We're not carrying unusual risk relative to the rest of the field.
+
+The direction the broader cryptography community is moving — mirroring the same shift already standardized for encryption and digital signatures (ML-KEM, SLH-DSA) — is toward lattice-based constructions, including lattice-based zkVMs and proving systems now emerging from serious research groups. This reinforces, rather than replaces, the open question already on our own roadmap regarding PLONK/Halo as an alternative to Groth16: a future migration path likely needs to consider lattice-based options as a third branch, not just a curve-based/hash-based choice. No decision or timeline is attached to this today — it's flagged here so it isn't quietly forgotten as the project matures.
+
 - A structured, protocol-level selective disclosure mechanism.
 - Larger, more active anonymity sets as usage grows.
 - Independent cryptographic review and a formal security audit before any mainnet consideration.
