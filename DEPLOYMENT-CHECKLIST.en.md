@@ -97,17 +97,6 @@ This was learned the hard way — an earlier version of this checklist assumed e
 2. Read `roots(currentRootIndex())` — should be a nonzero number
 3. If the verifier changed, generate a fresh proof against the new root/nullifier and test `withdraw`
 
----
-
-## Step 7: Update every place that references the old addresses
-
-A single redeploy touches at least **five** places if an address changed:
-
-- [ ] Website, docs section (contract cards, all 3 languages)
-- [ ] `STATUS.md` on GitHub
-- [ ] `ROADMAP.md` / `THREAT-MODEL.md`, if they contain direct address references
-- [ ] Investor deck, slide 4
-- [ ] Grant application drafts — note that an already-submitted application can't be edited, only future ones
 
 ---
 
