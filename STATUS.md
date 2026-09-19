@@ -68,6 +68,8 @@ Both circuits reuse a saved `.zkey` across sessions rather than requiring a fres
 
 This entire track is a solo-founder research prototype, not something we'd currently recommend building on. It exists to prove the design is implementable, ahead of grant-funded work to harden and properly launch it.
 
+**Cross-chain confirmation (🟢 LIVE):** the same withdrawal flow has been independently deployed and confirmed end-to-end on Arbitrum Sepolia as well — not just Ethereum Sepolia. A real deposit → proof generation → on-chain proof verification (via a free read-only call, before spending gas) → withdrawal cycle succeeded, transaction `0x69d2aca1044c48a5e5c5021be043589208025eb3b1f9708b23e190c96e54233c`. See `arbitrum-sepolia-addresses-and-benchmark.md` for the full contract addresses and a real, measured gas comparison against Ethereum L1 — the honest finding is that Arbitrum Sepolia used slightly *more* gas units per operation (+1.5% deposit, +8.4% withdraw), not fewer; L2 cost savings come from gas price, not gas units, on this evidence.
+
 ## 4. In development (🟡 IN DEVELOPMENT)
 
 Nothing currently open on either track — see §5 for near-term targets.
@@ -85,7 +87,7 @@ Nothing currently open on either track — see §5 for near-term targets.
 
 Not implemented today — this is a direction, not something running yet:
 
-- **Framework: actively being evaluated.** A ZK-native framework with a dedicated compliance-oriented chain offering (matching our banking/institutional target segment) remains the leading candidate on paper — but we're gaining direct, hands-on experience in other ecosystems (including Arbitrum's builder programs) before naming a final choice publicly.
+- **Framework: actively being evaluated.** A ZK-native framework with a dedicated compliance-oriented chain offering (matching our banking/institutional target segment) remains the leading candidate on paper — but we're gaining direct, hands-on experience in other ecosystems before naming a final choice publicly. Concretely: our full V4 stack is now deployed and confirmed working end-to-end on Arbitrum Sepolia (via Arbitrum's Singapore Buildathon), not just described as a future plan — see §3 above.
 - **Deployment path:** a managed Rollup-as-a-Service provider, regardless of framework — self-hosting requires infrastructure (some frameworks' prover nodes need a documented 96-core/740GB server) well beyond solo-founder scale.
 - **Mode:** rollup vs. validium is typically the first, hardest-to-reverse decision a given framework requires — to be settled once the framework itself is.
 - **Gas token: LTH** — holds regardless of framework.
