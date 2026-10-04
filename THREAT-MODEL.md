@@ -57,6 +57,16 @@ We do **not** currently assume protection against:
 - No independent cryptographic review or formal security audit has been performed yet.
 - Anonymity set size is currently limited by real testnet usage.
 
+### 8.1 Known issue (V3 / V4 pools): the withdrawal recipient is not bound to the proof. Fixed in V5.
+
+In `LatheonShieldedPoolV3` and `V4`, the `recipient` passed to `withdraw()` is not part of the zero-knowledge statement; the circuit's public inputs are only `(root, nullifierHash)`. A valid proof is therefore valid for any recipient. An observer who sees a pending withdrawal before it is included can resubmit the same proof with their own address and a higher fee and receive the funds; the original withdrawal then fails because the note is already spent.
+
+- **Reproduced** against the V4 contract in a local EVM test.
+- **Exposure:** realistic where the mempool is public (Ethereum). On Arbitrum-stack chains we believe there is no public mempool, but the sequencer sees pending transactions and we do not rely on that.
+- **Funds affected so far:** none; all V3/V4 pools are testnet-only.
+- **Fix:** V5 (`circuits/withdraw_v3.circom`, `LatheonShieldedPoolV5.sol`) binds the recipient into the proof as a public input, derived by the contract from the address actually being paid. The replay is rejected in local tests. V5 pools require a new trusted-setup key pair and fresh deployments.
+- Details: `docs/withdraw-recipient-binding.md`. Setup caveats: `docs/dev-ceremony-v3.md`.
+
 ## 9. Future work
 
 ## Long-term cryptographic risk: post-quantum security (not urgent, but not zero)
