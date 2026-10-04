@@ -1,6 +1,6 @@
 # Withdrawal recipient binding: a vulnerability in V3/V4 pools, fixed in V5
 
-**Status:** fixed in `LatheonShieldedPoolV5` + `circuits/withdraw_v3.circom`. V5 pools are not yet deployed at the time of writing; all existing V3/V4 pools are testnet-only and hold test tokens only.
+**Status:** fixed in `LatheonShieldedPoolV5` + `circuits/withdraw_v3.circom`. V5 pools are deployed on the Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets (see `docs/deployments-v5.md`); the V3/V4 pools remain deployed but deprecated. Every pool is testnet-only and holds test tokens only.
 
 ## The issue
 

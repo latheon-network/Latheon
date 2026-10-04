@@ -64,7 +64,7 @@ In `LatheonShieldedPoolV3` and `V4`, the `recipient` passed to `withdraw()` is n
 - **Reproduced** against the V4 contract in a local EVM test.
 - **Exposure:** realistic where the mempool is public (Ethereum). On Arbitrum-stack chains we believe there is no public mempool, but the sequencer sees pending transactions and we do not rely on that.
 - **Funds affected so far:** none; all V3/V4 pools are testnet-only.
-- **Fix:** V5 (`circuits/withdraw_v3.circom`, `LatheonShieldedPoolV5.sol`) binds the recipient into the proof as a public input, derived by the contract from the address actually being paid. The replay is rejected in local tests. V5 pools require a new trusted-setup key pair and fresh deployments.
+- **Fix:** V5 (`circuits/withdraw_v3.circom`, `LatheonShieldedPoolV5.sol`) binds the recipient into the proof as a public input, derived by the contract from the address actually being paid. The replay is rejected in local tests. V5 pools use a new (development) trusted-setup key pair and are deployed as fresh contracts on all three testnets (`docs/deployments-v5.md`).
 - Details: `docs/withdraw-recipient-binding.md`. Setup caveats: `docs/dev-ceremony-v3.md`.
 
 ## 9. Future work
