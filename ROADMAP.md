@@ -14,6 +14,7 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 - Groth16 verifier deployed, checking proofs against the pool's own on-chain root history.
 - A complete shielded withdrawal — deposit, on-chain tree update, off-chain proof, on-chain verification, withdrawal to an unlinked address — demonstrated end-to-end on Sepolia.
 - Contracts, circuit, and tooling published as open source.
+- **V5 pools** (recipient-bound proofs, pool size as a constructor parameter) deployed on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets, with integration tests using real proofs in `test/v5-integration`. See `docs/deployments-v5.md`.
 
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
@@ -22,7 +23,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## NEXT — Public developer testnet (target: 0–3 months)
 
 **Protocol**
-- [x] ~~Expanded contract test coverage, invariant and fuzz testing~~ — done. 27 automated tests, 0 failures, across production and disclosure tracks. See `STATUS.md` §1.
+- [x] ~~Expanded contract test coverage, invariant and fuzz testing~~ — done. 27 automated tests, 0 failures, across production and disclosure tracks (plus 19 integration checks with real proofs for V5). See `STATUS.md` §1 and §2a.
 - [ ] Independent review pass on the zero-knowledge circuit. **The one remaining item in this entire section.**
 
 **Developer experience**
@@ -44,12 +45,16 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 **This section changed too, following the L1→L2 decision.** The original "Validator testnet" subsection assumed Latheon would need its own validator set — that's no longer the plan. An Ethereum L2 inherits Ethereum's validator security; it doesn't bootstrap its own. That entire subsection is dropped rather than carried forward stale.
 
 **Developer ecosystem**
-- [x] ~~SDK release and example integrations~~ — done, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app.html`, tested end-to-end on Sepolia).
+- [x] ~~SDK release and example integrations~~ — done, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia).
 - [ ] Genesis Cohort onboarding: builders, integration partners (the "validator operators" track is on hold pending clarity on what, if anything, node operation means for an L2 built on a framework not yet finalized — see `ROADMAP.md` VISION section).
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
 **Privacy work**
 - [x] ~~Design work on a protocol-level selective disclosure mechanism~~ — done and live. `LatheonShieldedPoolV4` implements the spendKey/viewKey split described in `docs/selective-disclosure-design.md`; both the withdrawal and the disclosure proof are tested end-to-end on Sepolia. See `STATUS.md` §3. This is no longer a manual, off-protocol action for the experimental track — it remains manual only on the production V3 track, which V4 is intended to eventually replace once independently reviewed.
+- [ ] Public multi-party trusted-setup ceremony. The circuit must be frozen first; new keys mean new verifiers and pools. Required before any real-value deployment (`docs/dev-ceremony-v3.md`).
+- [ ] Wallet-side withdrawal planner and deposit rounding; then the distribution pool for arbitrary deposit amounts (design and evidence: `docs/distribution-pool-architecture.md`).
+- [ ] Update the JavaScript SDK for the `spendKey` / `viewKey` split and recipient-bound proofs (it currently targets the V3 pool).
+- [ ] Re-measure gas on V5 under controlled conditions (two consecutive withdrawals per network); see the note in `docs/gas-benchmark.en.md`.
 - [ ] Proof-generation timing benchmark — instrumentation added to `tools/zk-toolkit.html` (see `docs/gas-benchmark.en.md`), but a real measurement hasn't been recorded yet. Gas costs are already benchmarked from real transactions; generation time is the one number still missing.
 
 ---

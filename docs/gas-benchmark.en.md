@@ -1,3 +1,5 @@
+> **Update 2026-10-05: read this first.** The figures below were measured on V3/V4 pools. V5 has been measured on-chain once per network, on the first withdrawal from a fresh pool: Ethereum Sepolia 419,919 gas, Arbitrum Sepolia 276,769, Robinhood Chain 297,197 (LTH) and 306,346 (USDG). On a local EVM V5 costs about 277,000 gas (V4: about 270,000 on repeat withdrawals), so the contract itself did not get more expensive. Yet live Ethereum Sepolia reads about 417,000 to 420,000 for V4 and V5 alike, well above the 268,494 recorded below, and we do not know why. Until a controlled re-measurement (two consecutive withdrawals per network), do not treat the L1-versus-L2 comparison below as a current claim.
+
 # Latheon — Gas & Cost Benchmark
 
 Compiled from real, already-confirmed transactions on Sepolia — not estimates or simulations. Every number can be independently verified against the actual transaction hash in the project's deployment history.

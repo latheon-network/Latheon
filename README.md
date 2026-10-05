@@ -4,11 +4,29 @@
 
 Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure.
 
-**Status: experimental public prototype**, live on Ethereum Sepolia, with a fully on-chain Merkle commitment tree — no trusted operator anywhere in the deposit-to-withdrawal flow. See [`STATUS.md`](./STATUS.md) for exactly what's implemented today versus what's planned.
+**Status: experimental public prototype, testnets only** (Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet). The Merkle commitment tree is fully on-chain, so no trusted operator is involved in the deposit-to-withdrawal flow. There is no formal audit yet, and the trusted-setup keys are development keys. See [`STATUS.md`](./STATUS.md) for exactly what is implemented versus planned.
 
 ---
 
-## Live on Sepolia Testnet
+## Try it
+
+**Live demo: <https://latheon.xyz/demo>**. Pick a network and a pool, claim test tokens, deposit, withdraw to another address, and generate a disclosure proof for an auditor. Test tokens only, no real value. A browser wallet such as MetaMask is required.
+
+## Current generation: V5
+
+- **Pools:** fixed-size pools of 100 / 50 / 10 / 1 tokens on three testnets (16 pools: LTH on all three, plus USDG on Robinhood Chain). Addresses: [`docs/deployments-v5.md`](./docs/deployments-v5.md); machine-readable: [`sdk/deployments.json`](./sdk/deployments.json).
+- **Recipient-bound proofs:** a withdrawal proof is valid only for the address it was made for. The earlier V3/V4 pools lacked this, so a pending withdrawal could be redirected to another address. This was found internally, reproduced and fixed; see [`docs/withdraw-recipient-binding.md`](./docs/withdraw-recipient-binding.md).
+- **Selective disclosure:** a depositor can prove to one chosen auditor that they control a specific deposit, without giving that auditor any ability to spend it. The auditor learns which deposit it is (its commitment is public on-chain anyway), but not your keys, your other deposits, or where the funds went. Design: [`docs/selective-disclosure-design.md`](./docs/selective-disclosure-design.md).
+
+## How a pool works
+
+1. **Deposit** a fixed amount (the pool's size). Every deposit in a pool has the same size, and its commitment is inserted into the pool's **on-chain** Merkle tree in the same transaction.
+2. **Withdraw** by presenting a zero-knowledge proof (Groth16, generated in your browser) that you know the secret behind a deposit in the pool, **without revealing which one**, and bound to the recipient address you choose. The contract verifies the proof on-chain against its own root history.
+3. **Disclose (optional)** one deposit to one auditor with a separate proof bound to the auditor's one-time nonce.
+
+Full mechanics and limits: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
+
+## Earlier production track: V3 (Ethereum Sepolia)
 
 | Contract | Address | Etherscan |
 |---|---|---|
@@ -17,47 +35,42 @@ Latheon is an early-stage, open-source project developing privacy-preserving blo
 | **Groth16Verifier** | `0x5E4D51352153513A9085e4e65B8541f393E4D470` | [View](https://sepolia.etherscan.io/address/0x5E4D51352153513A9085e4e65B8541f393E4D470) |
 | **PoseidonT3 (hashing library)** | `0x33bA81C2f2ef705910Ee7022d8e2481eD83aDD1B` | [View](https://sepolia.etherscan.io/address/0x33bA81C2f2ef705910Ee7022d8e2481eD83aDD1B) |
 
-> ⚠️ Sepolia is a public **testnet**. Tokens have no real-world value. This is experimental software with no formal audit yet — see [`SECURITY.md`](./SECURITY.md).
-
-## How the shielded pool works
-
-1. **Deposit** exactly 100 LTH into the pool. Every deposit is identical in size, so no amount is ever leaked. The deposit's commitment is inserted into the pool's **on-chain** Merkle tree in the same transaction.
-2. **Withdraw** by presenting a zero-knowledge proof (Groth16, generated off-chain) showing you know a secret tied to a deposit in the pool — without revealing which one. The contract verifies the proof on-chain, against its own known-root history, and releases funds to any address you choose.
-3. **Verify later, selectively** — the depositor can share their secret with an auditor or partner at any time, who can independently confirm the deposit happened, without the network ever having seen it.
-
-Full mechanics: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
-
-**No trusted operator anywhere in this flow.** The Merkle tree updates automatically on-chain with every deposit, using the same Poseidon hash the zero-knowledge circuit relies on — see [`ROADMAP.md`](./ROADMAP.md) for what's next.
+> V3 and V4 pools are deprecated: they lack the recipient binding described above. They remain deployed for history.
 
 ## Repository structure
 
 ```
-contracts/   Solidity smart contracts (token, shielded pool, verifier, Poseidon hashing)
-circuits/    circom zero-knowledge circuit (withdraw proof)
-tools/       Browser-based ZK toolkit — trusted setup, proof generation,
-             verification, and Solidity verifier export, no install required
-docs/        Technical documentation
+contracts/   Solidity contracts: token, faucet, pools (V3, V4, V5), verifiers, Poseidon hashing
+circuits/    circom circuits (withdraw v1/v2/v3, disclose) and compiled proving artifacts in build/
+sdk/         demo app (demo-app-v5.html), pool registry (deployments.json), JavaScript SDK (V3 pool)
+site/        source of the landing page (latheon.xyz)
+test/        Remix unit tests (V3/V4), Node integration tests with real proofs (v5-integration),
+             reference browser end-to-end test (demo-e2e)
+tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model)
+docs/        technical documentation, see docs/README.md
 ```
 
 ## Documentation
 
-- [Current Status](./STATUS.md) — what's live vs. planned, labeled honestly
+- [Current Status](./STATUS.md): what is live versus planned, labeled honestly
+- [Documentation index](./docs/README.md)
 - [Architecture](./docs/architecture.md)
 - [Privacy & Threat Model](./THREAT-MODEL.md)
 - [Roadmap](./ROADMAP.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Security Policy](./SECURITY.md)
 
-## Try it yourself
+## Verify it yourself
 
-- Open `tools/zk-toolkit.html` via a local web server (see comments in the file — it needs `http://`, not a direct `file://` open, due to browser CORS) to run trusted setup and generate your own proof
-- Circuit source: `circuits/withdraw.circom` — testable directly in [zkrepl.dev](https://zkrepl.dev), no install needed
-- Contracts are verified on Sourcify and Blockscout — source code is visible directly from the Etherscan links above
+- `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
+- Remix unit tests for V3/V4 are in `test/` (open them in Remix; no local setup).
+- `tools/zk-toolkit.html` (serve it over `http://`, not `file://`) runs trusted setup and proof generation in the browser. Circuit sources are in `circuits/` and can be tried at [zkrepl.dev](https://zkrepl.dev).
+- V3 contracts are verified on Sourcify and Blockscout; check the explorer for the status of each V5 contract.
 
 ## Contributing
 
-Latheon is open source and welcomes contributors — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for where help is most useful right now (independent circuit review and public testnet infrastructure are the current priorities).
+Latheon is open source and welcomes contributors; see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for where help is most useful right now (independent circuit review and public testnet infrastructure are the current priorities).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE)
+MIT, see [LICENSE](./LICENSE)

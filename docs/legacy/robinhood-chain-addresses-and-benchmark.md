@@ -1,3 +1,6 @@
+> **Legacy (V4 generation).** These pools were deployed before the recipient-binding fix and are deprecated. Current addresses: [`../deployments-v5.md`](../deployments-v5.md). Kept for history.
+> **Устаревший документ (поколение V4).** Эти пулы развёрнуты до исправления привязки получателя. Актуальные адреса: [`../deployments-v5.md`](../deployments-v5.md).
+
 # Latheon на Robinhood Chain Testnet — адреса и бенчмарк
 
 Chain ID: 46630 · RPC: https://rpc.testnet.chain.robinhood.com · Explorer: https://explorer.testnet.chain.robinhood.com
