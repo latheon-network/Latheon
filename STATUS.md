@@ -90,7 +90,7 @@ Nothing currently open on either track — see §5 for near-term targets.
 
 ## 5. Near-term targets (🔵 TARGET)
 
-- Genesis Cohort: onboarding external builders, integration partners, and validator operators.
+- Genesis Cohort: onboarding external builders and integration partners (the validator-operator track is on hold, see `ROADMAP.md`).
 - Independent review of the zero-knowledge circuit(s).
 - Security audit ahead of any mainnet consideration.
 - A decision on whether/how the selective-disclosure track (§3) merges into the production track, once it's fully tested.
@@ -122,6 +122,8 @@ This is a 12–18 month horizon, contingent on funding and team growth — see `
 - **Experimental track (V4):** confirmed working end-to-end on testnet, with automated test coverage now in place, but has had no independent security review yet.
 - **Known issue (V3/V4 pools):** the withdrawal recipient is not bound to the zero-knowledge proof, so a pending withdrawal can be front-run by replaying the proof with a different recipient. Reproduced in testing; fixed in V5 (`circuits/withdraw_v3.circom`, `contracts/LatheonShieldedPoolV5.sol`). V5 pools are now deployed on the Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets (`docs/deployments-v5.md`); the older V3/V4 pools stay deployed but are deprecated. Every pool is testnet-only. See `docs/withdraw-recipient-binding.md`.
 - **Gas figures** in `docs/gas-benchmark*.md` date from V3/V4; live V5 readings differ and one is unexplained, see the update note at the top of those files.
+- **Pool capacity and anonymity:** each pool's Merkle tree has depth 8, so a pool holds at most 256 deposits. Pools hold mostly test deposits, so anonymity sets are small today.
+- **LTH is a test token** with no monetary value. The owner can mint more (`LatheonToken.mint`, `onlyOwner`).
 - **Trusted setup:** all current key material comes from single-operator setups, not a public multi-party ceremony. Acceptable for testnets only; a real ceremony is required before any real-money deployment. See `docs/dev-ceremony-v3.md`.
 
 ## 8. Verification
@@ -130,4 +132,4 @@ Anyone can independently confirm the claims in §1–2 via the Etherscan links a
 
 ---
 
-**Development principle:** working prototype → open source → public testnet → external developers → validators → audited mainnet candidate. Claims about future capabilities are intentionally kept separate from what is demonstrated today.
+**Development principle:** working prototype → open source → public testnet → external developers → independent review and public ceremony → audited mainnet candidate. Claims about future capabilities are intentionally kept separate from what is demonstrated today.

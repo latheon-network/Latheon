@@ -1,10 +1,10 @@
 # Latheon — Structured Selective Disclosure: Design Document (v0.1, draft)
 
-**Status:** Design proposal, not yet implemented. Does not change any currently deployed contract. Written to scope the work described in `ROADMAP.md` ("design work on a protocol-level selective disclosure mechanism") and referenced in our grant applications.
+**Status:** Original design (v0.1). Implemented as `LatheonShieldedPoolV4` and extended with recipient binding in V5; both flows were confirmed on testnets (`STATUS.md` §2a and §3). Prototype, no independent review yet. The text below keeps the original design framing.
 
 ## 1. Problem with the current mechanism
 
-Today, per `THREAT-MODEL.md` §2.5, selective disclosure works like this: a depositor shares their `secret` directly with a third party (an auditor, a partner). That party can recompute the commitment and confirm the deposit happened.
+On the V3 pool, per `THREAT-MODEL.md` §2.5, selective disclosure works like this: a depositor shares their `secret` directly with a third party (an auditor, a partner). That party can recompute the commitment and confirm the deposit happened.
 
 **This has a real security flaw, not just an inelegance**: `secret` is the *only* thing required to withdraw funds from the pool. Sharing it for disclosure purposes also hands over full spending power. A depositor who wants to *prove* a payment to an auditor is currently forced to also give that auditor the ability to *steal* the payment. In practice this makes the current "disclosure" mechanism unsafe to actually use for anything beyond a fully-trusted counterparty — which defeats much of the point.
 
@@ -72,23 +72,23 @@ At no point does the auditor learn `spendKey` or `viewKey`, and the proof cannot
 **Solved:** the auditor gains cryptographic certainty of authorship without gaining spending power, and without the proof being transferable.
 
 **Not solved by this design** (explicitly, so we don't oversell it later):
-- **Amount disclosure isn't needed here** because every deposit is the same fixed denomination (100 LTH) — this design would need extending if Latheon ever supports variable amounts.
+- **Amount disclosure isn't needed here** because every deposit in a pool is the same fixed denomination — this design would need extending if Latheon ever supports variable amounts.
 - **Timing metadata is still public** regardless of this mechanism — see `THREAT-MODEL.md` §4, unchanged by this proposal.
 - **The auditor still learns which specific commitment is being discussed** — this design intentionally does not hide that, since in the disclosure use case the counterparty typically already knows or is told which transaction is in question. If fully anonymous "prove you made *some* deposit, don't say which" is ever needed, that's the tree-membership-based design discussed in earlier drafts, which trades off more complexity for stronger anonymity — a different design point, not this one.
 
 ## 5. Migration path
 
-This is **not** a change to the currently deployed `LatheonShieldedPoolV3`. It would ship as a new pool version (working name: `LatheonShieldedPoolV4`) with its own token/verifier wiring, developed and tested the same way the current one was — starting with the circuit in zkrepl, then a browser toolkit test, then testnet deployment. The current pool keeps running unchanged throughout.
+This is **not** a change to the currently deployed `LatheonShieldedPoolV3`. It shipped as a new pool version (`LatheonShieldedPoolV4`, since superseded by V5) with its own token/verifier wiring, developed and tested the same way the current one was — starting with the circuit in zkrepl, then a browser toolkit test, then testnet deployment. The current pool keeps running unchanged throughout.
 
 ## 6. Next steps
 
 1. [x] ~~Prototype `disclose.circom` in zkrepl.dev~~ — **done and verified**: compiles cleanly (729 non-linear constraints, notably lighter than `withdraw.circom`'s 2446, as expected since there's no Merkle tree membership check), and a test witness was generated successfully against independently-computed Poseidon values, confirming the circuit's logic matches the design in §3.4 exactly. See `circuits/disclose.circom`.
 2. [x] ~~Prototype the modified `withdraw.circom` (two secrets instead of one)~~ — **done and verified**: compiles cleanly (2689 non-linear constraints — 243 more than the original `withdraw.circom`'s 2446, exactly matching the cost of one additional Poseidon(2) call, as expected), with public inputs: 2 and private inputs: 18 (spendKey, viewKey, 8 pathElements, 8 pathIndices), and a test witness generated successfully. See `circuits/withdraw_v2.circom`.
-3. [x] ~~Design the V4 contract and repeat the deployment process~~ — **done, deployed, and confirmed working end-to-end on Sepolia**. `LatheonShieldedPoolV4` (`0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7`), its `Groth16Verifier` (`0x7d957dA586C00010e69e5Ed1192171F9a117626C`), and `PoseidonT3` are all live and verified. A full deposit → withdraw cycle using the new spendKey/viewKey-split commitment scheme has been executed and confirmed on-chain — not just compiled, a real transaction. See `contracts/LatheonShieldedPoolV4.sol`.
+3. [x] ~~Design the V4 contract and repeat the deployment process~~ — **done, deployed, and confirmed working end-to-end on Sepolia**. `LatheonShieldedPoolV4`, its `Groth16Verifier` and `PoseidonT3` were deployed on Ethereum Sepolia (this first deployment was later replaced; the same address strings now belong to different contracts on other networks, so always read addresses together with the network. Current legacy addresses: `STATUS.md` §3 and `docs/deployments-v5.md`). A full deposit → withdraw cycle using the new spendKey/viewKey-split commitment scheme has been executed and confirmed on-chain — not just compiled, a real transaction. See `contracts/LatheonShieldedPoolV4.sol`.
 4. [x] ~~Deploy and test the disclosure flow itself~~ — **done and confirmed**. `circuits/disclose.circom`'s `Groth16Verifier` is deployed (`0xd56e6125b2dF850D32F8c3538fF840528c53caf5`), and a real disclosure proof — binding `viewKey` to an auditor's one-time nonce, revealing neither `spendKey` nor `viewKey` — was generated and independently verified via a direct, read-only on-chain call. This is the actual auditor-side experience: no wallet, no gas, no need to trust the depositor's word.
 
 **All four steps in this design are now complete and independently verified on Sepolia** — the full selective disclosure mechanism described in §3 works end to end, not just in theory. What remains before this could be recommended for real use: automated test coverage (see `STATUS.md` §4) and independent security review (see `STATUS.md` §5) — neither of which has happened yet for this experimental track.
 
 **This design is now a working prototype, not just a proposal.** It remains a separate, parallel system from the production `LatheonShieldedPoolV3` — no currently-deployed contract was modified. Promoting V4 from "working prototype" to "the recommended way to use Latheon" is a separate decision, not implied by this milestone.
 
-This document intentionally stops at the design stage — see `ROADMAP.md` for when circuit prototyping is scheduled.
+This document records the original design. It was later implemented (V4) and extended with recipient binding (V5); see `STATUS.md` for the current state.
