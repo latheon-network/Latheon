@@ -28,7 +28,7 @@ git clone https://github.com/latheon-network/latheon.git
 cd latheon
 ```
 
-The circuit in `circuits/withdraw.circom` can be tested directly in the browser at [zkrepl.dev](https://zkrepl.dev) — no local install needed. `tools/zk-toolkit.html` runs a full trusted-setup-to-proof pipeline locally in your browser; see comments in the file for how to serve it locally (it needs to be run from a local web server, not opened directly as a file, due to browser CORS restrictions).
+The current circuit, `circuits/withdraw_v3.circom`, can be tested directly in the browser at [zkrepl.dev](https://zkrepl.dev) — no local install needed. `tools/zk-toolkit.html` runs a full trusted-setup-to-proof pipeline locally in your browser; see comments in the file for how to serve it locally (it needs to be run from a local web server, not opened directly as a file, due to browser CORS restrictions).
 
 ## Finding an issue
 

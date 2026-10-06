@@ -1,6 +1,6 @@
 # Latheon Roadmap
 
-> Working prototype → Public testnet → Developer network → Validator network → Audited mainnet candidate
+> Working prototype → Public testnet → Developer network → Independent review and public ceremony → Audited mainnet candidate
 
 This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's investor and grant briefing, so both documents tell one consistent story.
 
@@ -24,7 +24,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 **Protocol**
 - [x] ~~Expanded contract test coverage, invariant and fuzz testing~~ — done. 27 automated tests, 0 failures, across production and disclosure tracks (plus 19 integration checks with real proofs for V5). See `STATUS.md` §1 and §2a.
-- [ ] Independent review pass on the zero-knowledge circuit. **The one remaining item in this entire section.**
+- [ ] Independent review pass on the zero-knowledge circuit. External, funding/partner-dependent.
 
 **Developer experience**
 - [x] ~~Public faucet~~ — done, live. `LatheonFaucet`, 500 test LTH per address every 24h.
@@ -34,9 +34,9 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 **Open source foundation**
 - [x] Contributing guide, security policy, threat model.
-- [ ] Good-first-issue backlog.
+- [ ] Good-first-issue backlog (not started).
 
-**Target outcome:** an external developer can use the testnet without direct help from the core team. **Five of six items above are done — independent circuit review is the only gap, and it's external (funding/partner-dependent), not something we can close ourselves.**
+**Target outcome:** an external developer can use the testnet without direct help from the core team. **6 of 8 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog.**
 
 ---
 
@@ -55,7 +55,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Wallet-side withdrawal planner and deposit rounding; then the distribution pool for arbitrary deposit amounts (design and evidence: `docs/distribution-pool-architecture.md`).
 - [ ] Update the JavaScript SDK for the `spendKey` / `viewKey` split and recipient-bound proofs (it currently targets the V3 pool).
 - [ ] Re-measure gas on V5 under controlled conditions (two consecutive withdrawals per network); see the note in `docs/gas-benchmark.en.md`.
-- [ ] Proof-generation timing benchmark — instrumentation added to `tools/zk-toolkit.html` (see `docs/gas-benchmark.en.md`), but a real measurement hasn't been recorded yet. Gas costs are already benchmarked from real transactions; generation time is the one number still missing.
+- [ ] Proof-generation timing, partly done: `docs/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the V5 circuit (`withdraw_v3`), a named device, and phones.
 
 ---
 
@@ -98,4 +98,4 @@ This phase is deliberately last. It is the reward for getting NOW/NEXT/THEN righ
 
 ## Funding dependency
 
-Grant or investment funding is expected to accelerate, in order: zero-knowledge circuit review → developer tooling → public testnet infrastructure → external developer/validator onboarding → security audit. See the project's grant materials for a detailed use-of-funds breakdown.
+Grant or investment funding is expected to accelerate, in order: zero-knowledge circuit review → developer tooling → public testnet infrastructure → external developer onboarding → security audit. See the project's grant materials for a detailed use-of-funds breakdown.

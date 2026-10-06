@@ -16,6 +16,7 @@ Latheon is an early-stage, open-source project developing privacy-preserving blo
 
 - **Pools:** fixed-size pools of 100 / 50 / 10 / 1 tokens on three testnets (16 pools: LTH on all three, plus USDG on Robinhood Chain). Addresses: [`docs/deployments-v5.md`](./docs/deployments-v5.md); machine-readable: [`sdk/deployments.json`](./sdk/deployments.json).
 - **Recipient-bound proofs:** a withdrawal proof is valid only for the address it was made for. The earlier V3/V4 pools lacked this, so a pending withdrawal could be redirected to another address. This was found internally, reproduced and fixed; see [`docs/withdraw-recipient-binding.md`](./docs/withdraw-recipient-binding.md).
+- **Capacity:** each pool's Merkle tree has depth 8, so a pool holds at most 256 deposits.
 - **Selective disclosure:** a depositor can prove to one chosen auditor that they control a specific deposit, without giving that auditor any ability to spend it. The auditor learns which deposit it is (its commitment is public on-chain anyway), but not your keys, your other deposits, or where the funds went. Design: [`docs/selective-disclosure-design.md`](./docs/selective-disclosure-design.md).
 
 ## How a pool works
@@ -69,7 +70,7 @@ docs/        technical documentation, see docs/README.md
 
 ## Contributing
 
-Latheon is open source and welcomes contributors; see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for where help is most useful right now (independent circuit review and public testnet infrastructure are the current priorities).
+Latheon is open source and welcomes contributors; see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for where help is most useful right now (independent circuit review is the current top priority).
 
 ## License
 

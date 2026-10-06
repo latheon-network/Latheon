@@ -6,11 +6,11 @@ This document describes the privacy goals, mechanics, assumptions, and limitatio
 
 ## 2. How the shielded pool works today (🟢 LIVE)
 
-1. **Deposit** — a user locks a fixed amount (100 LTH) into the pool. Fixed denominations exist specifically so that no deposit reveals more than any other by its size. The deposit's commitment is inserted into an **on-chain** incremental Merkle tree in the same transaction, using an on-chain Poseidon hash implementation — no operator or off-chain step is involved.
+1. **Deposit** — a user locks a fixed amount into the pool (current pool sizes: 100 / 50 / 10 / 1 tokens). Fixed denominations exist specifically so that no deposit reveals more than any other by its size. The deposit's commitment is inserted into an **on-chain** incremental Merkle tree in the same transaction, using an on-chain Poseidon hash implementation — no operator or off-chain step is involved.
 2. **Prove** — off-chain, the depositor (or anyone they've shared the secret with) generates a zero-knowledge proof (Groth16) asserting "I know a secret corresponding to a deposit in this pool" without stating which deposit.
 3. **Verify** — the on-chain `Groth16Verifier` checks the proof against the pool contract's own known-root history. It never receives or sees the underlying secret.
-4. **Withdraw** — on a valid proof, funds release to any address the prover specifies. That address does not need to be, and typically is not, the original depositor's address.
-5. **Selective disclosure (manual, today)** — a depositor can later choose to share their secret directly with an auditor, regulator, or partner, who can independently recompute the commitment and confirm the deposit occurred, without the network ever having seen that secret. This is currently a manual, off-protocol action rather than a built-in on-chain mechanism — see §7.
+4. **Withdraw** — on a valid proof, funds release to the address the proof was made for. In V5 pools the recipient is a public input of the proof; in the older V3/V4 pools it is not (see §8.1). That address does not need to be, and typically is not, the original depositor's address.
+5. **Selective disclosure** — in V4/V5 pools the depositor holds two keys, `spendKey` and `viewKey` (`docs/selective-disclosure-design.md`). They can prove to ONE chosen auditor, with a proof bound to that auditor's one-time nonce, that they control a specific deposit, without giving the auditor any ability to spend it. The auditor learns **which deposit** it is (its commitment is public on-chain anyway), but not the keys, not the depositor's other deposits, and not where the funds went when withdrawn. This is not "invisible to the auditor": it hides keys and history, not the deposit being discussed. Prototype status, no independent review yet. On the older V3 pool disclosure is still manual: sharing the `secret`, which also hands over spending power.
 
 ## 3. What is protected
 
@@ -24,6 +24,7 @@ Depending on deployment and usage, an observer of the public chain can see:
 - That a withdrawal transaction occurred, its block, timestamp, and recipient address.
 - Gas usage and other standard transaction metadata.
 - The size of the current anonymity set (how many unspent deposits exist) — the Merkle tree and its history are public by nature, even though individual leaf-to-withdrawal links are not.
+- Pool capacity: each pool's Merkle tree has depth 8, so a pool accepts at most 256 deposits; the next deposit reverts with "Tree is full".
 
 **Privacy of the deposit↔withdrawal link should not be read as full network-level anonymity.** An observer with enough resources correlating transaction timing across a small anonymity set could still form probabilistic guesses. This is a known, disclosed limitation, not a defect being hidden.
 
@@ -42,7 +43,7 @@ We do **not** currently assume protection against:
 
 ## 6. Assumptions the current guarantee relies on
 
-- Correct implementation of the Groth16 circuit (`circuits/withdraw.circom`) and its trusted setup.
+- Correct implementation of the Groth16 circuit (`circuits/withdraw_v3.circom` for V5 pools) and its trusted setup (development keys from a single operator today, see `docs/dev-ceremony-v3.md`).
 - Correct implementation of the on-chain verifier and the on-chain Merkle tree / Poseidon hashing.
 - The depositor keeps their secret confidential until they choose to disclose it.
 - A sufficiently large and active anonymity set — privacy is weaker in a pool with very few deposits.
@@ -53,9 +54,10 @@ We do **not** currently assume protection against:
 
 ## 8. Remaining limitations
 
-- A structured, protocol-level selective disclosure mechanism does not yet exist (today this is a manual off-protocol step, described in §2.5).
+- Selective disclosure (V4/V5) reveals to the chosen auditor which deposit is being disclosed; see §2.5. The disclosure circuit and contracts are a prototype with no independent review. On V3 pools disclosure remains manual.
 - No independent cryptographic review or formal security audit has been performed yet.
-- Anonymity set size is currently limited by real testnet usage.
+- Anonymity set size is currently very small: the pools hold mostly test deposits.
+- The Merkle tree capacity is 256 deposits per pool (see §4).
 
 ### 8.1 Known issue (V3 / V4 pools): the withdrawal recipient is not bound to the proof. Fixed in V5.
 
@@ -67,9 +69,13 @@ In `LatheonShieldedPoolV3` and `V4`, the `recipient` passed to `withdraw()` is n
 - **Fix:** V5 (`circuits/withdraw_v3.circom`, `LatheonShieldedPoolV5.sol`) binds the recipient into the proof as a public input, derived by the contract from the address actually being paid. The replay is rejected in local tests. V5 pools use a new (development) trusted-setup key pair and are deployed as fresh contracts on all three testnets (`docs/deployments-v5.md`).
 - Details: `docs/withdraw-recipient-binding.md`. Setup caveats: `docs/dev-ceremony-v3.md`.
 
+### 8.2 Open: bridge privacy (L1 to L2)
+
+A future L2 faces a leak that the cryptography does not cover: funding an L2 wallet through a standard bridge from an L1 address that is linkable to an identity links that identity to the later shielded deposit. This is unsolved; options and trade-offs are in `docs/bridge-privacy-design.md`.
+
 ## 9. Future work
 
-## Long-term cryptographic risk: post-quantum security (not urgent, but not zero)
+### 9.1 Long-term cryptographic risk: post-quantum security (not urgent, but not zero)
 
 Latheon's current cryptography — Groth16 proofs over elliptic curves, and Poseidon as the hash function underlying the Merkle tree, commitments, and nullifiers — is not post-quantum secure. Elliptic-curve-based systems are broken by Shor's algorithm on a sufficiently powerful quantum computer, and Poseidon, like other algebraic hash functions designed to be cheap to prove inside a circuit, has meaningfully less mature cryptanalysis behind it than a standard hash like SHA-256.
 
@@ -77,7 +83,7 @@ This is a long-term, industry-wide consideration, not something specific to Lath
 
 The direction the broader cryptography community is moving — mirroring the same shift already standardized for encryption and digital signatures (ML-KEM, SLH-DSA) — is toward lattice-based constructions, including lattice-based zkVMs and proving systems now emerging from serious research groups. This reinforces, rather than replaces, the open question already on our own roadmap regarding PLONK/Halo as an alternative to Groth16: a future migration path likely needs to consider lattice-based options as a third branch, not just a curve-based/hash-based choice. No decision or timeline is attached to this today — it's flagged here so it isn't quietly forgotten as the project matures.
 
-- A structured, protocol-level selective disclosure mechanism.
+- Independent review of the disclosure design, and a decision on merging the V4/V5 disclosure mechanism into a single production track.
 - Larger, more active anonymity sets as usage grows.
 - Independent cryptographic review and a formal security audit before any mainnet consideration.
 - Investigation of alternative proving systems (PLONK/Halo) — see `STATUS.md` VISION section.
