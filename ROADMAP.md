@@ -40,13 +40,13 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
 
-## THEN — Genesis Cohort growth (target: 3–9 months)
+## THEN — Genesis Cohort growth (paused, not closed)
 
 **This section changed too, following the L1→L2 decision.** The original "Validator testnet" subsection assumed Latheon would need its own validator set — that's no longer the plan. An Ethereum L2 inherits Ethereum's validator security; it doesn't bootstrap its own. That entire subsection is dropped rather than carried forward stale.
 
 **Developer ecosystem**
 - [x] ~~SDK release and example integrations~~ — done, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia).
-- [ ] Genesis Cohort onboarding: builders, integration partners (the "validator operators" track is on hold pending clarity on what, if anything, node operation means for an L2 built on a framework not yet finalized — see `ROADMAP.md` VISION section).
+- [ ] Genesis Cohort onboarding: builders, integration partners. **The program is paused, not closed: no onboarding is happening and the sign-up form is off the website for now.** (The "validator operators" track is on hold pending clarity on what, if anything, node operation means for an L2 built on a framework not yet finalized — see `ROADMAP.md` VISION section).
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
 **Privacy work**

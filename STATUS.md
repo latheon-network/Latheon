@@ -90,7 +90,7 @@ Nothing currently open on either track — see §5 for near-term targets.
 
 ## 5. Near-term targets (🔵 TARGET)
 
-- Genesis Cohort: onboarding external builders and integration partners (the validator-operator track is on hold, see `ROADMAP.md`).
+- Genesis Cohort: **paused, not closed.** No onboarding is happening and the sign-up form is off the website for now; the program is meant for external builders and integration partners (the validator-operator track is on hold, see `ROADMAP.md`).
 - Independent review of the zero-knowledge circuit(s).
 - Security audit ahead of any mainnet consideration.
 - A decision on whether/how the selective-disclosure track (§3) merges into the production track, once it's fully tested.
