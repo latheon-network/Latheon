@@ -145,13 +145,30 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
       if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
+      const rk = Object.entries(cfg.networks).find(([k, n]) => url.startsWith(n.rpcUrl));
+      if (rk) {
+        const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
+        if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });
+        const body = JSON.parse(route.request().postData() || '{}');
+        const one = async (q) => { try { return { jsonrpc: '2.0', id: q.id, result: await providers[rk[0]].request({ method: q.method, params: q.params }) }; } catch (e) { return { jsonrpc: '2.0', id: q.id, error: { code: e.code || -32000, message: e.message } }; } };
+        const outp = Array.isArray(body) ? await Promise.all(body.map(one)) : await one(body);
+        return route.fulfill({ status: 200, contentType: 'application/json', headers: h, body: JSON.stringify(outp) });
+      }
       return route.abort();
     });
 
     const waitText = (sel, re, ms = 240000) => page.waitForFunction(([s, r]) => new RegExp(r).test((document.querySelector(s) || {}).textContent || ''), [sel, re.source], { timeout: ms });
     const pick = async (id) => { await page.selectOption('#poolSelect', id); await page.waitForTimeout(700); };
-    const deposit = async () => { await page.evaluate(() => { document.getElementById('depositResult').innerHTML = ''; }); await page.click('#depositBtn'); await page.waitForSelector('#noteText', { timeout: 240000 }); return (await page.textContent('#noteText')).trim(); };
+    const deposit = async () => {
+      await page.click('#tab-deposit');
+      const old = await page.evaluate(() => { const e = document.getElementById('noteText'); return e ? e.textContent.trim() : ''; });
+      if (old) await page.check('#noteSavedChk');              // the demo asks you to confirm the previous note was saved
+      await page.click('#depositBtn');
+      await page.waitForFunction((o) => { const e = document.getElementById('noteText'); return e && e.textContent.trim() && e.textContent.trim() !== o; }, old, { timeout: 240000 });
+      return (await page.textContent('#noteText')).trim();
+    };
     const withdraw = async (note, to) => {
+      await page.click('#tab-withdraw');
       await page.evaluate(() => { const e = document.getElementById('withdrawStatus'); e.textContent = ''; });
       await page.fill('#noteInput', note); await page.fill('#recipientInput', to); await page.click('#withdrawBtn');
       await waitText('#withdrawStatus', /Withdrawal successful|Failed/);
@@ -207,13 +224,32 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     rec('T5. Повторный вывод той же ноты: отклонён понятным сообщением до отправки, баланс не изменился', /already been withdrawn/.test(msg) && none === 0n, msg.slice(0, 70));
 
     // ---- T6: disclosure
-    await page.fill('#discloseNoteInput', note4); await page.fill('#auditorNonceInput', '424242');
+    await page.click('#tab-disclose'); await page.fill('#discloseNoteInput', note4); await page.fill('#auditorNonceInput', '424242');
     await page.evaluate(() => { document.getElementById('discloseStatus').textContent = ''; });
     await page.click('#discloseBtn'); await waitText('#discloseStatus', /verified|Failed|did not verify/);
     const dtxt = (await page.textContent('#discloseStatus')).trim();
     const block = await page.inputValue('#discloseBlock').catch(() => '');
     let parsed = null; try { parsed = JSON.parse(block); } catch (e) {}
     rec('T6. Раскрытие аудитору: доказательство проверено ончейн, блок для аудитора содержит порядок сигналов', /verified/.test(dtxt) && parsed && parsed.pubSignalsOrder && parsed.pubSignalsOrder[0] === 'commitment' && BigInt(parsed.pubSignals[2]) === 424242n, dtxt.slice(0, 60));
+
+    // ---- T11/T12: вкладка аудитора, без кошелька: код -> раскрытие -> проверка; затем чужой код
+    await page.click('#tab-auditor'); await page.click('#genNonceBtn');
+    await page.waitForFunction(() => { const e = document.getElementById('nonceOut'); return e && !e.hidden && e.textContent.trim(); }, null, { timeout: 30000 });
+    const code1 = (await page.textContent('#nonceOut')).trim();
+    await page.click('#tab-disclose'); await page.fill('#discloseNoteInput', note4); await page.fill('#auditorNonceInput', code1);
+    await page.evaluate(() => { document.getElementById('discloseStatus').textContent = ''; });
+    await page.click('#discloseBtn'); await waitText('#discloseStatus', /verified|Failed|did not verify/);
+    const block2 = await page.inputValue('#discloseBlock');
+    await page.click('#tab-auditor'); await page.fill('#auditBlockInput', block2); await page.click('#auditVerifyBtn');
+    await waitText('#auditStatus', /Verified|Not verified|Failed/, 120000);
+    const ast = (await page.textContent('#auditStatus')).trim(); const lst = (await page.textContent('#auditResult')).replace(/\s+/g, ' ');
+    rec('T11. Вкладка аудитора (без кошелька): «Verified», привязка к коду, депозит найден в пуле', /^Verified/.test(ast) && /bound to your code/i.test(lst) && /deposit exists/i.test(lst) && /proof is valid/i.test(lst), ast.slice(0, 60));
+    await page.click('#genNonceBtn');
+    await page.waitForFunction((o) => { const e = document.getElementById('nonceOut'); return e && e.textContent.trim() && e.textContent.trim() !== o; }, code1, { timeout: 30000 });
+    await page.evaluate(() => { document.getElementById('auditStatus').textContent = ''; document.getElementById('auditResult').innerHTML = ''; });
+    await page.click('#auditVerifyBtn'); await waitText('#auditStatus', /Verified|Not verified|Failed/, 120000);
+    const ast2 = (await page.textContent('#auditStatus')).trim(); const lst2 = (await page.textContent('#auditResult')).replace(/\s+/g, ' ');
+    rec('T12. Доказательство для старого кода аудитор НЕ принимает: «Not verified», «bound to a different code»', /^Not verified/.test(ast2) && /bound to a different code/i.test(lst2), ast2.slice(0, 40));
 
     // ---- T7: legacy V4 pool
     await pick('ethereum-sepolia:legacy-eth-lth');
