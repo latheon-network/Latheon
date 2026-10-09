@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Latheon — Demo (V5)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root {
+  --ink: #14121C; --ink-elevated: #1C1927; --ink-card: #221E30; --ink-deep: #0E0D14;
+  --violet: #7F77DD; --violet-deep: #534AB7; --teal: #5DCAA5; --teal-deep: #0F6E56;
+  --gold: #F6C55A; --gold-deep: #DB9A2C; --red: #E06C75;
+  --text-primary: #F2EFE9; --text-muted: #9793A8;
+  --border: rgba(242,239,233,0.10); --border-strong: rgba(242,239,233,0.22);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--ink); color: var(--text-primary); font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.55; overflow-x: hidden; }
+a { color: var(--teal); }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.mono, code, .value { font-family: 'IBM Plex Mono', monospace; }
+.wrap { max-width: 900px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+@media (max-width: 480px) { .wrap { padding-left: 16px; padding-right: 16px; } }
+
+/* nav */
+.nav { border-bottom: 1px solid var(--border); background: rgba(20,18,28,.9); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(8px); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text-primary); text-decoration: none; }
+.brand svg { width: 32px; height: auto; }
+.brand span { font-family: 'Cinzel', Georgia, serif; font-size: 19px; font-weight: 600; }
+.brand em { font-style: normal; font: 11px 'IBM Plex Mono', monospace; color: var(--teal); border: 1px solid rgba(93,202,165,.4); border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
+.nav-links { display: flex; gap: 18px; align-items: center; }
+.nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13.5px; }
+.nav-links a:hover { color: var(--text-primary); }
+.lang-select { width: auto; margin: 0; background: var(--ink-elevated); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font: 12px 'IBM Plex Mono', monospace; cursor: pointer; }
+@media (max-width: 480px) { .nav-links .hide-m { display: none; } }
+
+/* intro */
+.intro { padding: 40px 0 24px; }
+.intro h1 { font-family: 'Cinzel', Georgia, serif; font-size: clamp(26px, 4vw, 36px); font-weight: 600; line-height: 1.2; margin-bottom: 8px; }
+.intro p { color: var(--text-muted); font-size: 15px; max-width: 60ch; }
+.pill { display: inline-flex; gap: 8px; align-items: center; margin-top: 14px; font: 12px 'IBM Plex Mono', monospace; color: var(--gold); background: rgba(246,197,90,.08); border: 1px solid rgba(246,197,90,.3); border-radius: 20px; padding: 5px 12px; }
+
+/* cards */
+.card { background: var(--ink-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.setup { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+@media (max-width: 760px) { .setup { grid-template-columns: 1fr; } }
+.card h2 { font-size: 13px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; font-weight: 500; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; margin-top: 8px; }
+.label { color: var(--text-muted); }
+.value { font-size: 12px; word-break: break-all; text-align: right; }
+.muted { color: var(--text-muted); font-size: 13.5px; }
+.small { font-size: 12.5px; }
+
+/* form */
+input, textarea, select { width: 100%; background: var(--ink-deep); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px 12px; color: var(--text-primary); font: 12.5px 'IBM Plex Mono', monospace; margin-bottom: 10px; }
+select { font: 14px 'IBM Plex Sans', sans-serif; cursor: pointer; }
+textarea { min-height: 72px; resize: vertical; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--teal); outline-offset: 0; border-color: transparent; }
+.field-label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 5px; }
+
+/* buttons */
+button { font: 600 14px 'IBM Plex Sans', sans-serif; border-radius: 7px; padding: 10px 18px; cursor: pointer; border: 1px solid transparent; background: var(--gold); color: var(--ink); transition: transform .15s, background .2s, opacity .2s; }
+button:hover:not(:disabled) { transform: translateY(-1px); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button.secondary { background: transparent; color: var(--text-primary); border-color: var(--border-strong); font-weight: 500; }
+button.secondary:hover:not(:disabled) { background: var(--ink-card); }
+button.small { padding: 6px 12px; font-size: 12.5px; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* status */
+.status { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin: 10px 0; line-height: 1.45; word-break: break-word; }
+.status.ok { background: rgba(93,202,165,.12); color: var(--teal); }
+.status.err { background: rgba(224,108,117,.12); color: var(--red); }
+.status.info { background: rgba(127,119,221,.12); color: #C3BEF3; }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+.tab { background: none; color: var(--text-muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 14px; font-weight: 500; white-space: nowrap; }
+.tab:hover:not(:disabled) { transform: none; color: var(--text-primary); }
+.tab[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--gold); }
+.tab .num { font: 11px 'IBM Plex Mono', monospace; color: var(--text-muted); margin-right: 6px; }
+.panel { padding-bottom: 8px; }
+@media (max-width: 480px) { .tab { padding: 10px 8px; font-size: 13.5px; } .tab .num { display: none; } }
+.panel h3 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.panel > p.lead { color: var(--text-muted); font-size: 14.5px; margin-bottom: 18px; max-width: 64ch; }
+
+/* steps */
+.steps { list-style: none; margin: 16px 0 6px; display: grid; gap: 4px; }
+.steps:empty { display: none; }
+.steps li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text-muted); padding: 3px 0; }
+.steps li::before { content: ''; flex-shrink: 0; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border-strong); }
+.steps li.active { color: var(--text-primary); }
+.steps li.active::before { border-color: var(--gold); border-top-color: transparent; animation: spin .8s linear infinite; }
+.steps li.done { color: var(--text-primary); }
+.steps li.done::before { background: var(--teal); border-color: var(--teal); }
+.steps li.err { color: var(--red); }
+.steps li.err::before { background: var(--red); border-color: var(--red); }
+.steps li .extra { font: 12px 'IBM Plex Mono', monospace; color: var(--text-muted); margin-left: auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* note box */
+.secret-box { background: rgba(246,197,90,.08); border: 1px solid var(--gold-deep); border-radius: 10px; padding: 16px; margin-top: 14px; font-size: 13.5px; }
+.secret-box strong { color: var(--gold); }
+.secret-box code { display: block; word-break: break-all; margin: 10px 0; background: var(--ink-deep); padding: 10px; border-radius: 6px; font-size: 12px; }
+.check { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-size: 13.5px; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 2px 0 0; flex-shrink: 0; accent-color: var(--gold); }
+
+/* warnings */
+.warns { list-style: none; display: grid; gap: 8px; margin: 2px 0 14px; }
+.warns:empty { display: none; }
+.warns li { font-size: 13px; padding: 9px 12px 9px 34px; border-radius: 8px; position: relative; line-height: 1.45; }
+.warns li::before { position: absolute; left: 12px; top: 9px; font: 600 13px 'IBM Plex Mono', monospace; }
+.warns li.warn { background: rgba(246,197,90,.08); color: #F3DDA5; border: 1px solid rgba(246,197,90,.22); }
+.warns li.warn::before { content: '!'; color: var(--gold); }
+.warns li.bad { background: rgba(224,108,117,.1); color: #F2B8BD; border: 1px solid rgba(224,108,117,.3); }
+.warns li.bad::before { content: '!!'; color: var(--red); left: 9px; }
+.warns li.note { background: rgba(127,119,221,.08); color: #D3D0F5; border: 1px solid rgba(127,119,221,.22); }
+.warns li.note::before { content: 'i'; color: var(--violet); }
+
+/* tree */
+.tree-box { margin-top: 16px; background: var(--ink-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.tree-box h4 { font-size: 14px; margin-bottom: 4px; }
+.grid256 { display: grid; grid-template-columns: repeat(32, 1fr); gap: 3px; margin: 12px 0 10px; }
+@media (max-width: 560px) { .grid256 { grid-template-columns: repeat(16, 1fr); } }
+.grid256 i { aspect-ratio: 1; border-radius: 2px; background: rgba(242,239,233,.06); }
+.grid256 i.f { background: var(--violet-deep); }
+.grid256 i.me { background: var(--gold); box-shadow: 0 0 0 2px rgba(246,197,90,.35); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+
+/* who learns what */
+.who { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 18px; }
+@media (max-width: 600px) { .who { grid-template-columns: 1fr; } }
+.who div { background: var(--ink-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+.who b { display: block; font: 11px 'IBM Plex Mono', monospace; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.who .yes b { color: var(--teal); }
+.who .no b { color: #C3BEF3; }
+.who ul { list-style: none; color: var(--text-muted); }
+.who li + li { margin-top: 2px; }
+
+/* auditor */
+.a-step { background: var(--ink-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.a-step h4 { font-size: 15px; margin-bottom: 4px; }
+.a-step h4 span.n { font: 12px 'IBM Plex Mono', monospace; color: var(--gold); margin-right: 8px; }
+.nonce-out { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.nonce-out code { word-break: break-all; font-size: 15px; background: var(--ink-deep); padding: 8px 12px; border-radius: 6px; letter-spacing: .5px; }
+.verdict { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+.verdict li { display: flex; gap: 10px; font-size: 13.5px; align-items: baseline; }
+.verdict li::before { flex-shrink: 0; width: 18px; font: 600 13px 'IBM Plex Mono', monospace; }
+.verdict li.ok::before { content: '✓'; color: var(--teal); }
+.verdict li.no::before { content: '✗'; color: var(--red); }
+.verdict li.warn::before { content: '!'; color: var(--gold); }
+.verdict li small { display: block; color: var(--text-muted); font-size: 12.5px; }
+
+/* advanced & log */
+details.adv { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+details.adv summary { cursor: pointer; font-size: 13px; color: var(--text-muted); }
+details.adv[open] summary { margin-bottom: 8px; }
+.file-row { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; font-size: 12.5px; }
+.file-row label { color: var(--text-muted); min-width: 70px; }
+.file-row input { margin: 0; padding: 6px; font-size: 12px; }
+.file-ok { color: var(--teal); font-size: 12px; white-space: nowrap; }
+.log { background: var(--ink-deep); border-radius: 6px; padding: 12px; font: 11px 'IBM Plex Mono', monospace; white-space: pre-wrap; max-height: 260px; overflow-y: auto; color: var(--text-muted); }
+footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 40px; color: var(--text-muted); font-size: 12.5px; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink-card); border: 1px solid var(--teal); color: var(--teal); font: 12.5px 'IBM Plex Mono', monospace; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 50; }
+.toast.on { opacity: 1; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+
+/* distribution router modes */
+.seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; margin: 2px 0 16px; }
+.seg button { background: transparent; color: var(--text-muted); border: 0; border-radius: 0; font-weight: 500; padding: 8px 14px; font-size: 13.5px; }
+.seg button[aria-pressed="true"] { background: var(--ink-card); color: var(--text-primary); }
+.seg button:hover:not(:disabled) { transform: none; color: var(--text-primary); }
+.opt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13.5px; }
+.opt-row select { width: auto; margin: 0; padding: 6px 8px; font-size: 13px; }
+.note-list { margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.note-list div { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 8px 10px; border-top: 1px solid var(--border); font-size: 12px; align-items: start; }
+.note-list div:first-child { border-top: 0; }
+.note-list b { font-family: 'IBM Plex Mono', monospace; color: var(--gold); font-weight: 500; }
+.note-list code { word-break: break-all; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/" aria-label="Back to latheon.xyz">
+      <svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="navMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#navMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg>
+      <span>Latheon</span><em>demo</em>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="hide-m">← latheon.xyz</a>
+      <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener" class="hide-m">GitHub</a>
+      <select id="langSelect" class="lang-select" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="ru">RU</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="intro">
+    <h1 data-i18n="intro.h1">Try Latheon on a testnet</h1>
+    <p data-i18n="intro.p">Deposit, withdraw, and prove one deposit to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.</p>
+    <div class="pill" data-i18n="intro.pill">● Testnets only · test tokens, no real value · no independent audit yet</div>
+  </header>
+
+  <!-- setup -->
+  <div class="setup">
+    <div class="card">
+      <h2 data-i18n="setup.pool">Network &amp; token</h2>
+      <label class="field-label" for="netSelect" data-i18n="setup.net">Network</label>
+      <select id="netSelect"></select>
+      <label class="field-label" for="tokSelect" style="margin-top:10px" data-i18n="setup.tok">Token</label>
+      <select id="tokSelect"></select>
+      <div id="poolRow">
+        <label class="field-label" for="poolSelect" style="margin-top:10px" data-i18n="setup.fixed">Pool (one fixed amount)</label>
+        <select id="poolSelect"></select>
+        <p class="muted small" data-i18n="setup.poolHint">Each pool holds one fixed amount, so every deposit looks the same from outside.</p>
+      </div>
+      <div id="poolInfo" class="status info" data-i18n="pool.loading">Loading deployments…</div>
+      <div id="legacyBanner" class="status err" style="display:none;"></div>
+    </div>
+    <div class="card">
+      <h2><span data-i18n="setup.wallet">Wallet</span> <span id="activePoolBadge" class="muted small" style="text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans'"></span></h2>
+      <div id="walletStatus" class="status info" data-i18n="wallet.notConnected">Not connected. Needed for faucet, deposit and withdraw.</div>
+      <div class="btn-row">
+        <button id="connectBtn" data-i18n="btn.connect" disabled>Connect wallet</button>
+        <button id="claimBtn" class="secondary" data-i18n="btn.claim" disabled>Claim test tokens</button>
+      </div>
+      <div id="externalFaucetNote" class="muted small" style="display:none; margin-top:10px;"><span data-i18n="faucet.external">This token has its own official faucet, not ours:</span> <a id="externalFaucetLink" href="#" target="_blank" rel="noopener" data-i18n="faucet.open">open faucet ↗</a></div>
+      <div id="faucetStatus" class="status info" style="display:none;"></div>
+      <div class="row"><span class="label" data-i18n="wallet.address">Address</span><span class="value" id="addrOut">—</span></div>
+      <div class="row"><span class="label" data-i18n="wallet.eth">ETH balance</span><span class="value" id="ethOut">—</span></div>
+      <div class="row"><span class="label" id="tokenLabelOut">Token balance</span><span class="value" id="tokenOut">—</span></div>
+    </div>
+  </div>
+
+  <!-- tabs -->
+  <div class="tabs" role="tablist" aria-label="Actions">
+    <button class="tab" role="tab" id="tab-deposit" aria-controls="panel-deposit" aria-selected="true"><span class="num">1</span><span data-i18n="tab.deposit">Deposit</span></button>
+    <button class="tab" role="tab" id="tab-withdraw" aria-controls="panel-withdraw" aria-selected="false"><span class="num">2</span><span data-i18n="tab.withdraw">Withdraw</span></button>
+    <button class="tab" role="tab" id="tab-disclose" aria-controls="panel-disclose" aria-selected="false"><span class="num">3</span><span data-i18n="tab.disclose">Disclose</span></button>
+    <button class="tab" role="tab" id="tab-auditor" aria-controls="panel-auditor" aria-selected="false"><span class="num">·</span><span data-i18n="tab.auditor">I'm an auditor</span></button>
+  </div>
+
+  <!-- 1. deposit -->
+  <section class="panel" id="panel-deposit" role="tabpanel" aria-labelledby="tab-deposit">
+    <h3 data-i18n="dep.h3">Deposit</h3>
+    <div class="seg" role="group" aria-label="Deposit mode">
+      <button type="button" id="depMode-fixed" aria-pressed="true" data-i18n="mode.dep.fixed">One fixed pool</button>
+      <button type="button" id="depMode-any" aria-pressed="false" data-i18n="mode.dep.any">Any amount</button>
+    </div>
+    <div id="depFixed">
+    <p class="lead"><span data-i18n="dep.lead1">Locks</span> <strong id="depositAmountOut">—</strong> <span data-i18n="dep.lead2">into the pool. A <code>spendKey</code> and a <code>viewKey</code> are generated in your browser; only their fingerprint (the commitment) goes on-chain.</span></p>
+    <div class="btn-row">
+      <button id="depositBtn" data-i18n="btn.deposit" disabled>Deposit</button>
+      <span id="depositHint" class="muted small"></span>
+    </div>
+    <ul class="steps" id="depSteps" aria-live="polite"></ul>
+    <div id="depositResult"></div>
+    </div>
+    <div id="depAny" hidden>
+      <p class="lead" data-i18n="da.lead">Enter any amount.</p>
+      <div id="daRouter" class="status info"></div>
+      <label class="field-label" for="daAmount" id="daAmountLabel">Amount</label>
+      <input id="daAmount" inputmode="decimal" placeholder="160" data-i18n-placeholder="da.amountPh" autocomplete="off">
+      <div class="opt-row"><label class="check"><input type="radio" name="daRound" value="exact" checked style="width:auto;margin:0"><span data-i18n="da.exact">Exactly this amount</span></label></div>
+      <div class="opt-row"><label class="check"><input type="radio" name="daRound" value="round" style="width:auto;margin:0"><span data-i18n="da.round">Round down to a multiple of</span></label>
+        <select id="daStep" aria-label="Rounding step"><option value="1">1</option><option value="10" selected>10</option><option value="50">50</option><option value="100">100</option></select>
+        <span class="muted small" data-i18n="da.roundTail">; the rest stays in my wallet</span></div>
+      <div id="daPreview" class="status info"></div>
+      <div class="btn-row">
+        <button id="daDepositBtn" data-i18n="da.btn" disabled>Deposit via router</button>
+        <span id="daHint" class="muted small"></span>
+      </div>
+      <ul class="steps" id="depAnySteps" aria-live="polite"></ul>
+      <div id="depAnyResult"></div>
+    </div>
+  </section>
+
+  <!-- 2. withdraw -->
+  <section class="panel" id="panel-withdraw" role="tabpanel" aria-labelledby="tab-withdraw" hidden>
+    <h3 data-i18n="wd.h3">Withdraw</h3>
+    <div class="seg" role="group" aria-label="Withdraw mode">
+      <button type="button" id="wdMode-one" aria-pressed="true" data-i18n="mode.wd.one">One note</button>
+      <button type="button" id="wdMode-any" aria-pressed="false" data-i18n="mode.wd.any">By amount and key</button>
+    </div>
+    <div id="wdOne">
+    <p class="lead" id="withdrawHelp">Paste your saved note. The proof is bound to the recipient address you enter, so it can only pay that address.</p>
+    <label class="field-label" for="noteInput" data-i18n="field.note">Your note</label>
+    <textarea id="noteInput" placeholder="latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off"></textarea>
+    <label class="field-label" for="recipientInput" data-i18n="field.recipient">Recipient address</label>
+    <input id="recipientInput" placeholder="0x…" spellcheck="false" autocomplete="off">
+    <ul class="warns" id="withdrawWarnings" aria-live="polite"></ul>
+    <div class="btn-row">
+      <button id="withdrawBtn" data-i18n="btn.withdraw" disabled>Generate proof &amp; withdraw</button>
+      <button id="checkNoteBtn" class="secondary" data-i18n="btn.check" disabled>Check note only</button>
+      <span class="muted small" data-i18n="wd.checkHint">Checking is read-only: no wallet, no gas.</span>
+    </div>
+    <ul class="steps" id="wdSteps" aria-live="polite"></ul>
+    <div id="withdrawStatus" class="status info" style="display:none;"></div>
+    <div id="checkResult"></div>
+    <div id="treeBox"></div>
+    <details class="adv" id="advWithdraw">
+      <summary data-i18n="adv.withdraw">Advanced: load withdraw circuit files manually</summary>
+      <div id="circuitFilesStatus" class="status info" data-i18n="circ.loadingAuto">Loading automatically…</div>
+      <div class="file-row"><label for="wasmFile">wasm</label><input type="file" id="wasmFile" accept=".wasm"><span id="wasmOk" class="file-ok" style="display:none;" data-i18n="file.loaded">✓ loaded</span></div>
+      <div class="file-row"><label for="zkeyFile">zkey</label><input type="file" id="zkeyFile" accept=".zkey"><span id="zkeyOk" class="file-ok" style="display:none;" data-i18n="file.loaded">✓ loaded</span></div>
+    </details>
+    </div>
+    <div id="wdAny" hidden>
+      <p class="lead" data-i18n="wa.lead">Paste your master key and an amount.</p>
+      <label class="field-label" for="waKey" data-i18n="wa.key">Master key</label>
+      <textarea id="waKey" placeholder="latheon-master:&lt;chainId&gt;:&lt;router&gt;:&lt;key&gt;" spellcheck="false" autocomplete="off"></textarea>
+      <label class="field-label" for="waAmount" data-i18n="wa.amount">Amount to withdraw</label>
+      <input id="waAmount" inputmode="numeric" placeholder="160" autocomplete="off">
+      <label class="field-label" for="waRecipient" data-i18n="field.recipient">Recipient address</label>
+      <input id="waRecipient" placeholder="0x…" spellcheck="false" autocomplete="off">
+      <ul class="warns" id="waWarnings" aria-live="polite"></ul>
+      <div class="btn-row">
+        <button id="waFindBtn" class="secondary" data-i18n="wa.find">Find my notes</button>
+        <button id="waGoBtn" data-i18n="wa.go" disabled>Prove &amp; withdraw (one transaction)</button>
+        <button id="waSepBtn" class="secondary" data-i18n="wa.sep" disabled>Show separate notes</button>
+      </div>
+      <ul class="steps" id="waSteps" aria-live="polite"></ul>
+      <div id="waStatus" class="status info" style="display:none;"></div>
+      <div id="waPlan"></div>
+      <div id="waSep"></div>
+    </div>
+  </section>
+
+  <!-- 3. disclose -->
+  <section class="panel" id="panel-disclose" role="tabpanel" aria-labelledby="tab-disclose" hidden>
+    <h3 data-i18n="ds.h3">Disclose to an auditor</h3>
+    <p class="lead" data-i18n="ds.lead">Prove to <strong>one chosen auditor</strong> that you control a specific deposit, without giving them any ability to spend it. They give you a one-time code; the proof only works for that code.</p>
+    <div class="who">
+      <div class="yes"><b data-i18n="who.yes">The auditor learns</b><ul><li data-i18n="who.yes1">Which deposit (its commitment, already public)</li><li data-i18n="who.yes2">That you hold its keys</li></ul></div>
+      <div class="no"><b data-i18n="who.no">The auditor does not get</b><ul><li data-i18n="who.no1">Your spendKey or viewKey</li><li data-i18n="who.no2">Your other deposits</li><li data-i18n="who.no3">Where the funds were withdrawn to</li></ul></div>
+    </div>
+    <label class="field-label" for="discloseNoteInput" data-i18n="field.note">Your note</label>
+    <textarea id="discloseNoteInput" placeholder="latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off"></textarea>
+    <label class="field-label" for="auditorNonceInput" data-i18n="field.nonce">Auditor's one-time code</label>
+    <input id="auditorNonceInput" placeholder="A number the auditor gave you" data-i18n-placeholder="field.noncePh" inputmode="numeric" autocomplete="off">
+    <button id="discloseBtn" data-i18n="btn.disclose" disabled>Generate disclosure proof</button>
+    <ul class="steps" id="dsSteps" aria-live="polite"></ul>
+    <div id="discloseStatus" class="status info" style="display:none;"></div>
+    <div id="discloseResult"></div>
+    <details class="adv" id="advDisclose">
+      <summary data-i18n="adv.disclose">Advanced: load disclosure circuit files manually</summary>
+      <div id="discloseFilesStatus" class="status info" data-i18n="dcirc.loading">Loading disclosure circuit…</div>
+      <div class="file-row"><label for="discloseWasmFile">wasm</label><input type="file" id="discloseWasmFile" accept=".wasm"><span id="discloseWasmOk" class="file-ok" style="display:none;" data-i18n="file.loaded">✓ loaded</span></div>
+      <div class="file-row"><label for="discloseZkeyFile">zkey</label><input type="file" id="discloseZkeyFile" accept=".zkey"><span id="discloseZkeyOk" class="file-ok" style="display:none;" data-i18n="file.loaded">✓ loaded</span></div>
+    </details>
+  </section>
+
+  <!-- auditor -->
+  <section class="panel" id="panel-auditor" role="tabpanel" aria-labelledby="tab-auditor" hidden>
+    <h3 data-i18n="au.h3">Verify a disclosure</h3>
+    <p class="lead" data-i18n="au.lead">For the person checking a disclosure. No wallet needed: everything is read from the chain.</p>
+    <div class="a-step">
+      <h4><span class="n">1</span><span data-i18n="au.s1">Give the depositor a one-time code</span></h4>
+      <p class="muted small" data-i18n="au.s1text">A fresh random number. The proof they send back will only be valid for it, so an old or forwarded proof will not pass.</p>
+      <div class="nonce-out"><button id="genNonceBtn" class="secondary small" disabled>Generate code</button><code id="nonceOut" hidden></code><button id="copyNonceBtn" class="secondary small" data-i18n="btn.copy" hidden>Copy</button></div>
+    </div>
+    <div class="a-step">
+      <h4><span class="n">2</span><span data-i18n="au.s2">Paste what they sent you</span></h4>
+      <textarea id="auditBlockInput" placeholder='{ "pA": [...], "pB": [...], "pC": [...], "pubSignals": [...], "chainId": ... }' spellcheck="false" style="min-height:120px"></textarea>
+      <button id="auditVerifyBtn" data-i18n="btn.verify" disabled>Verify</button>
+      <ul class="steps" id="auSteps" aria-live="polite"></ul>
+      <div id="auditStatus" class="status info" style="display:none;"></div>
+      <ul class="verdict" id="auditResult"></ul>
+    </div>
+  </section>
+
+  <details class="adv" id="logBox">
+    <summary data-i18n="log.summary">Technical log</summary>
+    <div class="log" id="log">Log:</div>
+  </details>
+</main>
+
+<footer>
+  <div class="wrap" data-i18n="footer">Public prototype on testnets. Dev trusted-setup keys, no independent audit. Source: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a></div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { poseidon2, poseidon4 } from 'https://esm.run/poseidon-lite';
+import { ethers } from 'https://esm.run/ethers';
+import * as snarkjs from 'https://esm.run/snarkjs';
+
+const $ = (id) => document.getElementById(id);
+
+// ---------- translations ----------
+// Same mechanism and storage key as the landing page (latheon-lang), so a language chosen there carries over.
+// data-i18n sets innerHTML: nested markup lives inside the strings, in every language.
+const I18N = {
+  en: {
+    'intro.h1': 'Try Latheon on a testnet',
+    'intro.p': 'Deposit, withdraw, and prove one deposit to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.',
+    'intro.pill': '● Testnets only · test tokens, no real value · no independent audit yet',
+    'setup.pool': 'Network &amp; token', 'setup.net': 'Network', 'setup.tok': 'Token', 'setup.fixed': 'Pool (one fixed amount)', 'setup.poolHint': 'Each pool holds one fixed amount, so every deposit looks the same from outside.', 'setup.wallet': 'Wallet',
+    'pool.loading': 'Loading deployments…', 'pool.info': '{net} · {label} · contract {addr}',
+    'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Test tokens only — prefer the V5 pools.',
+    'pool.legacyGroup': 'Legacy V4 (deprecated, recipient not bound)',
+    'wallet.notConnected': 'Not connected. Needed for faucet, deposit and withdraw.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.token': '{token} balance',
+    'wallet.noWallet': 'No wallet found — install MetaMask (desktop browser).', 'wallet.connected': 'Connected to {net}.', 'wallet.connFailed': 'Connection failed: ',
+    'btn.connect': 'Connect wallet', 'btn.reconnect': 'Reconnect', 'btn.claim': 'Claim test tokens', 'btn.deposit': 'Deposit', 'btn.withdraw': 'Generate proof &amp; withdraw',
+    'btn.check': 'Check note only', 'btn.disclose': 'Generate disclosure proof', 'btn.copy': 'Copy', 'btn.verify': 'Verify', 'btn.genCode': 'Generate code', 'btn.newCode': 'New code',
+    'btn.download': 'Download .txt', 'btn.downloaded': 'Downloaded', 'btn.copyNote': 'Copy note', 'btn.copied': 'Copied',
+    'faucet.external': 'This token has its own official faucet, not ours:', 'faucet.open': 'open faucet ↗', 'faucet.externalStatus': '{token} uses an external faucet — see the link above.',
+    'faucet.claiming': 'Claiming…', 'faucet.claimed': 'Claimed test {token}.', 'faucet.failed': 'Claim failed: ',
+    'tab.deposit': 'Deposit', 'tab.withdraw': 'Withdraw', 'tab.disclose': 'Disclose', 'tab.auditor': "I'm an auditor",
+    'dep.h3': 'Deposit', 'dep.lead1': 'Locks', 'dep.lead2': 'into the pool. A <code>spendKey</code> and a <code>viewKey</code> are generated in your browser; only their fingerprint (the commitment) goes on-chain.',
+    'dep.hint': 'Confirm that you saved the note below before making another deposit.', 'dep.failed': 'Deposit failed: ',
+    'dep.s1': 'Check the token', 'dep.s2': 'Approve the pool to take the amount', 'dep.s3': 'Deposit', 'dep.s4': 'Save your note',
+    'x.confirm': 'confirm in wallet', 'x.block': 'waiting for block',
+    'dep.decimals': 'Token decimals mismatch: config says {cfg}, chain says {chain}. Aborting before approving anything.',
+    'note.title': 'Save this note. It is the only way to withdraw or disclose this deposit.',
+    'note.sub': 'Anyone who has it can withdraw. It is not stored anywhere, not even in this browser.',
+    'note.saved': 'I saved this note somewhere safe.', 'note.leaf': 'leaf #{n}', 'note.tx': 'deposit tx ↗',
+    'file.l1': 'Latheon deposit note — KEEP SECRET', 'file.l2': 'Anyone who has this note can withdraw the deposit.', 'file.network': 'Network', 'file.pool': 'Pool', 'file.leaf': 'Leaf', 'file.tx': 'Deposit tx', 'file.note': 'Note',
+    'what.note': 'note', 'what.code': 'code', 'what.disclosure': 'disclosure', 'toast.copied': 'Copied {what}',
+    'wd.h3': 'Withdraw', 'wd.help': 'Paste your saved note. The proof is bound to the recipient address you enter, so it can only pay that address.',
+    'wd.helpLegacy': 'Paste your saved legacy note (latheon-v4-note:…). The app finds your deposit, builds the Merkle path, proves in your browser, checks the proof on-chain for free, then submits.',
+    'field.note': 'Your note', 'field.recipient': 'Recipient address', 'field.nonce': "Auditor's one-time code", 'field.noncePh': 'A number the auditor gave you',
+    'wd.checkHint': 'Checking is read-only: no wallet, no gas.',
+    'adv.withdraw': 'Advanced: load withdraw circuit files manually', 'adv.disclose': 'Advanced: load disclosure circuit files manually', 'file.loaded': '✓ loaded',
+    'circ.loadingAuto': 'Loading automatically…', 'circ.loaded': 'Withdraw circuit loaded.', 'circ.failed': 'Auto-load failed ({err}) — upload manually below.',
+    'dcirc.loading': 'Loading disclosure circuit…', 'dcirc.loaded': 'Disclosure circuit loaded.',
+    'ck.s1': 'Read the note', 'ck.s2': 'Find the deposit on-chain', 'ck.s3': 'Check whether it was withdrawn',
+    'ck.ok': 'Note OK: {net} · {label} · leaf #{leaf}', 'ck.ago': ' · deposited {ago} ago',
+    'ck.spent': 'Already withdrawn: this note cannot be used again (it can still be used to disclose).', 'ck.unspent': 'Not withdrawn yet.',
+    'wd.s1': 'Load the circuit', 'wd.s2': 'Find your deposit on-chain', 'wd.s3': 'Build the Merkle path and pre-checks', 'wd.s4': 'Generate the proof in your browser', 'wd.s5': 'Check the proof on-chain (free)', 'wd.s6': 'Submit the withdrawal',
+    'wd.loading': 'Loading circuit files…', 'wd.finding': 'Finding your deposit on-chain…', 'wd.proving': 'Generating proof in your browser…', 'wd.checking': 'Checking the proof on-chain (free)…',
+    'wd.submitting': 'Submitting withdrawal — confirm in your wallet…', 'wd.success': 'Withdrawal successful! tx: {tx}', 'status.failed': 'Failed: ',
+    'err.poolAddr': 'Invalid pool address inside the note.', 'err.format': 'Unrecognised note format. Expected latheon-v5:<chainId>:<pool>:<spendKey>:<viewKey>.',
+    'err.unknownPool': 'This note belongs to a pool that is not in deployments.json (chain {chain}, {addr}).', 'err.unknownPoolShort': 'This note belongs to a pool that is not in deployments.json.',
+    'err.oldNote': 'This is an old-format note (latheon-v4-note). Select the legacy pool it was created in.',
+    'err.notFound': "Commitment not found among this pool's deposits. Wrong pool, wrong network, or a mistyped note?",
+    'err.spent': 'This note has already been withdrawn.', 'err.root': 'The locally built Merkle root is not known to the contract (incomplete deposit list). Try again in a moment.',
+    'err.binding': 'Internal check failed: the proof is not bound to the recipient you entered.', 'err.invalid': 'Proof did not verify — aborting before spending gas.',
+    'err.nonce': 'Enter the auditor nonce.', 'err.config': 'Could not load deployments.json (HTTP {code}).', 'err.startup': 'Startup failed: ',
+    'tree.title': "This pool's tree, read from the chain", 'tree.sub': '{net} · {label} · {used} of {cap} leaves used. Withdrawn deposits stay in the tree, and nobody can tell which ones they are.',
+    'tree.yours': 'yours', 'tree.yoursLeaf': 'yours (leaf {n})', 'tree.others': 'other deposits', 'tree.empty': 'empty',
+    'warn.selfRecipient': 'The recipient is the wallet you are connected with. Anyone can see that this wallet pays itself, so the withdrawal is not private. Use a fresh address.',
+    'warn.sameWallet': 'This wallet ({addr}) made a deposit in this session. The withdrawal transaction is sent and paid for by the connected wallet, and that is public, so the link is visible. Connect a different wallet with a little test ETH before withdrawing.',
+    'warn.sender': 'The withdrawal is sent from {addr}, and the sender and gas payer are public. If this wallet also made the deposit, anyone can link them.',
+    'warn.set1': 'Your withdrawal hides among 1 deposit in this pool. On testnets most of them are test deposits, so privacy is weak.',
+    'warn.setN': 'Your withdrawal hides among {n} deposits in this pool. On testnets most of them are test deposits, so privacy is weak.',
+    'warn.timing': 'You deposited {ago} ago. Withdrawing right away makes it easy to match the two by timing.',
+    'ago.s': '{n} s', 'ago.m': '{n} min', 'ago.h': '{n} h', 'ago.d': '{n} days',
+    'ds.h3': 'Disclose to an auditor', 'ds.lead': 'Prove to <strong>one chosen auditor</strong> that you control a specific deposit, without giving them any ability to spend it. They give you a one-time code; the proof only works for that code.',
+    'who.yes': 'The auditor learns', 'who.yes1': 'Which deposit (its commitment, already public)', 'who.yes2': 'That you hold its keys',
+    'who.no': 'The auditor does not get', 'who.no1': 'Your spendKey or viewKey', 'who.no2': 'Your other deposits', 'who.no3': 'Where the funds were withdrawn to',
+    'ds.s1': 'Load the disclosure circuit', 'ds.s2': 'Generate the proof in your browser', 'ds.s3': 'Check it on-chain (free)',
+    'ds.proving': 'Generating disclosure proof in your browser…', 'ds.verifying': 'Verifying on-chain against the deployed verifier…',
+    'ds.bad': 'Proof did not verify — check the note and the auditor nonce.', 'ds.ok': 'Disclosure proof verified. Send the block below to your auditor.',
+    'ds.boxTitle': 'Send this to your auditor.', 'ds.boxSub': 'It contains no keys. It only works for the code they gave you. They can check it in the "I\'m an auditor" tab.',
+    'au.h3': 'Verify a disclosure', 'au.lead': 'For the person checking a disclosure. No wallet needed: everything is read from the chain.',
+    'au.s1': 'Give the depositor a one-time code', 'au.s1text': 'A fresh random number. The proof they send back will only be valid for it, so an old or forwarded proof will not pass.',
+    'au.s2': 'Paste what they sent you',
+    'au.st1': 'Read the block', 'au.st2': 'Check the proof against the official verifier', 'au.st3': 'Find the deposit on-chain',
+    'au.errJson': 'This is not valid JSON. Paste the whole block the depositor sent.', 'au.errFields': 'The block is missing pA, pB, pC or the three public signals.',
+    'au.errNet': 'Unknown network (chainId {id}). Supported: {list}.',
+    'au.valid': 'The proof is valid', 'au.validSub': "Checked by the disclosure verifier {addr} on {net}, taken from this site's registry.",
+    'au.invalid': 'The proof is not valid', 'au.invalidSub': 'It does not pass the official disclosure verifier on {net}. Do not accept it.',
+    'au.otherVerifier': 'The block names a different verifier', 'au.otherVerifierSub': '{addr} was ignored; only the official one was used.',
+    'au.codeOk': 'It is bound to your code', 'au.codeOkSub': 'Code {code}. An old or forwarded proof would not match.',
+    'au.codeBad': 'It is bound to a different code', 'au.codeBadSub': 'The proof is for {code}, not the code you generated. It may be an old or forwarded proof.',
+    'au.codeCheck': 'Compare the code yourself', 'au.codeCheckSub': 'This proof is bound to code {code}. Make sure it is the one you gave. (No code was generated on this page in this session.)',
+    'au.found': 'The deposit exists', 'au.foundSub': '{net} · pool {label} · leaf #{leaf}', 'au.notFound': 'No deposit with this commitment was found', 'au.notFoundSub': 'Not in any Latheon pool on {net} listed in the registry.',
+    'au.pass': 'Verified: the sender controls this specific deposit. You did not receive their keys, their other deposits, or where funds were withdrawn to.',
+    'au.fail': 'Not verified. See the details below.',
+    'log.summary': 'Technical log',
+    'mode.dep.fixed': 'One fixed pool',
+    'mode.dep.any': 'Any amount',
+    'mode.wd.one': 'One note',
+    'mode.wd.any': 'By amount and key',
+    'da.lead': 'Enter any amount. The router splits it into notes of 100, 50, 10 and 1 and deposits them into the four pools in one transaction. You get one master key for all of them.',
+    'da.router': 'Router on {net} for {token}: {addr}',
+    'da.noRouter': 'No router for {token} on {net} (legacy pools have none). Pick a V5 pool above.',
+    'da.amount': 'Amount ({token})',
+    'da.amountPh': 'e.g. 160',
+    'da.exact': 'Exactly this amount',
+    'da.round': 'Round down to a multiple of',
+    'da.roundTail': '; the rest stays in my wallet',
+    'da.prevEmpty': 'Enter an amount to see how it will be split.',
+    'da.prev': 'Deposits <b>{amt} {token}</b> as <b>{n}</b> notes: {parts}.',
+    'da.rem': 'Stays in your wallet: {rem} {token}.',
+    'da.noRem': 'Nothing is left over.',
+    'da.errNum': 'Enter a positive number.',
+    'da.errWhole': 'Exact mode needs a whole number of {token}. Use rounding for other amounts.',
+    'da.errZero': 'This amount rounds down to zero. Choose a smaller step or a larger amount.',
+    'da.errMax': 'That is {n} notes; one transaction takes at most {max}. Deposit less, or round to a larger step.',
+    'da.tip': 'Many small notes make a bigger transaction. A larger rounding step uses fewer notes.',
+    'da.btn': 'Deposit via router',
+    'da.s1': 'Check the router on-chain',
+    'da.s2': 'Approve the token',
+    'da.s3': 'Deposit all notes',
+    'da.s4': 'Save your master key',
+    'da.keyTitle': 'Your master key',
+    'da.keySub': 'It restores all {n} notes. Whoever has it can withdraw them. We cannot recover it. Save it before you leave this page.',
+    'da.saved': 'I saved the master key',
+    'da.sum': '{n} notes, {amt} {token}',
+    'da.mismatch': 'The router on-chain does not match this page (token, pools or split). Stopped before spending anything.',
+    'da.lowBal': 'Not enough {token}: you have {have}, need {need}.',
+    'da.failed': 'Deposit failed: ',
+    'da.hint': 'Save the master key first.',
+    'da.fileKey': 'Master key',
+    'btn.copyKey': 'Copy key',
+    'what.key': 'master key',
+    'wa.lead': 'Paste your master key and the amount to withdraw. The page finds your notes, picks the ones that add up exactly, proves each one in your browser, and the router pays them out in one transaction.',
+    'wa.key': 'Master key',
+    'wa.amount': 'Amount to withdraw',
+    'wa.find': 'Find my notes',
+    'wa.go': 'Prove & withdraw (one transaction)',
+    'wa.sep': 'Show separate notes',
+    'wa.s1': 'Read deposits from the four pools',
+    'wa.s2': 'Match notes to your key',
+    'wa.s3': 'Choose notes for the amount',
+    'wa.s4': 'Generate proofs',
+    'wa.s5': 'Check with the router',
+    'wa.s6': 'Send the transaction',
+    'wa.found': 'Found {n} unspent notes worth <b>{total} {token}</b> ({parts}). Already spent: {spent}.',
+    'wa.none': 'No notes for this key in the router pools.',
+    'wa.plan': 'Withdraws <b>{amt} {token}</b> using <b>{n}</b> notes: {parts}.',
+    'wa.noplan': 'Cannot pay exactly {amt} {token} from these notes (no change is made). Nearest payable amount: {near} {token}.',
+    'wa.noplanShort': 'These notes cannot make exactly this amount.',
+    'wa.linked': 'One withdrawal pays all notes to one address in one transaction, so the notes are visibly linked to each other. For unlinked payouts withdraw separate notes to different addresses.',
+    'wa.proving': 'proof {i} of {n}',
+    'wa.batch': 'transaction {i} of {n}',
+    'wa.success': 'Withdrawn {amt} {token} to {to}. Transaction {tx}.',
+    'wa.sepTitle': 'Separate notes',
+    'wa.sepSub': 'Each line is a normal note. Use "One note" withdraw with a different recipient for each to keep payouts unlinked.',
+    'wa.errRouter': 'This key is for router {addr} on chain {chain}, which this page does not know.',
+    'wa.errAmount': 'Enter a whole positive amount.',
+    'wa.failed': 'Failed: ',
+    'footer': 'Public prototype on testnets. Dev trusted-setup keys, no independent audit. Source: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
+  },
+  ru: {
+    'intro.h1': 'Попробуйте Latheon в тестовой сети',
+    'intro.p': 'Депозит, вывод и доказательство одного депозита аудитору, целиком, в вашем браузере. Доказательства создаются на вашем устройстве; нота его не покидает.',
+    'intro.pill': '● Только тестовые сети · тестовые токены без реальной ценности · независимого аудита пока нет',
+    'setup.pool': 'Сеть и токен', 'setup.net': 'Сеть', 'setup.tok': 'Токен', 'setup.fixed': 'Пул (одна фиксированная сумма)', 'setup.poolHint': 'В каждом пуле одна фиксированная сумма, поэтому снаружи все депозиты выглядят одинаково.', 'setup.wallet': 'Кошелёк',
+    'pool.loading': 'Загружаю реестр…', 'pool.info': '{net} · {label} · контракт {addr}',
+    'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Только тестовые токены — используйте пулы V5.',
+    'pool.legacyGroup': 'Устаревшие V4 (получатель не привязан)',
+    'wallet.notConnected': 'Не подключён. Нужен для фаусета, депозита и вывода.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.token': 'Баланс {token}',
+    'wallet.noWallet': 'Кошелёк не найден — установите MetaMask (браузер на компьютере).', 'wallet.connected': 'Подключено к {net}.', 'wallet.connFailed': 'Не удалось подключиться: ',
+    'btn.connect': 'Подключить кошелёк', 'btn.reconnect': 'Переподключить', 'btn.claim': 'Получить тестовые токены', 'btn.deposit': 'Внести депозит', 'btn.withdraw': 'Создать доказательство и вывести',
+    'btn.check': 'Только проверить ноту', 'btn.disclose': 'Создать доказательство раскрытия', 'btn.copy': 'Копировать', 'btn.verify': 'Проверить', 'btn.genCode': 'Создать код', 'btn.newCode': 'Новый код',
+    'btn.download': 'Скачать .txt', 'btn.downloaded': 'Скачано', 'btn.copyNote': 'Копировать ноту', 'btn.copied': 'Скопировано',
+    'faucet.external': 'У этого токена свой официальный фаусет, не наш:', 'faucet.open': 'открыть фаусет ↗', 'faucet.externalStatus': 'Для {token} нужен внешний фаусет — ссылка выше.',
+    'faucet.claiming': 'Получаю…', 'faucet.claimed': 'Тестовые {token} получены.', 'faucet.failed': 'Не удалось получить: ',
+    'tab.deposit': 'Депозит', 'tab.withdraw': 'Вывод', 'tab.disclose': 'Раскрытие', 'tab.auditor': 'Я аудитор',
+    'dep.h3': 'Депозит', 'dep.lead1': 'Блокирует', 'dep.lead2': 'в пуле. Пара <code>spendKey</code> и <code>viewKey</code> создаётся в вашем браузере; в блокчейн попадает только их отпечаток (commitment).',
+    'dep.hint': 'Подтвердите ниже, что сохранили ноту, прежде чем делать следующий депозит.', 'dep.failed': 'Депозит не удался: ',
+    'dep.s1': 'Проверить токен', 'dep.s2': 'Разрешить пулу списать сумму', 'dep.s3': 'Внести депозит', 'dep.s4': 'Сохранить ноту',
+    'x.confirm': 'подтвердите в кошельке', 'x.block': 'жду блок',
+    'dep.decimals': 'Не совпадают знаки токена: в реестре {cfg}, в сети {chain}. Останавливаюсь, ничего не одобрив.',
+    'note.title': 'Сохраните эту ноту. Только с ней можно вывести или раскрыть этот депозит.',
+    'note.sub': 'Любой, у кого она есть, может вывести средства. Она нигде не хранится, даже в этом браузере.',
+    'note.saved': 'Я сохранил ноту в надёжном месте.', 'note.leaf': 'лист #{n}', 'note.tx': 'транзакция депозита ↗',
+    'file.l1': 'Нота депозита Latheon — ДЕРЖИТЕ В СЕКРЕТЕ', 'file.l2': 'Любой, у кого есть эта нота, может вывести депозит.', 'file.network': 'Сеть', 'file.pool': 'Пул', 'file.leaf': 'Лист', 'file.tx': 'Транзакция депозита', 'file.note': 'Нота',
+    'what.note': 'ноту', 'what.code': 'код', 'what.disclosure': 'раскрытие', 'toast.copied': 'Скопировано: {what}',
+    'wd.h3': 'Вывод', 'wd.help': 'Вставьте сохранённую ноту. Доказательство привязано к адресу получателя, который вы введёте, поэтому заплатить оно может только ему.',
+    'wd.helpLegacy': 'Вставьте сохранённую старую ноту (latheon-v4-note:…). Приложение найдёт депозит, построит путь в дереве Меркла, создаст доказательство в браузере, бесплатно проверит его в сети и отправит.',
+    'field.note': 'Ваша нота', 'field.recipient': 'Адрес получателя', 'field.nonce': 'Одноразовый код аудитора', 'field.noncePh': 'Число, которое дал аудитор',
+    'wd.checkHint': 'Проверка только читает: без кошелька и без газа.',
+    'adv.withdraw': 'Дополнительно: загрузить файлы схемы вывода вручную', 'adv.disclose': 'Дополнительно: загрузить файлы схемы раскрытия вручную', 'file.loaded': '✓ загружено',
+    'circ.loadingAuto': 'Загружаю автоматически…', 'circ.loaded': 'Схема вывода загружена.', 'circ.failed': 'Автозагрузка не удалась ({err}) — загрузите файлы вручную ниже.',
+    'dcirc.loading': 'Загружаю схему раскрытия…', 'dcirc.loaded': 'Схема раскрытия загружена.',
+    'ck.s1': 'Прочитать ноту', 'ck.s2': 'Найти депозит в сети', 'ck.s3': 'Проверить, был ли вывод',
+    'ck.ok': 'Нота в порядке: {net} · {label} · лист #{leaf}', 'ck.ago': ' · депозит {ago} назад',
+    'ck.spent': 'Уже выведено: эту ноту нельзя использовать снова (для раскрытия она по-прежнему годится).', 'ck.unspent': 'Ещё не выведено.',
+    'wd.s1': 'Загрузить схему', 'wd.s2': 'Найти ваш депозит в сети', 'wd.s3': 'Построить путь в дереве и проверки', 'wd.s4': 'Создать доказательство в браузере', 'wd.s5': 'Проверить доказательство в сети (бесплатно)', 'wd.s6': 'Отправить вывод',
+    'wd.loading': 'Загружаю файлы схемы…', 'wd.finding': 'Ищу ваш депозит в сети…', 'wd.proving': 'Создаю доказательство в браузере…', 'wd.checking': 'Проверяю доказательство в сети (бесплатно)…',
+    'wd.submitting': 'Отправляю вывод — подтвердите в кошельке…', 'wd.success': 'Вывод выполнен! Транзакция: {tx}', 'status.failed': 'Ошибка: ',
+    'err.poolAddr': 'В ноте неверный адрес пула.', 'err.format': 'Неизвестный формат ноты. Ожидается latheon-v5:<chainId>:<pool>:<spendKey>:<viewKey>.',
+    'err.unknownPool': 'Нота относится к пулу, которого нет в deployments.json (сеть {chain}, {addr}).', 'err.unknownPoolShort': 'Нота относится к пулу, которого нет в deployments.json.',
+    'err.oldNote': 'Это нота старого формата (latheon-v4-note). Выберите устаревший пул, в котором она создана.',
+    'err.notFound': 'Commitment не найден среди депозитов этого пула. Не тот пул, не та сеть или опечатка в ноте?',
+    'err.spent': 'Эта нота уже выведена.', 'err.root': 'Контракт не знает построенный корень дерева (список депозитов неполный). Попробуйте ещё раз чуть позже.',
+    'err.binding': 'Внутренняя проверка не прошла: доказательство не привязано к введённому получателю.', 'err.invalid': 'Доказательство не прошло проверку — останавливаюсь, не тратя газ.',
+    'err.nonce': 'Введите код аудитора.', 'err.config': 'Не удалось загрузить deployments.json (HTTP {code}).', 'err.startup': 'Не удалось запуститься: ',
+    'tree.title': 'Дерево этого пула, прочитанное из сети', 'tree.sub': '{net} · {label} · занято {used} из {cap} листьев. Выведенные депозиты остаются в дереве, и никто не может сказать, какие именно.',
+    'tree.yours': 'ваш', 'tree.yoursLeaf': 'ваш (лист {n})', 'tree.others': 'другие депозиты', 'tree.empty': 'пусто',
+    'warn.selfRecipient': 'Получатель совпадает с подключённым кошельком. Любой увидит, что кошелёк платит сам себе, поэтому вывод не приватен. Укажите новый адрес.',
+    'warn.sameWallet': 'Этот кошелёк ({addr}) делал депозит в этой сессии. Транзакцию вывода отправляет и оплачивает подключённый кошелёк, и это публично, поэтому связь видна. Перед выводом подключите другой кошелёк с небольшим количеством тестового ETH.',
+    'warn.sender': 'Вывод отправляется с {addr}; отправитель и плательщик газа публичны. Если этот же кошелёк делал депозит, их легко связать.',
+    'warn.set1': 'Ваш вывод скрывается среди 1 депозита в этом пуле. В тестовых сетях это в основном тестовые депозиты, поэтому приватность слабая.',
+    'warn.setN': 'Ваш вывод скрывается среди {n} депозитов в этом пуле. В тестовых сетях это в основном тестовые депозиты, поэтому приватность слабая.',
+    'warn.timing': 'Вы сделали депозит {ago} назад. Если вывести сразу, их легко сопоставить по времени.',
+    'ago.s': '{n} с', 'ago.m': '{n} мин', 'ago.h': '{n} ч', 'ago.d': '{n} дн.',
+    'ds.h3': 'Раскрытие аудитору', 'ds.lead': 'Докажите <strong>одному выбранному аудитору</strong>, что контролируете конкретный депозит, не давая ему возможности его потратить. Аудитор даёт вам одноразовый код; доказательство работает только с этим кодом.',
+    'who.yes': 'Аудитор узнаёт', 'who.yes1': 'Какой это депозит (его commitment и так публичен)', 'who.yes2': 'Что у вас есть его ключи',
+    'who.no': 'Аудитор не получает', 'who.no1': 'Ваши spendKey и viewKey', 'who.no2': 'Ваши другие депозиты', 'who.no3': 'Куда были выведены средства',
+    'ds.s1': 'Загрузить схему раскрытия', 'ds.s2': 'Создать доказательство в браузере', 'ds.s3': 'Проверить в сети (бесплатно)',
+    'ds.proving': 'Создаю доказательство раскрытия в браузере…', 'ds.verifying': 'Проверяю в сети развёрнутым верификатором…',
+    'ds.bad': 'Доказательство не прошло проверку — проверьте ноту и код аудитора.', 'ds.ok': 'Доказательство раскрытия проверено. Отправьте блок ниже аудитору.',
+    'ds.boxTitle': 'Отправьте это аудитору.', 'ds.boxSub': 'Здесь нет ключей. Блок работает только с кодом, который дал аудитор. Проверить его можно во вкладке «Я аудитор».',
+    'au.h3': 'Проверка раскрытия', 'au.lead': 'Для того, кто проверяет раскрытие. Кошелёк не нужен: всё читается из сети.',
+    'au.s1': 'Дайте депоненту одноразовый код', 'au.s1text': 'Новое случайное число. Присланное доказательство будет действительно только для него, так что старое или пересланное не пройдёт.',
+    'au.s2': 'Вставьте то, что вам прислали',
+    'au.st1': 'Прочитать блок', 'au.st2': 'Проверить доказательство официальным верификатором', 'au.st3': 'Найти депозит в сети',
+    'au.errJson': 'Это не JSON. Вставьте блок, присланный депонентом, целиком.', 'au.errFields': 'В блоке нет pA, pB, pC или трёх публичных сигналов.',
+    'au.errNet': 'Неизвестная сеть (chainId {id}). Поддерживаются: {list}.',
+    'au.valid': 'Доказательство действительно', 'au.validSub': 'Проверено верификатором раскрытия {addr} в {net}; адрес взят из реестра этого сайта.',
+    'au.invalid': 'Доказательство недействительно', 'au.invalidSub': 'Оно не проходит официальный верификатор раскрытия в {net}. Не принимайте его.',
+    'au.otherVerifier': 'В блоке указан другой верификатор', 'au.otherVerifierSub': '{addr} проигнорирован; использован только официальный.',
+    'au.codeOk': 'Привязано к вашему коду', 'au.codeOkSub': 'Код {code}. Старое или пересланное доказательство не совпало бы.',
+    'au.codeBad': 'Привязано к другому коду', 'au.codeBadSub': 'Доказательство для кода {code}, а не для созданного вами. Возможно, оно старое или пересланное.',
+    'au.codeCheck': 'Сверьте код сами', 'au.codeCheckSub': 'Доказательство привязано к коду {code}. Убедитесь, что это код, который вы дали. (На этой странице в этой сессии код не создавался.)',
+    'au.found': 'Депозит существует', 'au.foundSub': '{net} · пул {label} · лист #{leaf}', 'au.notFound': 'Депозит с таким commitment не найден', 'au.notFoundSub': 'Его нет ни в одном пуле Latheon в {net} из реестра.',
+    'au.pass': 'Проверено: отправитель контролирует именно этот депозит. Вы не получили ни его ключей, ни других депозитов, ни адреса, куда выводились средства.',
+    'au.fail': 'Не подтверждено. Подробности ниже.',
+    'log.summary': 'Технический журнал',
+    'mode.dep.fixed': 'Один пул',
+    'mode.dep.any': 'Любая сумма',
+    'mode.wd.one': 'Одна нота',
+    'mode.wd.any': 'По сумме и ключу',
+    'da.lead': 'Введите любую сумму. Роутер разобьёт её на ноты 100, 50, 10 и 1 и внесёт в четыре пула одной транзакцией. На всё вы получите один мастер-ключ.',
+    'da.router': 'Роутер в {net} для {token}: {addr}',
+    'da.noRouter': 'Для {token} в {net} роутера нет (у старых пулов его нет). Выберите пул V5 выше.',
+    'da.amount': 'Сумма ({token})',
+    'da.amountPh': 'например, 160',
+    'da.exact': 'Ровно эту сумму',
+    'da.round': 'Округлить вниз до кратного',
+    'da.roundTail': '; остаток остаётся в кошельке',
+    'da.prevEmpty': 'Введите сумму, чтобы увидеть разбиение.',
+    'da.prev': 'Вносится <b>{amt} {token}</b> в виде <b>{n}</b> нот: {parts}.',
+    'da.rem': 'Останется в кошельке: {rem} {token}.',
+    'da.noRem': 'Остатка нет.',
+    'da.errNum': 'Введите положительное число.',
+    'da.errWhole': 'В режиме «ровно» нужна целая сумма {token}. Для других сумм используйте округление.',
+    'da.errZero': 'Сумма округляется до нуля. Выберите меньший шаг или большую сумму.',
+    'da.errMax': 'Это {n} нот, а за одну транзакцию максимум {max}. Внесите меньше или округлите крупнее.',
+    'da.tip': 'Много мелких нот — больше транзакция. Крупный шаг округления даёт меньше нот.',
+    'da.btn': 'Внести через роутер',
+    'da.s1': 'Проверить роутер в сети',
+    'da.s2': 'Разрешить токен',
+    'da.s3': 'Внести все ноты',
+    'da.s4': 'Сохранить мастер-ключ',
+    'da.keyTitle': 'Ваш мастер-ключ',
+    'da.keySub': 'Он восстанавливает все {n} нот. Кто его знает, тот может их вывести. Мы не можем его восстановить. Сохраните до ухода со страницы.',
+    'da.saved': 'Я сохранил мастер-ключ',
+    'da.sum': 'нот: {n}, {amt} {token}',
+    'da.mismatch': 'Роутер в сети не совпадает со страницей (токен, пулы или разбиение). Остановлено до списания средств.',
+    'da.lowBal': 'Не хватает {token}: есть {have}, нужно {need}.',
+    'da.failed': 'Не удалось внести: ',
+    'da.hint': 'Сначала сохраните мастер-ключ.',
+    'da.fileKey': 'Мастер-ключ',
+    'btn.copyKey': 'Копировать ключ',
+    'what.key': 'мастер-ключ',
+    'wa.lead': 'Вставьте мастер-ключ и сумму вывода. Страница найдёт ваши ноты, подберёт ровно на эту сумму, докажет каждую в браузере, а роутер выплатит всё одной транзакцией.',
+    'wa.key': 'Мастер-ключ',
+    'wa.amount': 'Сумма вывода',
+    'wa.find': 'Найти мои ноты',
+    'wa.go': 'Доказать и вывести (одна транзакция)',
+    'wa.sep': 'Показать отдельные ноты',
+    'wa.s1': 'Чтение депозитов четырёх пулов',
+    'wa.s2': 'Сопоставление нот с ключом',
+    'wa.s3': 'Подбор нот под сумму',
+    'wa.s4': 'Создание доказательств',
+    'wa.s5': 'Проверка у роутера',
+    'wa.s6': 'Отправка транзакции',
+    'wa.found': 'Найдено непотраченных нот: {n} на <b>{total} {token}</b> ({parts}). Уже потрачено: {spent}.',
+    'wa.none': 'Для этого ключа в пулах роутера нот нет.',
+    'wa.plan': 'Выводится <b>{amt} {token}</b> нотами: <b>{n}</b> шт., {parts}.',
+    'wa.noplan': 'Ровно {amt} {token} из этих нот набрать нельзя (сдачи нет). Ближайшая доступная сумма: {near} {token}.',
+    'wa.noplanShort': 'Из этих нот нельзя набрать ровно эту сумму.',
+    'wa.linked': 'Один вывод платит все ноты на один адрес одной транзакцией, поэтому видно, что ноты связаны. Для несвязанных выплат выводите отдельные ноты на разные адреса.',
+    'wa.proving': 'доказательство {i} из {n}',
+    'wa.batch': 'транзакция {i} из {n}',
+    'wa.success': 'Выведено {amt} {token} на {to}. Транзакция {tx}.',
+    'wa.sepTitle': 'Отдельные ноты',
+    'wa.sepSub': 'Каждая строка — обычная нота. Выводите её режимом «Одна нота» на свой адрес, чтобы выплаты не связывались.',
+    'wa.errRouter': 'Ключ для роутера {addr} в сети {chain}, которого эта страница не знает.',
+    'wa.errAmount': 'Введите целую положительную сумму.',
+    'wa.failed': 'Не удалось: ',
+    'footer': 'Публичный прототип в тестовых сетях. Dev-ключи trusted setup, независимого аудита нет. Исходный код: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
+  },
+  zh: {
+    'intro.h1': '在测试网上体验 Latheon',
+    'intro.p': '存款、取款，并向审计方证明某一笔存款属于您，全部流程在浏览器中完成。证明在您的设备上生成；您的凭证（note）不会离开设备。',
+    'intro.pill': '● 仅限测试网 · 测试代币，无实际价值 · 尚无独立审计',
+    'setup.pool': '网络与代币', 'setup.net': '网络', 'setup.tok': '代币', 'setup.fixed': '资金池（单一定额）', 'setup.poolHint': '每个资金池只有一种固定金额，因此从外部看所有存款都一样。', 'setup.wallet': '钱包',
+    'pool.loading': '正在加载部署信息…', 'pool.info': '{net} · {label} · 合约 {addr}',
+    'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。仅限测试代币——请优先使用 V5 资金池。',
+    'pool.legacyGroup': '旧版 V4（已弃用，未绑定接收地址）',
+    'wallet.notConnected': '未连接。领取测试币、存款和取款需要钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.token': '{token} 余额',
+    'wallet.noWallet': '未找到钱包——请安装 MetaMask（电脑浏览器）。', 'wallet.connected': '已连接到 {net}。', 'wallet.connFailed': '连接失败：',
+    'btn.connect': '连接钱包', 'btn.reconnect': '重新连接', 'btn.claim': '领取测试代币', 'btn.deposit': '存款', 'btn.withdraw': '生成证明并取款',
+    'btn.check': '仅检查凭证', 'btn.disclose': '生成披露证明', 'btn.copy': '复制', 'btn.verify': '验证', 'btn.genCode': '生成代码', 'btn.newCode': '新代码',
+    'btn.download': '下载 .txt', 'btn.downloaded': '已下载', 'btn.copyNote': '复制凭证', 'btn.copied': '已复制',
+    'faucet.external': '该代币使用其官方水龙头，而非我们的：', 'faucet.open': '打开水龙头 ↗', 'faucet.externalStatus': '{token} 使用外部水龙头——见上方链接。',
+    'faucet.claiming': '正在领取…', 'faucet.claimed': '已领取测试 {token}。', 'faucet.failed': '领取失败：',
+    'tab.deposit': '存款', 'tab.withdraw': '取款', 'tab.disclose': '披露', 'tab.auditor': '我是审计方',
+    'dep.h3': '存款', 'dep.lead1': '将', 'dep.lead2': '锁入资金池。<code>spendKey</code> 和 <code>viewKey</code> 在您的浏览器中生成；只有它们的指纹（commitment）上链。',
+    'dep.hint': '请先在下方确认已保存凭证，再进行下一笔存款。', 'dep.failed': '存款失败：',
+    'dep.s1': '检查代币', 'dep.s2': '授权资金池扣取金额', 'dep.s3': '存款', 'dep.s4': '保存凭证',
+    'x.confirm': '请在钱包中确认', 'x.block': '等待出块',
+    'dep.decimals': '代币小数位不一致：配置为 {cfg}，链上为 {chain}。在授权任何操作前中止。',
+    'note.title': '请保存此凭证。这是取款或披露此笔存款的唯一方式。',
+    'note.sub': '任何持有它的人都可以取款。它不会被存储在任何地方，包括此浏览器。',
+    'note.saved': '我已将凭证保存在安全的地方。', 'note.leaf': '叶子 #{n}', 'note.tx': '存款交易 ↗',
+    'file.l1': 'Latheon 存款凭证——请保密', 'file.l2': '任何持有此凭证的人都可以取出这笔存款。', 'file.network': '网络', 'file.pool': '资金池', 'file.leaf': '叶子', 'file.tx': '存款交易', 'file.note': '凭证',
+    'what.note': '凭证', 'what.code': '代码', 'what.disclosure': '披露', 'toast.copied': '已复制{what}',
+    'wd.h3': '取款', 'wd.help': '粘贴您保存的凭证。证明与您输入的接收地址绑定，因此只能向该地址付款。',
+    'wd.helpLegacy': '粘贴您保存的旧版凭证（latheon-v4-note:…）。应用会找到您的存款、构建 Merkle 路径、在浏览器中生成证明、免费在链上验证，然后提交。',
+    'field.note': '您的凭证', 'field.recipient': '接收地址', 'field.nonce': '审计方的一次性代码', 'field.noncePh': '审计方提供给您的数字',
+    'wd.checkHint': '检查为只读操作：无需钱包，无需 Gas。',
+    'adv.withdraw': '高级：手动加载取款电路文件', 'adv.disclose': '高级：手动加载披露电路文件', 'file.loaded': '✓ 已加载',
+    'circ.loadingAuto': '正在自动加载…', 'circ.loaded': '取款电路已加载。', 'circ.failed': '自动加载失败（{err}）——请在下方手动上传。',
+    'dcirc.loading': '正在加载披露电路…', 'dcirc.loaded': '披露电路已加载。',
+    'ck.s1': '读取凭证', 'ck.s2': '在链上查找存款', 'ck.s3': '检查是否已取款',
+    'ck.ok': '凭证有效：{net} · {label} · 叶子 #{leaf}', 'ck.ago': ' · {ago}前存入',
+    'ck.spent': '已取款：此凭证不能再次使用（仍可用于披露）。', 'ck.unspent': '尚未取款。',
+    'wd.s1': '加载电路', 'wd.s2': '在链上查找您的存款', 'wd.s3': '构建 Merkle 路径并预检查', 'wd.s4': '在浏览器中生成证明', 'wd.s5': '在链上验证证明（免费）', 'wd.s6': '提交取款',
+    'wd.loading': '正在加载电路文件…', 'wd.finding': '正在链上查找您的存款…', 'wd.proving': '正在浏览器中生成证明…', 'wd.checking': '正在链上验证证明（免费）…',
+    'wd.submitting': '正在提交取款——请在钱包中确认…', 'wd.success': '取款成功！交易：{tx}', 'status.failed': '失败：',
+    'err.poolAddr': '凭证中的资金池地址无效。', 'err.format': '无法识别的凭证格式。应为 latheon-v5:<chainId>:<pool>:<spendKey>:<viewKey>。',
+    'err.unknownPool': '此凭证所属的资金池不在 deployments.json 中（网络 {chain}，{addr}）。', 'err.unknownPoolShort': '此凭证所属的资金池不在 deployments.json 中。',
+    'err.oldNote': '这是旧格式凭证（latheon-v4-note）。请选择创建它的旧版资金池。',
+    'err.notFound': '在此资金池的存款中未找到该 commitment。资金池或网络是否选错，或凭证有输入错误？',
+    'err.spent': '此凭证已取款。', 'err.root': '合约不认识本地构建的 Merkle 根（存款列表不完整）。请稍后重试。',
+    'err.binding': '内部检查失败：证明未绑定到您输入的接收地址。', 'err.invalid': '证明未通过验证——在消耗 Gas 前中止。',
+    'err.nonce': '请输入审计方代码。', 'err.config': '无法加载 deployments.json（HTTP {code}）。', 'err.startup': '启动失败：',
+    'tree.title': '此资金池的树，读取自链上', 'tree.sub': '{net} · {label} · 已使用 {used}/{cap} 个叶子。已取款的存款仍留在树中，没有人能分辨是哪些。',
+    'tree.yours': '您的', 'tree.yoursLeaf': '您的（叶子 {n}）', 'tree.others': '其他存款', 'tree.empty': '空',
+    'warn.selfRecipient': '接收地址就是当前连接的钱包。任何人都能看到该钱包向自己付款，因此这笔取款没有隐私。请使用新地址。',
+    'warn.sameWallet': '此钱包（{addr}）在本次会话中进行过存款。取款交易由当前连接的钱包发送并支付 Gas，这是公开的，因此关联可见。取款前请连接另一个持有少量测试 ETH 的钱包。',
+    'warn.sender': '取款将从 {addr} 发送，发送方和 Gas 支付方是公开的。如果存款也来自此钱包，任何人都能将两者关联。',
+    'warn.set1': '您的取款隐藏在此资金池的 1 笔存款中。测试网上大多是测试存款，因此隐私较弱。',
+    'warn.setN': '您的取款隐藏在此资金池的 {n} 笔存款中。测试网上大多是测试存款，因此隐私较弱。',
+    'warn.timing': '您在 {ago}前存款。立即取款很容易通过时间将两者对应起来。',
+    'ago.s': '{n} 秒', 'ago.m': '{n} 分钟', 'ago.h': '{n} 小时', 'ago.d': '{n} 天',
+    'ds.h3': '向审计方披露', 'ds.lead': '向<strong>一位选定的审计方</strong>证明您控制某一笔特定存款，而不给予对方任何动用资金的能力。审计方给您一个一次性代码；证明只对该代码有效。',
+    'who.yes': '审计方得知', 'who.yes1': '是哪一笔存款（其 commitment 本来就公开）', 'who.yes2': '您持有它的密钥',
+    'who.no': '审计方得不到', 'who.no1': '您的 spendKey 或 viewKey', 'who.no2': '您的其他存款', 'who.no3': '资金被取往何处',
+    'ds.s1': '加载披露电路', 'ds.s2': '在浏览器中生成证明', 'ds.s3': '在链上验证（免费）',
+    'ds.proving': '正在浏览器中生成披露证明…', 'ds.verifying': '正在使用已部署的验证合约进行链上验证…',
+    'ds.bad': '证明未通过验证——请检查凭证和审计方代码。', 'ds.ok': '披露证明已验证。请将下方数据块发送给审计方。',
+    'ds.boxTitle': '请将此发送给审计方。', 'ds.boxSub': '其中不含任何密钥，只对审计方给您的代码有效。审计方可在“我是审计方”标签页中检查。',
+    'au.h3': '验证披露', 'au.lead': '供核查披露的一方使用。无需钱包：所有信息都从链上读取。',
+    'au.s1': '给存款人一个一次性代码', 'au.s1text': '一个新的随机数。对方发回的证明只对它有效，因此旧的或转发的证明无法通过。',
+    'au.s2': '粘贴对方发给您的内容',
+    'au.st1': '读取数据块', 'au.st2': '使用官方验证合约检查证明', 'au.st3': '在链上查找存款',
+    'au.errJson': '这不是有效的 JSON。请粘贴存款人发送的完整数据块。', 'au.errFields': '数据块缺少 pA、pB、pC 或三个公开信号。',
+    'au.errNet': '未知网络（chainId {id}）。支持：{list}。',
+    'au.valid': '证明有效', 'au.validSub': '由 {net} 上的披露验证合约 {addr} 检查，地址取自本站注册表。',
+    'au.invalid': '证明无效', 'au.invalidSub': '它未通过 {net} 上的官方披露验证合约。请勿接受。',
+    'au.otherVerifier': '数据块指定了其他验证合约', 'au.otherVerifierSub': '已忽略 {addr}；只使用官方验证合约。',
+    'au.codeOk': '已绑定到您的代码', 'au.codeOkSub': '代码 {code}。旧的或转发的证明无法匹配。',
+    'au.codeBad': '绑定到了其他代码', 'au.codeBadSub': '该证明对应代码 {code}，而不是您生成的代码。可能是旧的或转发的证明。',
+    'au.codeCheck': '请自行核对代码', 'au.codeCheckSub': '该证明绑定到代码 {code}。请确认这是您给出的代码。（本次会话中未在此页面生成代码。）',
+    'au.found': '存款存在', 'au.foundSub': '{net} · 资金池 {label} · 叶子 #{leaf}', 'au.notFound': '未找到该 commitment 对应的存款', 'au.notFoundSub': '不在注册表所列 {net} 上的任何 Latheon 资金池中。',
+    'au.pass': '已验证：发送方控制这笔特定存款。您没有获得对方的密钥、其他存款或资金去向。',
+    'au.fail': '未通过验证。详情见下方。',
+    'log.summary': '技术日志',
+    'mode.dep.fixed': '单一定额池',
+    'mode.dep.any': '任意金额',
+    'mode.wd.one': '单张凭证',
+    'mode.wd.any': '按金额与密钥',
+    'da.lead': '输入任意金额。路由器会把它拆成 100、50、10、1 的凭证，并在一笔交易中存入四个池。你只会得到一个主密钥。',
+    'da.router': '{net} 上 {token} 的路由器：{addr}',
+    'da.noRouter': '{net} 上的 {token} 没有路由器（旧版池没有）。请在上方选择 V5 池。',
+    'da.amount': '金额（{token}）',
+    'da.amountPh': '例如 160',
+    'da.exact': '精确此金额',
+    'da.round': '向下取整为以下数的倍数',
+    'da.roundTail': '；余额留在我的钱包',
+    'da.prevEmpty': '输入金额以查看拆分方式。',
+    'da.prev': '存入 <b>{amt} {token}</b>，共 <b>{n}</b> 张凭证：{parts}。',
+    'da.rem': '留在钱包：{rem} {token}。',
+    'da.noRem': '没有余额。',
+    'da.errNum': '请输入正数。',
+    'da.errWhole': '精确模式需要整数 {token}。其他金额请使用取整。',
+    'da.errZero': '该金额取整后为零。请选择更小的步长或更大的金额。',
+    'da.errMax': '共 {n} 张凭证，单笔交易最多 {max} 张。请减少金额或使用更大的取整步长。',
+    'da.tip': '小额凭证越多，交易越大。更大的取整步长会减少凭证数量。',
+    'da.btn': '通过路由器存入',
+    'da.s1': '检查链上路由器',
+    'da.s2': '授权代币',
+    'da.s3': '存入全部凭证',
+    'da.s4': '保存主密钥',
+    'da.keyTitle': '你的主密钥',
+    'da.keySub': '它可恢复全部 {n} 张凭证。持有者可以提取它们。我们无法找回。离开本页前请保存。',
+    'da.saved': '我已保存主密钥',
+    'da.sum': '{n} 张凭证，{amt} {token}',
+    'da.mismatch': '链上路由器与本页不一致（代币、池或拆分）。已在花费任何资金前停止。',
+    'da.lowBal': '{token} 不足：拥有 {have}，需要 {need}。',
+    'da.failed': '存入失败：',
+    'da.hint': '请先保存主密钥。',
+    'da.fileKey': '主密钥',
+    'btn.copyKey': '复制密钥',
+    'what.key': '主密钥',
+    'wa.lead': '粘贴主密钥并输入提取金额。页面会找到你的凭证，选出恰好相加的几张，在浏览器中逐张生成证明，路由器再用一笔交易付出。',
+    'wa.key': '主密钥',
+    'wa.amount': '提取金额',
+    'wa.find': '查找我的凭证',
+    'wa.go': '生成证明并提取（一笔交易）',
+    'wa.sep': '显示单独凭证',
+    'wa.s1': '读取四个池的存款',
+    'wa.s2': '用密钥匹配凭证',
+    'wa.s3': '按金额选择凭证',
+    'wa.s4': '生成证明',
+    'wa.s5': '向路由器预检',
+    'wa.s6': '发送交易',
+    'wa.found': '找到 {n} 张未花费凭证，共 <b>{total} {token}</b>（{parts}）。已花费：{spent}。',
+    'wa.none': '路由器池中没有此密钥的凭证。',
+    'wa.plan': '提取 <b>{amt} {token}</b>，使用 <b>{n}</b> 张凭证：{parts}。',
+    'wa.noplan': '无法用这些凭证恰好凑出 {amt} {token}（不找零）。最接近的可付金额：{near} {token}。',
+    'wa.noplanShort': '这些凭证无法凑出恰好此金额。',
+    'wa.linked': '一次提取会用一笔交易把所有凭证付给同一地址，因此这些凭证会明显关联。若要不关联的付款，请把单独凭证提到不同地址。',
+    'wa.proving': '第 {i} 个证明，共 {n} 个',
+    'wa.batch': '第 {i} 笔交易，共 {n} 笔',
+    'wa.success': '已提取 {amt} {token} 到 {to}。交易 {tx}。',
+    'wa.sepTitle': '单独凭证',
+    'wa.sepSub': '每行都是普通凭证。用“单张凭证”模式分别提到不同地址，付款即不关联。',
+    'wa.errRouter': '此密钥属于链 {chain} 上的路由器 {addr}，本页不认识它。',
+    'wa.errAmount': '请输入正整数金额。',
+    'wa.failed': '失败：',
+    'footer': '测试网上的公开原型。可信设置使用开发密钥，尚无独立审计。源代码：<a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
+  },
+};
+let LANG = 'en';
+function t(key, vars) {
+  let s = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[LANG][key] : I18N.en[key];
+  if (s === undefined) return key;
+  if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : m));
+  return s;
+}
+// t() for text that will be inserted as HTML: variable values are escaped.
+function th(key, vars) {
+  const ev = {}; if (vars) for (const k in vars) ev[k] = esc(vars[k]);
+  return t(key, ev);
+}
+function applyStatic() {
+  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : LANG;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { const v = t(el.getAttribute('data-i18n')); if (v !== undefined) el.innerHTML = v; });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+}
+
+const LEVELS = 8;
+const CAPACITY = 2 ** LEVELS;
+const FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+const CIRCUIT_BASE = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/';
+const CIRCUITS = {
+  v3:       { wasm: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3_final.zkey' },
+  v2:       { wasm: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2_final.zkey' },
+  disclose: { wasm: CIRCUIT_BASE + 'disclose/disclose.wasm',        zkey: CIRCUIT_BASE + 'disclose/disclose_final.zkey' },
+};
+
+const ERC20_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function decimals() view returns (uint8)',
+];
+const EVENT_ABI = ['event Deposit(uint256 indexed commitment, uint32 leafIndex, uint256 timestamp)'];
+const POOL_ABI = {
+  // V5: the recipient is bound into the proof; root and nullifierHash are passed explicitly.
+  v5: ['function deposit(uint256 commitment)',
+       'function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient)',
+       'function isKnownRoot(uint256) view returns (bool)', 'function nullifierHashes(uint256) view returns (bool)'].concat(EVENT_ABI),
+  // V4 (legacy): the recipient is NOT bound into the proof.
+  v4: ['function deposit(uint256 commitment)',
+       'function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[2] _pubSignals, address recipient)',
+       'function isKnownRoot(uint256) view returns (bool)', 'function nullifierHashes(uint256) view returns (bool)'].concat(EVENT_ABI),
+};
+const VERIFIER_ABI = {
+  v5: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[3] _pubSignals) view returns (bool)'],
+  v4: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[2] _pubSignals) view returns (bool)'],
+  disclose: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[3] _pubSignals) view returns (bool)'],
+};
+const FAUCET_ABI = ['function claim()'];
+const DEPOSIT_IFACE = new ethers.Interface(EVENT_ABI);
+const DEPOSIT_TOPIC = DEPOSIT_IFACE.getEvent('Deposit').topicHash;
+
+let CONFIG = null, POOLS = [], currentPoolId = null;
+let provider = null, signer = null, userAddress = null;
+const circuitBuf = { v3: null, v2: null, disclose: null };
+const manualParts = { withdraw: {}, disclose: {} };
+const depositWallets = new Set();   // wallets that made a deposit in this session (lower-case)
+let daPlan = null;   // { router, plan } when the amount on screen can be deposited
+let waFound = null;  // { router, mk, found, deps, plan } after "Find my notes"
+let ROUTERS = [];
+let unsavedNote = false;            // a fresh note is on screen and not yet confirmed as saved
+let lastScan = null;                // { poolId, count, myLeaf, myTimestamp }
+let issuedNonce = null;             // auditor side: the code generated in this session
+let externalFaucetShown = false;
+let walletStatusArgs = null;        // [key, vars, cls, suffix] so the wallet status can be re-translated as it was
+const circState = { withdraw: ['circ.loadingAuto'], disclose: ['dcirc.loading'] };
+
+function log(msg) { const el = $('log'); el.textContent += '\n' + msg; el.scrollTop = el.scrollHeight; console.log(msg); }
+function setStatus(id, text, cls) { const el = $(id); el.textContent = text; el.className = 'status ' + cls; el.style.display = 'block'; }
+function hideStatus(id) { $(id).style.display = 'none'; }
+function setWalletStatus(key, vars, cls, suffix) { walletStatusArgs = [key, vars, cls, suffix || '']; setStatus('walletStatus', t(key, vars) + (suffix || ''), cls); }
+const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const errText = (e) => (e && (e.shortMessage || e.message)) || String(e);
+let toastT;
+function toast(m) { const tt = $('toast'); tt.textContent = m; tt.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => tt.classList.remove('on'), 1600); }
+async function copyText(text, whatKey) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) {} ta.remove(); }
+  toast(t('toast.copied', { what: t(whatKey) }));
+}
+function ago(ts) {
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+  if (s < 60) return t('ago.s', { n: s }); if (s < 3600) return t('ago.m', { n: Math.floor(s / 60) }); if (s < 86400) return t('ago.h', { n: Math.floor(s / 3600) }); return t('ago.d', { n: Math.floor(s / 86400) });
+}
+
+// ---------- progress steps ----------
+function Steps(id, keys) {
+  const el = $(id); let timer = null;
+  el.innerHTML = keys.map((k) => '<li><span>' + esc(t(k)) + '</span><span class="extra"></span></li>').join('');
+  const items = [...el.children];
+  let cur = -1;
+  const api = {
+    go(i, extra) { for (let k = 0; k < i; k++) if (!items[k].classList.contains('err')) { items[k].className = 'done'; } items[i].className = 'active'; if (extra !== undefined) items[i].lastChild.textContent = extra; cur = i; },
+    extra(i, text) { items[i].lastChild.textContent = text; },
+    tick(i) { const t0 = performance.now(); clearInterval(timer); timer = setInterval(() => { items[i].lastChild.textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100); },
+    stopTick() { clearInterval(timer); timer = null; },
+    done() { api.stopTick(); items.forEach((it) => { if (!it.classList.contains('err')) it.className = 'done'; }); },
+    fail() { api.stopTick(); if (cur >= 0) items[cur].className = 'err'; else el.innerHTML = ''; },
+  };
+  return api;
+}
+
+// ---------- crypto helpers ----------
+function hash2(a, b) { return poseidon2([BigInt(a), BigInt(b)]); }
+function computeCommitment(spendKey, viewKey) { return hash2(hash2(BigInt(spendKey), BigInt(viewKey)), 0n); }
+function computeNullifierHash(spendKey) { return hash2(BigInt(spendKey), 1n); }
+function computeDisclosureTag(viewKey, auditorNonce) { return hash2(BigInt(viewKey), BigInt(auditorNonce)); }
+function computeZeroCascade() { const z = [0n]; let c = 0n; for (let i = 0; i < LEVELS; i++) { c = hash2(c, c); z.push(c); } return z; }
+function randomFieldElement() { return BigInt(ethers.hexlify(ethers.randomBytes(32))) % FIELD_SIZE; }
+
+// distribution-core:begin
+/**
+ * Canonical greedy split.
+ * @param {bigint} amount          amount in base units
+ * @param {bigint[]} denominations pool denominations, largest first, each dividing the previous one
+ * @returns {{counts: bigint[], total: bigint}}
+ */
+function canonicalSplit(amount, denominations) {
+  if (typeof amount !== 'bigint') throw new TypeError('amount must be a BigInt');
+  if (amount <= 0n) throw new Error('Zero amount');
+  const last = denominations[denominations.length - 1];
+  if (amount % last !== 0n) throw new Error('Amount is not a multiple of the smallest denomination');
+  let rest = amount;
+  let total = 0n;
+  const counts = denominations.map((d) => {
+    const c = rest / d;
+    rest -= c * d;
+    total += c;
+    return c;
+  });
+  return { counts, total };
+}
+
+/**
+ * The denomination of each note, in the order the contract expects the commitments:
+ * all notes of the largest pool first. For counts [1n, 1n, 0n, 3n] and denominations [100n, 50n, 10n, 1n]
+ * this is [100n, 50n, 1n, 1n, 1n].
+ */
+function noteOrder(counts, denominations) {
+  const order = [];
+  counts.forEach((c, i) => { for (let n = 0n; n < c; n++) order.push(denominations[i]); });
+  return order;
+}
+
+/** Round an amount DOWN to a multiple of `step` (decision D3: the remainder stays in the user's wallet). */
+function roundDown(amount, step) {
+  if (step <= 0n) throw new Error('step must be positive');
+  return amount - (amount % step);
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------
+// Wallet side: one master key for all the notes of a deposit, and picking notes for a withdrawal by amount.
+// (The demo, demo/index.html, carries a verbatim copy of the block between the two "distribution-core" markers;
+//  test/distribution/wallet.js checks that the copy and this file have not drifted apart.)
+// ---------------------------------------------------------------------------------------------------------------
+/** Highest note index looked at when a master key is used to find its notes (a deposit has at most 32 notes). */
+const MASTER_SCAN_LIMIT = 64;
+
+/**
+ * Keys of note number `index` of a master key. Two Poseidon hashes, so the same master key gives different notes on
+ * different chains and for different indices, and knowing one note's keys reveals nothing about the master key.
+ * @param {(inputs: bigint[]) => bigint} poseidon4  Poseidon over four inputs (poseidon-lite: poseidon4)
+ */
+function deriveNoteKeys(poseidon4, master, chainId, index) {
+  const m = BigInt(master), c = BigInt(chainId), i = BigInt(index);
+  return { spendKey: poseidon4([m, c, i, 1n]), viewKey: poseidon4([m, c, i, 2n]) };
+}
+
+/** `latheon-master:<chainId>:<router>:<master>`: names the network and the router, so nothing has to be remembered. */
+function formatMasterKey(chainId, router, master) {
+  return 'latheon-master:' + chainId + ':' + router + ':' + BigInt(master).toString();
+}
+
+/** Inverse of formatMasterKey. Throws on anything that is not a master key. */
+function parseMasterKey(text) {
+  const parts = String(text).trim().split(':');
+  if (parts.length !== 4 || parts[0] !== 'latheon-master') throw new Error('Not a master key');
+  if (!/^[0-9]+$/.test(parts[1]) || !/^0x[0-9a-fA-F]{40}$/.test(parts[2]) || !/^[0-9]+$/.test(parts[3])) throw new Error('Not a master key');
+  return { chainId: Number(parts[1]), router: parts[2], master: BigInt(parts[3]) };
+}
+
+/**
+ * How a deposit of `amount` is split. mode 'exact': the amount must be a multiple of the smallest denomination.
+ * mode 'round': it is first rounded DOWN to a multiple of `step`, and the remainder stays in the wallet (decision D3).
+ * @returns {{amount: bigint, remainder: bigint, counts: bigint[], total: bigint, order: bigint[]}}
+ */
+function planDeposit(amount, denominations, mode, step) {
+  let use = amount;
+  if (mode === 'round') use = roundDown(amount, step);
+  if (use <= 0n) throw new Error('Zero amount');
+  const { counts, total } = canonicalSplit(use, denominations);
+  return { amount: use, remainder: amount - use, counts, total, order: noteOrder(counts, denominations) };
+}
+
+/**
+ * Pick notes that add up to EXACTLY `target`, using as few notes as possible (fewer notes, fewer proofs, less
+ * gas, and fewer notes tied together). There is no change: a note is spent whole, so only sums of whole notes work.
+ * @param {{value: number}[]} notes   unspent notes; value is a whole number of the smallest unit
+ * @param {number} target             whole number of the smallest unit
+ * @returns {{chosen: object[]|null, nearest: number}} chosen is null when no exact sum exists; `nearest` is then the
+ *          largest reachable sum below the target (equal to the target when chosen is not null)
+ */
+function selectNotes(notes, target) {
+  if (!Number.isSafeInteger(target) || target <= 0) throw new Error('Bad target');
+  if (target > 1e6) throw new Error('Target too large');
+  const n = notes.length, W = target + 1, INF = 255;
+  const best = new Uint8Array((n + 1) * W).fill(INF);
+  best[0] = 0;
+  for (let i = 0; i < n; i++) {
+    const v = notes[i].value, row = i * W, nxt = (i + 1) * W;
+    for (let s = 0; s < W; s++) {
+      let b = best[row + s];
+      if (s >= v && best[row + s - v] !== INF && best[row + s - v] + 1 < b) b = best[row + s - v] + 1;
+      best[nxt + s] = b;
+    }
+  }
+  let reach = target;
+  while (reach > 0 && best[n * W + reach] === INF) reach--;
+  if (reach !== target) return { chosen: null, nearest: reach };
+  const chosen = [];
+  for (let i = n, s = target; i > 0; i--) {
+    const v = notes[i - 1].value;
+    if (best[(i - 1) * W + s] !== best[i * W + s]) { chosen.push(notes[i - 1]); s -= v; }
+  }
+  return { chosen: chosen.reverse(), nearest: target };
+}
+// distribution-core:end
+
+(function selfCheck() {
+  const c = computeCommitment(555111222n, 888444333n);
+  const expected = '17532398397455971669194033134168638503125316998070411330403243243693265230884';
+  log(c.toString() === expected ? '✓ Poseidon self-check passed — matches known on-chain data.' : '✗ Poseidon self-check FAILED: ' + c.toString());
+})();
+
+// ---------- notes ----------
+// V5 note carries the network and the pool, so nothing has to be remembered:
+//   latheon-v5:<chainId>:<poolAddress>:<spendKey>:<viewKey>
+// Legacy notes (V4 pools) keep the old format: latheon-v4-note:<spendKey>:<viewKey>
+function encodeNote(pool, spendKey, viewKey) {
+  return pool.version === 'v5'
+    ? `latheon-v5:${pool.net.chainId}:${pool.address}:${spendKey}:${viewKey}`
+    : `latheon-v4-note:${spendKey}:${viewKey}`;
+}
+function decodeNote(text) {
+  const parts = String(text).trim().split(':');
+  if (parts[0] === 'latheon-v5' && parts.length === 5) {
+    if (!ethers.isAddress(parts[2])) throw new Error(t('err.poolAddr'));
+    return { kind: 'v5', chainId: Number(parts[1]), address: ethers.getAddress(parts[2]), spendKey: BigInt(parts[3]), viewKey: BigInt(parts[4]) };
+  }
+  if (parts[0] === 'latheon-v4-note' && parts.length === 3) return { kind: 'v4', spendKey: BigInt(parts[1]), viewKey: BigInt(parts[2]) };
+  throw new Error(t('err.format'));
+}
+// Resolve the pool a note belongs to (V5 notes name it; legacy notes need the legacy pool selected).
+function poolForNote(note) {
+  if (note.kind === 'v5') {
+    const pool = findPool(note.chainId, note.address);
+    if (!pool) throw new Error(t('err.unknownPool', { chain: note.chainId, addr: note.address }));
+    return pool;
+  }
+  const pool = currentPool();
+  if (!pool.legacy) throw new Error(t('err.oldNote'));
+  return pool;
+}
+
+// ---------- config ----------
+async function loadConfig() {
+  const r = await fetch('deployments.json', { cache: 'no-cache' });
+  if (!r.ok) throw new Error(t('err.config', { code: r.status }));
+  CONFIG = await r.json();
+  POOLS = CONFIG.pools.map((p) => {
+    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5';
+    return Object.assign({}, p, {
+      net, tok, decimals: tok.decimals,
+      denomination: BigInt(p.amount) * 10n ** BigInt(tok.decimals),
+      verifierAddr: v5 ? net.v5Verifier : p.verifier,
+      startBlock: v5 ? p.deployBlock : p.startBlock,
+      circuit: v5 ? 'v3' : 'v2',
+      address: ethers.getAddress(p.address),
+      label: (p.legacy ? 'legacy V4 · ' : '') + p.amount + ' ' + p.token,
+    });
+  });
+  loadRouters();
+}
+const currentPool = () => POOLS.find((p) => p.id === currentPoolId);
+const findPool = (chainId, address) => POOLS.find((p) => p.net.chainId === chainId && p.address.toLowerCase() === address.toLowerCase());
+
+function populatePoolSelect() {
+  const sel = $('netSelect'); sel.innerHTML = '';
+  for (const [netId, net] of Object.entries(CONFIG.networks)) {
+    if (!POOLS.some((x) => x.network === netId && !x.legacy)) continue;
+    const o = document.createElement('option'); o.value = netId; o.textContent = net.name; sel.appendChild(o);
+  }
+}
+// Keep the three selectors (network, token, pool) consistent with the current pool.
+function syncPoolControls() {
+  const p = currentPool(); if (!p) return;
+  $('netSelect').value = p.network;
+  const toks = [...new Set(POOLS.filter((x) => x.network === p.network && !x.legacy).map((x) => x.token))];
+  const ts = $('tokSelect'); ts.innerHTML = '';
+  for (const k of toks) { const o = document.createElement('option'); o.value = k; o.textContent = k; ts.appendChild(o); }
+  ts.value = p.token;
+  const ps = $('poolSelect'); ps.innerHTML = '';
+  const list = POOLS.filter((x) => x.network === p.network && x.token === p.token).sort((a, b) => (!!a.legacy - !!b.legacy) || (b.amount - a.amount));
+  for (const x of list) { const o = document.createElement('option'); o.value = x.id; o.textContent = x.label; ps.appendChild(o); }
+  ps.value = p.id;
+}
+// The pool list only matters where a single fixed pool is used; in the any-amount modes the router picks the pools.
+function updatePoolRow() {
+  const sel = (id) => $(id).getAttribute('aria-selected') === 'true';
+  const any = (sel('tab-deposit') && !$('depAny').hidden) || (sel('tab-withdraw') && !$('wdAny').hidden) || sel('tab-auditor');
+  $('poolRow').hidden = any;
+  $('poolInfo').style.display = any ? 'none' : '';
+}
+function selectPool(id) { currentPoolId = id; syncPoolControls(); updatePoolUI(); }
+
+function updatePoolUI() {
+  const p = currentPool(); if (!p) return;
+  setStatus('poolInfo', t('pool.info', { net: p.net.name, label: p.label, addr: short(p.address) }), 'info');
+  $('activePoolBadge').textContent = '· ' + p.net.name;
+  $('tokenLabelOut').textContent = t('wallet.token', { token: p.token });
+  $('depositAmountOut').textContent = p.amount + ' ' + p.token;
+  const banner = $('legacyBanner');
+  if (p.legacy) { banner.textContent = t('pool.legacyBanner'); banner.style.display = 'block'; }
+  else banner.style.display = 'none';
+  $('withdrawHelp').textContent = p.legacy ? t('wd.helpLegacy') : t('wd.help');
+  if (typeof refreshDepositAny === 'function') refreshDepositAny();
+  if (p.tok.faucet) {
+    $('claimBtn').style.display = 'inline-block'; $('externalFaucetNote').style.display = 'none';
+    if (externalFaucetShown) { hideStatus('faucetStatus'); externalFaucetShown = false; }
+  } else {
+    $('claimBtn').style.display = 'none';
+    $('externalFaucetNote').style.display = 'block';
+    if (p.tok.externalFaucet) $('externalFaucetLink').href = p.tok.externalFaucet;
+    setStatus('faucetStatus', t('faucet.externalStatus', { token: p.token }), 'info'); externalFaucetShown = true;
+  }
+}
+
+// ---------- language switching ----------
+function setLanguage(lang) {
+  LANG = I18N[lang] ? lang : 'en';
+  try { localStorage.setItem('latheon-lang', LANG); } catch (e) {}
+  $('langSelect').value = LANG;
+  applyStatic();
+  $('connectBtn').textContent = t(signer ? 'btn.reconnect' : 'btn.connect');
+  $('genNonceBtn').textContent = t(issuedNonce == null ? 'btn.genCode' : 'btn.newCode');
+  for (const g of ['withdraw', 'disclose']) {
+    const [key, cls, err] = circState[g]; const id = g === 'withdraw' ? 'circuitFilesStatus' : 'discloseFilesStatus';
+    if (cls) setStatus(id, t(key, { err }), cls); else $(id).textContent = t(key);
+  }
+  if (CONFIG) updatePoolUI();
+  if (walletStatusArgs) setStatus('walletStatus', t(walletStatusArgs[0], walletStatusArgs[1]) + walletStatusArgs[3], walletStatusArgs[2]);
+  syncDepositBtn(); updateWarnings(); waWarnings();
+  if (lastTree) renderTree(lastTree.pool, lastTree.deposits, lastTree.myLeaf);
+}
+(function initLanguage() {
+  let saved = null;
+  try { saved = localStorage.getItem('latheon-lang'); } catch (e) {}
+  LANG = saved || (navigator.language || 'en').slice(0, 2);
+  if (!I18N[LANG]) LANG = 'en';
+  $('langSelect').value = LANG;
+  applyStatic();
+  $('genNonceBtn').textContent = t('btn.genCode');
+  $('langSelect').addEventListener('change', (e) => setLanguage(e.target.value));
+})();
+
+// ---------- circuits ----------
+async function fetchBuf(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url); return new Uint8Array(await r.arrayBuffer()); }
+async function loadCircuit(kind) {
+  if (circuitBuf[kind]) return circuitBuf[kind];
+  const c = CIRCUITS[kind];
+  const [wasm, zkey] = await Promise.all([fetchBuf(c.wasm), fetchBuf(c.zkey)]);
+  circuitBuf[kind] = { wasm, zkey };
+  log(`Loaded ${kind} circuit: wasm ${wasm.length} bytes, zkey ${zkey.length} bytes.`);
+  return circuitBuf[kind];
+}
+function manualCircuit(group, part, kind, buf) {
+  manualParts[group][part] = buf;
+  if (manualParts[group].wasm && manualParts[group].zkey) circuitBuf[kind] = { wasm: manualParts[group].wasm, zkey: manualParts[group].zkey };
+}
+
+// ---------- providers ----------
+// Read-only access goes through the network's public RPC, so checking a note or a
+// disclosure needs no wallet and never asks the wallet to switch networks.
+const readProviders = {};
+function readProvider(net) {
+  if (!readProviders[net.chainId]) readProviders[net.chainId] = new ethers.JsonRpcProvider(net.rpcUrl, net.chainId, { staticNetwork: true });
+  return readProviders[net.chainId];
+}
+
+// ---------- wallet ----------
+async function ensureCorrectNetwork(pool) {
+  pool = pool || currentPool();
+  const want = BigInt(pool.net.chainId);
+  let net = await provider.getNetwork();
+  if (net.chainId !== want) {
+    log(`Wallet is on chainId ${net.chainId}; switching to ${pool.net.name}…`);
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: pool.net.chainIdHex }] });
+    } catch (e) {
+      if (e && (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902))) {
+        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+          chainId: pool.net.chainIdHex, chainName: pool.net.name, rpcUrls: [pool.net.rpcUrl],
+          nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: [pool.net.explorerUrl] }] });
+      } else throw e;
+    }
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    net = await provider.getNetwork();
+    if (net.chainId !== want) throw new Error('Wallet is still on chainId ' + net.chainId + '; expected ' + want + '.');
+  }
+}
+async function refreshBalances() {
+  const p = currentPool();
+  const eth = await provider.getBalance(userAddress);
+  $('ethOut').textContent = ethers.formatEther(eth) + ' ETH';
+  const bal = await new ethers.Contract(p.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
+  $('tokenOut').textContent = ethers.formatUnits(bal, p.decimals) + ' ' + p.token;
+}
+
+// ---------- deposit scan, cached per (chain, contract) ----------
+const CACHE_PREFIX = 'latheon-cache-v5-';
+const cacheKey = (pool) => CACHE_PREFIX + pool.net.chainId + ':' + pool.address.toLowerCase();
+function loadCache(pool) {
+  try {
+    const deposits = JSON.parse(localStorage.getItem(cacheKey(pool) + ':deposits') || '[]').map((d) => ({ commitment: BigInt(d.commitment), leafIndex: d.leafIndex, timestamp: d.timestamp }));
+    return { deposits, lastBlock: parseInt(localStorage.getItem(cacheKey(pool) + ':lastblock') || '0', 10) };
+  } catch (e) { return { deposits: [], lastBlock: 0 }; }
+}
+function saveCache(pool, deposits, lastBlock) {
+  try {
+    localStorage.setItem(cacheKey(pool) + ':deposits', JSON.stringify(deposits.map((d) => ({ commitment: d.commitment.toString(), leafIndex: d.leafIndex, timestamp: d.timestamp }))));
+    localStorage.setItem(cacheKey(pool) + ':lastblock', String(lastBlock));
+  } catch (e) { log('Cache write failed (not fatal): ' + e.message); }
+}
+async function fetchDeposits(pool, useCache, prov) {
+  prov = prov || provider;
+  const poolContract = new ethers.Contract(pool.address, POOL_ABI[pool.version], prov);
+  const filter = poolContract.filters.Deposit();
+  const latestBlock = await prov.getBlockNumber();
+  const CHUNK = 9000, PARALLEL = 8;
+  const cache = useCache ? loadCache(pool) : { deposits: [], lastBlock: 0 };
+  const start = cache.lastBlock >= pool.startBlock ? cache.lastBlock + 1 : pool.startBlock;
+  if (useCache && cache.lastBlock >= pool.startBlock) log(`Using cached deposits up to block ${cache.lastBlock} (${cache.deposits.length} known); scanning only newer blocks.`);
+  const ranges = [];
+  for (let from = start; from <= latestBlock; from += CHUNK) ranges.push([from, Math.min(from + CHUNK - 1, latestBlock)]);
+  let events = [];
+  for (let i = 0; i < ranges.length; i += PARALLEL) {
+    const batch = ranges.slice(i, i + PARALLEL);
+    log(`Querying Deposit events in blocks ${batch[0][0]}–${batch[batch.length - 1][1]} (${batch.length} parallel request${batch.length > 1 ? 's' : ''})…`);
+    const res = await Promise.all(batch.map(([f, tt]) => poolContract.queryFilter(filter, f, tt)));
+    for (const r of res) events = events.concat(r);
+  }
+  const fresh = events.map((e) => ({ commitment: BigInt(e.args.commitment), leafIndex: Number(e.args.leafIndex), timestamp: Number(e.args.timestamp) }));
+  const deposits = cache.deposits.concat(fresh).sort((a, b) => a.leafIndex - b.leafIndex);
+  saveCache(pool, deposits, latestBlock);
+  return deposits;
+}
+async function findDeposit(pool, commitment, prov) {
+  let deposits = await fetchDeposits(pool, true, prov);
+  let mine = deposits.find((d) => d.commitment === commitment);
+  if (!mine) { log('Deposit not in the cached range — rescanning this pool from its first block…'); deposits = await fetchDeposits(pool, false, prov); mine = deposits.find((d) => d.commitment === commitment); }
+  return { deposits, mine };
+}
+function buildTreeLevels(leaves, zeros) {
+  const levels = [leaves.slice()]; let cur = leaves.slice();
+  for (let d = 0; d < LEVELS; d++) {
+    const next = []; const size = Math.ceil(cur.length / 2) || 1;
+    for (let i = 0; i < size; i++) next.push(hash2(cur[2 * i] !== undefined ? cur[2 * i] : zeros[d], cur[2 * i + 1] !== undefined ? cur[2 * i + 1] : zeros[d]));
+    levels.push(next); cur = next;
+  }
+  return levels;
+}
+function getMerklePath(levels, leafIndex, zeros) {
+  const pathElements = [], pathIndices = []; let idx = leafIndex;
+  for (let d = 0; d < LEVELS; d++) {
+    const level = levels[d], isRight = idx % 2 === 1, sib = isRight ? idx - 1 : idx + 1;
+    pathElements.push(level[sib] !== undefined ? level[sib] : zeros[d]); pathIndices.push(isRight ? 1 : 0); idx = Math.floor(idx / 2);
+  }
+  return { pathElements, pathIndices, root: levels[LEVELS][0] };
+}
+
+// ---------- the pool's real tree ----------
+let lastTree = null;
+function renderTree(pool, deposits, myLeaf) {
+  lastTree = { pool, deposits, myLeaf };
+  const used = new Set(deposits.map((d) => d.leafIndex));
+  let cells = '';
+  for (let i = 0; i < CAPACITY; i++) cells += '<i class="' + (i === myLeaf ? 'me' : used.has(i) ? 'f' : '') + '" title="leaf ' + i + '"></i>';
+  const sub = th('tree.sub', { net: pool.net.name, label: pool.label, used: deposits.length, cap: CAPACITY });
+  $('treeBox').innerHTML = '<div class="tree-box"><h4>' + esc(t('tree.title')) + '</h4>' +
+    '<p class="muted small">' + sub + '</p>' +
+    '<div class="grid256" role="img" aria-label="' + esc(deposits.length + ' / ' + CAPACITY) + '">' + cells + '</div>' +
+    '<div class="legend"><span style="--c:var(--gold)">' + (myLeaf != null ? th('tree.yoursLeaf', { n: myLeaf }) : esc(t('tree.yours'))) + '</span>' +
+    '<span style="--c:var(--violet-deep)">' + esc(t('tree.others')) + '</span><span style="--c:rgba(242,239,233,.12)">' + esc(t('tree.empty')) + '</span></div></div>';
+}
+
+// ---------- honest warnings before a withdrawal ----------
+function updateWarnings() {
+  const out = [];
+  const recipientText = $('recipientInput').value.trim();
+  let recipient = null; try { if (recipientText) recipient = ethers.getAddress(recipientText); } catch (e) {}
+  if (recipient && userAddress && recipient.toLowerCase() === userAddress.toLowerCase()) out.push(['bad', t('warn.selfRecipient')]);
+  if (userAddress) {
+    if (depositWallets.has(userAddress.toLowerCase())) out.push(['bad', t('warn.sameWallet', { addr: short(userAddress) })]);
+    else out.push(['warn', t('warn.sender', { addr: short(userAddress) })]);
+  }
+  if (lastScan && lastScan.poolId === currentPoolId) {
+    out.push(['note', lastScan.count === 1 ? t('warn.set1') : t('warn.setN', { n: lastScan.count })]);
+    if (lastScan.myTimestamp && Date.now() / 1000 - lastScan.myTimestamp < 3600) out.push(['warn', t('warn.timing', { ago: ago(lastScan.myTimestamp) })]);
+  }
+  $('withdrawWarnings').innerHTML = out.map(([c, x]) => '<li class="' + c + '">' + esc(x) + '</li>').join('');
+}
+$('recipientInput').addEventListener('input', updateWarnings);
+
+// ---------- tabs ----------
+const TABS = ['deposit', 'withdraw', 'disclose', 'auditor'];
+function showTab(name) {
+  for (const tb of TABS) {
+    $('tab-' + tb).setAttribute('aria-selected', String(tb === name));
+    $('panel-' + tb).hidden = tb !== name;
+  }
+  updatePoolRow();
+}
+TABS.forEach((tb, i) => {
+  $('tab-' + tb).addEventListener('click', () => showTab(tb));
+  $('tab-' + tb).addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const n = TABS[(i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
+    showTab(n); $('tab-' + n).focus();
+  });
+});
+
+// ---------- UI wiring ----------
+function syncDepositBtn() {
+  $('depositBtn').disabled = !signer || unsavedNote;
+  $('depositHint').textContent = unsavedNote ? t('dep.hint') : '';
+  $('daDepositBtn').disabled = !signer || unsavedNote || !daPlan;
+  $('daHint').textContent = unsavedNote ? t('da.hint') : '';
+  syncWaButtons();
+}
+
+async function onPoolChosen(id) {
+  selectPool(id);
+  log('Selected: ' + currentPool().net.name + ' · ' + currentPool().label);
+  updateWarnings();
+  if (signer) { try { await ensureCorrectNetwork(); await refreshBalances(); } catch (err) { log('ERROR: ' + (err.message || err)); } }
+}
+// Network or token changed: keep the token (and the denomination) when the new network has it.
+function pickPool(netId, tok) {
+  const cur = currentPool();
+  const inNet = POOLS.filter((x) => x.network === netId && !x.legacy);
+  if (!inNet.length) return;
+  const wantTok = tok && inNet.some((x) => x.token === tok) ? tok : (inNet.some((x) => x.token === cur.token) ? cur.token : inNet[0].token);
+  const cand = inNet.filter((x) => x.token === wantTok).sort((a, b) => b.amount - a.amount);
+  return (cand.find((x) => x.amount === cur.amount) || cand[0]).id;
+}
+$('poolSelect').addEventListener('change', (e) => onPoolChosen(e.target.value));
+$('netSelect').addEventListener('change', (e) => onPoolChosen(pickPool(e.target.value, null)));
+$('tokSelect').addEventListener('change', (e) => onPoolChosen(pickPool($('netSelect').value, e.target.value)));
+
+$('connectBtn').addEventListener('click', async () => {
+  if (!window.ethereum) { setWalletStatus('wallet.noWallet', null, 'err'); return; }
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send('eth_requestAccounts', []);
+    signer = await provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureCorrectNetwork();
+    setWalletStatus('wallet.connected', { net: currentPool().net.name }, 'ok');
+    $('addrOut').textContent = userAddress;
+    if (currentPool().tok.faucet) $('claimBtn').disabled = false;
+    syncDepositBtn(); $('withdrawBtn').disabled = false; $('discloseBtn').disabled = false;
+    $('connectBtn').textContent = t('btn.reconnect');
+    await refreshBalances();
+    updateWarnings();
+    log('Wallet connected: ' + userAddress);
+  } catch (e) { setWalletStatus('wallet.connFailed', null, 'err', String(e.message || e)); log('ERROR: ' + (e.message || e)); }
+});
+
+$('claimBtn').addEventListener('click', async () => {
+  const btn = $('claimBtn'); btn.disabled = true;
+  try {
+    const p = currentPool(); await ensureCorrectNetwork(p);
+    setStatus('faucetStatus', t('faucet.claiming'), 'info'); externalFaucetShown = false;
+    const tx = await new ethers.Contract(p.tok.faucet, FAUCET_ABI, signer).claim();
+    log('Claim tx: ' + tx.hash); await tx.wait();
+    setStatus('faucetStatus', t('faucet.claimed', { token: p.token }), 'ok'); await refreshBalances();
+  } catch (e) { setStatus('faucetStatus', t('faucet.failed') + errText(e), 'err'); log('ERROR: ' + (e.message || e)); }
+  finally { btn.disabled = false; }
+});
+
+$('depositBtn').addEventListener('click', async () => {
+  const btn = $('depositBtn'); btn.disabled = true;
+  const st = Steps('depSteps', ['dep.s1', 'dep.s2', 'dep.s3', 'dep.s4']);
+  $('depositResult').innerHTML = '';
+  try {
+    const p = currentPool(); await ensureCorrectNetwork(p);
+    st.go(0);
+    const onchainDecimals = Number(await new ethers.Contract(p.tok.address, ERC20_ABI, provider).decimals());
+    if (onchainDecimals !== p.decimals) throw new Error(t('dep.decimals', { cfg: p.decimals, chain: onchainDecimals }));
+    const spendKey = randomFieldElement(), viewKey = randomFieldElement();
+    const commitment = computeCommitment(spendKey, viewKey);
+    const note = encodeNote(p, spendKey, viewKey);
+    log('Generated keys. Commitment: ' + commitment.toString());
+    st.go(1, t('x.confirm'));
+    log(`Approving the pool to spend ${p.amount} ${p.token}…`);
+    await (await new ethers.Contract(p.tok.address, ERC20_ABI, signer).approve(p.address, p.denomination)).wait();
+    st.extra(1, '');
+    st.go(2, t('x.confirm'));
+    log('Depositing…');
+    const tx = await new ethers.Contract(p.address, POOL_ABI[p.version], signer).deposit(commitment);
+    log('Deposit tx: ' + tx.hash);
+    st.extra(2, t('x.block'));
+    const rc = await tx.wait();
+    st.extra(2, '');
+    let leafIndex = null;
+    for (const lg of rc.logs || []) {
+      if (lg.address.toLowerCase() !== p.address.toLowerCase()) continue;
+      try { const ev = DEPOSIT_IFACE.parseLog(lg); if (ev && BigInt(ev.args.commitment) === commitment) leafIndex = Number(ev.args.leafIndex); } catch (e) {}
+    }
+    depositWallets.add(userAddress.toLowerCase());
+    st.go(3);
+    unsavedNote = true; syncDepositBtn();
+    const explorerTx = p.net.explorerUrl + '/tx/' + tx.hash;
+    $('depositResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('note.title')) + '</strong>' +
+      '<div class="muted small" style="margin-top:4px">' + esc(t('note.sub')) + '</div>' +
+      '<code id="noteText"></code>' +
+      '<div class="btn-row"><button id="downloadNoteBtn" class="small">' + esc(t('btn.download')) + '</button><button id="copyNoteBtn" class="secondary small">' + esc(t('btn.copyNote')) + '</button></div>' +
+      '<label class="check"><input type="checkbox" id="noteSavedChk"><span>' + esc(t('note.saved')) + '</span></label>' +
+      '<div class="muted small" style="margin-top:10px">' + esc(p.net.name) + ' · ' + esc(p.label) + (leafIndex != null ? ' · ' + th('note.leaf', { n: leafIndex }) : '') +
+      ' · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a></div></div>';
+    $('noteText').textContent = note;
+    $('copyNoteBtn').addEventListener('click', () => { copyText(note, 'what.note'); $('copyNoteBtn').textContent = t('btn.copied'); });
+    $('downloadNoteBtn').addEventListener('click', () => {
+      const body = [t('file.l1'), t('file.l2'), '',
+        t('file.network') + ': ' + p.net.name + ' (chainId ' + p.net.chainId + ')', t('file.pool') + ': ' + p.label + ' ' + (p.legacy ? '' : '(V5) ') + p.address,
+        (leafIndex != null ? t('file.leaf') + ': #' + leafIndex : ''), t('file.tx') + ': ' + explorerTx, '', t('file.note') + ':', note, ''].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([body], { type: 'text/plain;charset=utf-8' }));
+      a.download = 'latheon-note-' + p.network + '-' + p.amount + p.token + '-' + tx.hash.slice(2, 10) + '.txt';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      $('downloadNoteBtn').textContent = t('btn.downloaded');
+    });
+    $('noteSavedChk').addEventListener('change', (e) => {
+      unsavedNote = !e.target.checked; syncDepositBtn();
+      if (e.target.checked) st.done();
+    });
+    log('Deposit confirmed' + (leafIndex != null ? ' at leaf index ' + leafIndex : '') + '.'); await refreshBalances();
+    updateWarnings();
+  } catch (e) { st.fail(); log('ERROR: ' + errText(e)); $('depositResult').innerHTML = ''; setWalletStatus('dep.failed', null, 'err', errText(e)); }
+  finally { syncDepositBtn(); }
+});
+window.addEventListener('beforeunload', (e) => { if (unsavedNote) { e.preventDefault(); e.returnValue = ''; } });
+
+$('wasmFile').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; manualCircuit('withdraw', 'wasm', currentPool().circuit, new Uint8Array(await f.arrayBuffer())); $('wasmOk').style.display = 'inline'; log('withdraw wasm loaded manually: ' + f.name); });
+$('zkeyFile').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; manualCircuit('withdraw', 'zkey', currentPool().circuit, new Uint8Array(await f.arrayBuffer())); $('zkeyOk').style.display = 'inline'; log('withdraw zkey loaded manually: ' + f.name); });
+$('discloseWasmFile').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; manualCircuit('disclose', 'wasm', 'disclose', new Uint8Array(await f.arrayBuffer())); $('discloseWasmOk').style.display = 'inline'; log('disclose wasm loaded manually: ' + f.name); });
+$('discloseZkeyFile').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; manualCircuit('disclose', 'zkey', 'disclose', new Uint8Array(await f.arrayBuffer())); $('discloseZkeyOk').style.display = 'inline'; log('disclose zkey loaded manually: ' + f.name); });
+
+// ---------- check a note (read-only) ----------
+$('checkNoteBtn').addEventListener('click', async () => {
+  const btn = $('checkNoteBtn'); btn.disabled = true;
+  $('checkResult').innerHTML = ''; hideStatus('withdrawStatus');
+  const st = Steps('wdSteps', ['ck.s1', 'ck.s2', 'ck.s3']);
+  try {
+    st.go(0);
+    const note = decodeNote($('noteInput').value);
+    const pool = poolForNote(note);
+    if (pool.id !== currentPoolId) { log(`The note belongs to ${pool.net.name} · ${pool.label}; switching to it.`); selectPool(pool.id); }
+    const rp = readProvider(pool.net);
+    st.go(1);
+    const commitment = computeCommitment(note.spendKey, note.viewKey);
+    const { deposits, mine } = await findDeposit(pool, commitment, rp);
+    if (!mine) throw new Error(t('err.notFound'));
+    st.go(2);
+    const spent = await new ethers.Contract(pool.address, POOL_ABI[pool.version], rp).nullifierHashes(computeNullifierHash(note.spendKey));
+    st.done();
+    lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
+    renderTree(pool, deposits, mine.leafIndex);
+    setStatus('withdrawStatus', t('ck.ok', { net: pool.net.name, label: pool.label, leaf: mine.leafIndex }) +
+      (mine.timestamp ? t('ck.ago', { ago: ago(mine.timestamp) }) : '') + '. ' +
+      (spent ? t('ck.spent') : t('ck.unspent')), spent ? 'info' : 'ok');
+    updateWarnings();
+  } catch (e) { st.fail(); setStatus('withdrawStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; }
+});
+
+// ---------- withdraw ----------
+$('withdrawBtn').addEventListener('click', async () => {
+  const btn = $('withdrawBtn'); btn.disabled = true;
+  const st = Steps('wdSteps', ['wd.s1', 'wd.s2', 'wd.s3', 'wd.s4', 'wd.s5', 'wd.s6']);
+  try {
+    const note = decodeNote($('noteInput').value);
+    let pool;
+    if (note.kind === 'v5') {
+      pool = findPool(note.chainId, note.address);
+      if (!pool) throw new Error(t('err.unknownPool', { chain: note.chainId, addr: note.address }));
+      if (pool.id !== currentPoolId) { log(`The note belongs to ${pool.net.name} · ${pool.label}; switching to it.`); selectPool(pool.id); }
+    } else {
+      pool = currentPool();
+      if (!pool.legacy) throw new Error(t('err.oldNote'));
+    }
+    const recipient = ethers.getAddress($('recipientInput').value.trim());
+    await ensureCorrectNetwork(pool); await refreshBalances();
+    st.go(0);
+    setStatus('withdrawStatus', t('wd.loading'), 'info');
+    const circ = await loadCircuit(pool.circuit);
+
+    st.go(1);
+    setStatus('withdrawStatus', t('wd.finding'), 'info');
+    const commitment = computeCommitment(note.spendKey, note.viewKey);
+    const { deposits, mine } = await findDeposit(pool, commitment);
+    if (!mine) throw new Error(t('err.notFound'));
+    log('Found deposit at leaf index ' + mine.leafIndex);
+    lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
+    renderTree(pool, deposits, mine.leafIndex); updateWarnings();
+
+    st.go(2);
+    const zeros = computeZeroCascade();
+    const leaves = []; for (const d of deposits) leaves[d.leafIndex] = d.commitment;
+    const { pathElements, pathIndices, root } = getMerklePath(buildTreeLevels(leaves, zeros), mine.leafIndex, zeros);
+    const nullifierHash = computeNullifierHash(note.spendKey);
+
+    const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], provider);
+    if (await poolRead.nullifierHashes(nullifierHash)) throw new Error(t('err.spent'));
+    if (!(await poolRead.isKnownRoot(root))) throw new Error(t('err.root'));
+
+    st.go(3); st.tick(3);
+    setStatus('withdrawStatus', t('wd.proving'), 'info');
+    const input = { root: root.toString(), nullifierHash: nullifierHash.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
+    if (pool.version === 'v5') input.recipient = BigInt(recipient).toString();
+    const t0 = performance.now();
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
+    st.stopTick(); st.extra(3, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+    log('Proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
+    const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+    if (pool.version === 'v5' && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+
+    st.go(4);
+    setStatus('withdrawStatus', t('wd.checking'), 'info');
+    const isValid = await new ethers.Contract(pool.verifierAddr, VERIFIER_ABI[pool.version], provider).verifyProof(pA, pB, pC, pub);
+    log('On-chain verification: ' + (isValid ? 'TRUE' : 'FALSE'));
+    if (!isValid) throw new Error(t('err.invalid'));
+
+    st.go(5, t('x.confirm'));
+    setStatus('withdrawStatus', t('wd.submitting'), 'info');
+    const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
+    const tx = pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient) : await poolW.withdraw(pA, pB, pC, pub, recipient);
+    log('Withdraw tx: ' + tx.hash);
+    st.extra(5, t('x.block'));
+    const rc = await tx.wait();
+    log('Confirmed in block ' + rc.blockNumber + ', gas: ' + rc.gasUsed.toString());
+    st.extra(5, ''); st.done();
+    setStatus('withdrawStatus', t('wd.success', { tx: tx.hash }), 'ok'); await refreshBalances();
+  } catch (e) { st.fail(); setStatus('withdrawStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; }
+});
+
+
+// ---------- distribution router: any amount, one transaction ----------
+const ROUTER_ABI = [
+  'function deposit(uint256 amount, uint256[] commitments)',
+  'function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash)[] items, address recipient)',
+  'function split(uint256 amount) view returns (uint256[4] counts, uint256 total)',
+  'function pools(uint256) view returns (address)', 'function denominations(uint256) view returns (uint256)',
+  'function token() view returns (address)', 'function MAX_NOTES() view returns (uint256)', 'function MAX_WITHDRAWALS() view returns (uint256)',
+];
+const ROUTER_IFACE = new ethers.Interface(['event Distributed(address indexed depositor, uint256 amount, uint256 notes)']);
+function loadRouters() {
+  ROUTERS = (CONFIG.routers || []).map((r) => {
+    const net = CONFIG.networks[r.network], tok = net.tokens[r.token];
+    const pools = POOLS.filter((p) => p.network === r.network && p.token === r.token && p.version === 'v5' && !p.legacy).sort((a, b) => b.amount - a.amount);
+    return Object.assign({}, r, { net, tok, decimals: tok.decimals, address: ethers.getAddress(r.address), pools });
+  }).filter((r) => r.pools.length === 4);
+}
+const routerFor = (pool) => pool ? ROUTERS.find((r) => r.network === pool.network && r.token === pool.token) : null;
+const units = (amount, dec) => ethers.parseUnits(String(amount), dec);
+const fmt = (v, dec) => { const x = ethers.formatUnits(v, dec); return x.replace(/\.0$/, ''); };
+const partsText = (counts, denoms) => counts.map((c, i) => [c, denoms[i]]).filter((x) => x[0] > 0).map((x) => x[0] + '×' + x[1]).join(' + ');
+
+function setDepMode(m) {
+  $('depMode-fixed').setAttribute('aria-pressed', String(m === 'fixed')); $('depMode-any').setAttribute('aria-pressed', String(m === 'any'));
+  $('depFixed').hidden = m !== 'fixed'; $('depAny').hidden = m !== 'any';
+  if (m === 'any') refreshDepositAny();
+  updatePoolRow();
+}
+function setWdMode(m) {
+  $('wdMode-one').setAttribute('aria-pressed', String(m === 'one')); $('wdMode-any').setAttribute('aria-pressed', String(m === 'any'));
+  $('wdOne').hidden = m !== 'one'; $('wdAny').hidden = m !== 'any';
+  if (m === 'any') waWarnings();
+  updatePoolRow();
+}
+$('depMode-fixed').addEventListener('click', () => setDepMode('fixed'));
+$('depMode-any').addEventListener('click', () => setDepMode('any'));
+$('wdMode-one').addEventListener('click', () => setWdMode('one'));
+$('wdMode-any').addEventListener('click', () => setWdMode('any'));
+
+// -- deposit preview
+function refreshDepositAny() {
+  daPlan = null;
+  const pool = CONFIG && currentPool();
+  const router = routerFor(pool);
+  if (!pool) return;
+  if (!router || pool.legacy) { setStatus('daRouter', t('da.noRouter', { token: pool.token, net: pool.net.name }), 'err'); $('daPreview').style.display = 'none'; syncDepositBtn(); return; }
+  setStatus('daRouter', t('da.router', { net: router.net.name, token: router.token, addr: short(router.address) }), 'info');
+  $('daAmountLabel').textContent = t('da.amount', { token: router.token });
+  const txt = $('daAmount').value.trim().replace(',', '.');
+  const prev = $('daPreview'); prev.style.display = 'block';
+  if (!txt) { prev.className = 'status info'; prev.textContent = t('da.prevEmpty'); syncDepositBtn(); return; }
+  try {
+    if (!/^\d+(\.\d+)?$/.test(txt) || Number(txt) <= 0) throw new Error(t('da.errNum'));
+    const dec = router.decimals, mode = document.querySelector('input[name="daRound"]:checked').value;
+    const amount = units(txt, dec), denoms = router.pools.map((p) => p.denomination);
+    if (mode === 'exact' && amount % denoms[3] !== 0n) throw new Error(t('da.errWhole', { token: router.token }));
+    const step = BigInt($('daStep').value) * 10n ** BigInt(dec);
+    let plan;
+    try { plan = planDeposit(amount, denoms, mode, step); } catch (e) { throw new Error(t('da.errZero')); }
+    if (plan.total > 32n) throw new Error(t('da.errMax', { n: plan.total, max: 32 }));
+    const parts = partsText(plan.counts.map(Number), router.pools.map((p) => p.amount));
+    prev.className = 'status ok';
+    prev.innerHTML = th('da.prev', { amt: fmt(plan.amount, dec), token: router.token, n: plan.total, parts }) + ' ' +
+      (plan.remainder > 0n ? th('da.rem', { rem: fmt(plan.remainder, dec), token: router.token }) : esc(t('da.noRem'))) +
+      (plan.total > 8n ? '<br><span class="muted small">' + esc(t('da.tip')) + '</span>' : '');
+    daPlan = { router, plan };
+  } catch (e) { prev.className = 'status err'; prev.textContent = e.message; }
+  syncDepositBtn();
+}
+$('daAmount').addEventListener('input', refreshDepositAny);
+$('daStep').addEventListener('change', () => { document.querySelector('input[name="daRound"][value="round"]').checked = true; refreshDepositAny(); });
+document.querySelectorAll('input[name="daRound"]').forEach((r) => r.addEventListener('change', refreshDepositAny));
+
+// -- deposit through the router
+$('daDepositBtn').addEventListener('click', async () => {
+  const btn = $('daDepositBtn'); btn.disabled = true;
+  const st = Steps('depAnySteps', ['da.s1', 'da.s2', 'da.s3', 'da.s4']);
+  $('depAnyResult').innerHTML = '';
+  try {
+    if (!daPlan) throw new Error(t('da.errNum'));
+    const { router, plan } = daPlan, dec = router.decimals, total = Number(plan.total);
+    await ensureCorrectNetwork({ net: router.net });
+    st.go(0);
+    // the page's idea of the router must match the chain: token, pools, denominations, split
+    const rd = new ethers.Contract(router.address, ROUTER_ABI, provider);
+    if (ethers.getAddress(await rd.token()) !== ethers.getAddress(router.tok.address)) throw new Error(t('da.mismatch'));
+    for (let i = 0; i < 4; i++) {
+      if (ethers.getAddress(await rd.pools(i)) !== router.pools[i].address || (await rd.denominations(i)) !== router.pools[i].denomination) throw new Error(t('da.mismatch'));
+    }
+    const onchain = await rd.split(plan.amount);
+    if (onchain.total !== plan.total || onchain.counts.some((c, i) => c !== plan.counts[i])) throw new Error(t('da.mismatch'));
+    const bal = await new ethers.Contract(router.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
+    if (bal < plan.amount) throw new Error(t('da.lowBal', { token: router.token, have: fmt(bal, dec), need: fmt(plan.amount, dec) }));
+    const master = randomFieldElement();
+    const commitments = [];
+    for (let i = 0; i < total; i++) { const k = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(computeCommitment(k.spendKey, k.viewKey)); }
+    const keyText = formatMasterKey(router.net.chainId, router.address, master);
+    log('Master key generated; ' + total + ' commitments derived.');
+    st.go(1, t('x.confirm'));
+    await (await new ethers.Contract(router.tok.address, ERC20_ABI, signer).approve(router.address, plan.amount)).wait();
+    st.extra(1, ''); st.go(2, t('x.confirm'));
+    const tx = await new ethers.Contract(router.address, ROUTER_ABI, signer).deposit(plan.amount, commitments);
+    log('Router deposit tx: ' + tx.hash); st.extra(2, t('x.block'));
+    const rc = await tx.wait(); st.extra(2, '');
+    log('Router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+    depositWallets.add(userAddress.toLowerCase());
+    st.go(3); unsavedNote = true; syncDepositBtn();
+    const explorerTx = router.net.explorerUrl + '/tx/' + tx.hash;
+    const parts = partsText(plan.counts.map(Number), router.pools.map((p) => p.amount));
+    $('depAnyResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('da.keyTitle')) + '</strong>' +
+      '<div class="muted small" style="margin-top:4px">' + th('da.keySub', { n: total }) + '</div>' +
+      '<code id="masterText"></code>' +
+      '<div class="btn-row"><button id="downloadKeyBtn" class="small">' + esc(t('btn.download')) + '</button><button id="copyKeyBtn" class="secondary small">' + esc(t('btn.copyKey')) + '</button></div>' +
+      '<label class="check"><input type="checkbox" id="keySavedChk"><span>' + esc(t('da.saved')) + '</span></label>' +
+      '<div class="muted small" style="margin-top:10px">' + esc(router.net.name) + ' · ' + th('da.sum', { n: total, amt: fmt(plan.amount, dec), token: router.token }) + ' (' + esc(parts) + ') · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a></div></div>';
+    $('masterText').textContent = keyText;
+    $('copyKeyBtn').addEventListener('click', () => { copyText(keyText, 'what.key'); $('copyKeyBtn').textContent = t('btn.copied'); });
+    $('downloadKeyBtn').addEventListener('click', () => {
+      const body = [t('file.l1'), t('file.l2'), '', t('file.network') + ': ' + router.net.name + ' (chainId ' + router.net.chainId + ')', 'Router: ' + router.address,
+        t('da.sum', { n: total, amt: fmt(plan.amount, dec), token: router.token }) + ' (' + parts + ')', t('file.tx') + ': ' + explorerTx, '', t('da.fileKey') + ':', keyText, ''].join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([body], { type: 'text/plain;charset=utf-8' }));
+      a.download = 'latheon-master-key-' + router.network + '-' + router.token + '-' + tx.hash.slice(2, 10) + '.txt';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      $('downloadKeyBtn').textContent = t('btn.downloaded');
+    });
+    $('keySavedChk').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked) st.done(); });
+    await refreshBalances();
+  } catch (e) { st.fail(); log('ERROR: ' + errText(e)); $('depAnyResult').innerHTML = ''; setStatus('daRouter', t('da.failed') + errText(e), 'err'); }
+  finally { syncDepositBtn(); }
+});
+
+// -- withdraw by amount and master key
+function waWarnings() {
+  const out = [];
+  let rec = null; try { const v = $('waRecipient').value.trim(); if (v) rec = ethers.getAddress(v); } catch (e) {}
+  if (rec && userAddress && rec.toLowerCase() === userAddress.toLowerCase()) out.push(['bad', t('warn.selfRecipient')]);
+  if (userAddress) out.push(depositWallets.has(userAddress.toLowerCase()) ? ['bad', t('warn.sameWallet', { addr: short(userAddress) })] : ['warn', t('warn.sender', { addr: short(userAddress) })]);
+  out.push(['warn', t('wa.linked')]);
+  $('waWarnings').innerHTML = out.map(([c, x]) => '<li class="' + c + '">' + esc(x) + '</li>').join('');
+}
+$('waRecipient').addEventListener('input', waWarnings);
+function syncWaButtons() {
+  const ok = !!(waFound && waFound.plan && waFound.plan.chosen);
+  $('waGoBtn').disabled = !(ok && signer); $('waSepBtn').disabled = !ok;
+}
+async function waScan(st) {
+  const mk = parseMasterKey($('waKey').value);
+  const router = ROUTERS.find((r) => r.net.chainId === mk.chainId && r.address.toLowerCase() === mk.router.toLowerCase());
+  if (!router) throw new Error(t('wa.errRouter', { addr: short(mk.router), chain: mk.chainId }));
+  const rp = readProvider(router.net);
+  st.go(0);
+  const deps = await Promise.all(router.pools.map((p) => fetchDeposits(p, true, rp)));
+  st.go(1);
+  const byCommit = new Map();
+  deps.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex })));
+  const found = [];
+  for (let i = 0; i < MASTER_SCAN_LIMIT; i++) {
+    const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i);
+    const hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey));
+    if (hit) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) });
+  }
+  await Promise.all(found.map(async (n) => { n.spent = await new ethers.Contract(router.pools[n.pi].address, POOL_ABI.v5, rp).nullifierHashes(n.nullifierHash); }));
+  return { router, mk, found, deps, rp };
+}
+function waAmount() {
+  const txt = $('waAmount').value.trim();
+  if (!/^\d+$/.test(txt) || Number(txt) <= 0) throw new Error(t('wa.errAmount'));
+  return Number(txt);
+}
+function waRenderPlan(sc, target) {
+  const unspent = sc.found.filter((n) => !n.spent), spent = sc.found.length - unspent.length, tok = sc.router.token;
+  const total = unspent.reduce((s, n) => s + n.value, 0), box = $('waPlan');
+  if (!sc.found.length) { box.innerHTML = '<div class="status err">' + esc(t('wa.none')) + '</div>'; return null; }
+  const denoms = sc.router.pools.map((p) => p.amount);
+  const counts = denoms.map((d) => unspent.filter((n) => n.value === d).length);
+  let html = '<div class="status info">' + th('wa.found', { n: unspent.length, total, token: tok, parts: partsText(counts, denoms) || '—', spent }) + '</div>';
+  let plan = null;
+  if (target) {
+    plan = selectNotes(unspent, target);
+    if (plan.chosen) {
+      const pc = denoms.map((d) => plan.chosen.filter((n) => n.value === d).length);
+      html += '<div class="status ok">' + th('wa.plan', { amt: target, token: tok, n: plan.chosen.length, parts: partsText(pc, denoms) }) + '</div>';
+    } else html += '<div class="status err">' + th('wa.noplan', { amt: target, token: tok, near: plan.nearest }) + '</div>';
+  }
+  box.innerHTML = html;
+  return plan;
+}
+$('waFindBtn').addEventListener('click', async () => {
+  const btn = $('waFindBtn'); btn.disabled = true; waFound = null; syncWaButtons();
+  $('waSep').innerHTML = ''; $('waPlan').innerHTML = ''; hideStatus('waStatus');
+  const st = Steps('waSteps', ['wa.s1', 'wa.s2', 'wa.s3']);
+  try {
+    let target = null; if ($('waAmount').value.trim()) target = waAmount();
+    const sc = await waScan(st);
+    st.go(2);
+    const plan = waRenderPlan(sc, target);
+    st.done();
+    waFound = Object.assign(sc, { plan, target });
+  } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; syncWaButtons(); waWarnings(); }
+});
+$('waSepBtn').addEventListener('click', () => {
+  if (!waFound || !waFound.plan || !waFound.plan.chosen) return;
+  const rows = waFound.plan.chosen.map((n) => {
+    const p = waFound.router.pools[n.pi];
+    return '<div><b>' + esc(p.amount + ' ' + p.token) + '</b><code>' + esc(encodeNote(p, n.spendKey, n.viewKey)) + '</code></div>';
+  }).join('');
+  $('waSep').innerHTML = '<div class="secret-box"><strong>' + esc(t('wa.sepTitle')) + '</strong><div class="muted small" style="margin:4px 0 8px">' + esc(t('wa.sepSub')) + '</div><div class="note-list">' + rows + '</div></div>';
+});
+$('waGoBtn').addEventListener('click', async () => {
+  const btn = $('waGoBtn'); btn.disabled = true; $('waSep').innerHTML = '';
+  const st = Steps('waSteps', ['wa.s1', 'wa.s2', 'wa.s3', 'wa.s4', 'wa.s5', 'wa.s6']);
+  try {
+    const target = waAmount();
+    const recipient = ethers.getAddress($('waRecipient').value.trim());
+    const sc = await waScan(st);
+    st.go(2);
+    const plan = waRenderPlan(sc, target);
+    if (!plan || !plan.chosen) throw new Error(t('wa.noplanShort'));
+    const { router, rp, deps } = sc, tok = router.token, circ = await loadCircuit('v3');
+    await ensureCorrectNetwork({ net: router.net });
+    const zeros = computeZeroCascade(), levelsByPool = {};
+    const chosen = plan.chosen.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);
+    const items = [];
+    st.go(3); st.tick(3);
+    for (let i = 0; i < chosen.length; i++) {
+      const n = chosen[i], pool = router.pools[n.pi];
+      st.extra(3, t('wa.proving', { i: i + 1, n: chosen.length }));
+      if (!levelsByPool[n.pi]) { const leaves = []; for (const d of deps[n.pi]) leaves[d.leafIndex] = d.commitment; levelsByPool[n.pi] = buildTreeLevels(leaves, zeros); }
+      const { pathElements, pathIndices, root } = getMerklePath(levelsByPool[n.pi], n.leafIndex, zeros);
+      if (!(await new ethers.Contract(pool.address, POOL_ABI.v5, rp).isKnownRoot(root))) throw new Error(t('err.root'));
+      const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
+      const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+      if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+      items.push([n.pi, pA, pB, pC, pub[0], pub[1]]);
+      log('Proof ' + (i + 1) + '/' + chosen.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
+    }
+    st.stopTick(); st.extra(3, '');
+    st.go(4);
+    const max = Number(await new ethers.Contract(router.address, ROUTER_ABI, provider).MAX_WITHDRAWALS());
+    const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
+    const rw = new ethers.Contract(router.address, ROUTER_ABI, signer);
+    for (const b of batches) await rw.withdrawMany.staticCall(b, recipient);   // refuses early, before any gas is spent
+    st.go(5, t('x.confirm'));
+    let lastTx = null;
+    for (let i = 0; i < batches.length; i++) {
+      if (batches.length > 1) st.extra(5, t('wa.batch', { i: i + 1, n: batches.length }));
+      const tx = await rw.withdrawMany(batches[i], recipient); lastTx = tx.hash;
+      log('withdrawMany tx: ' + tx.hash);
+      const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+    }
+    st.extra(5, ''); st.done();
+    setStatus('waStatus', t('wa.success', { amt: target, token: tok, to: short(recipient), tx: lastTx }), 'ok');
+    waFound = null; $('waPlan').innerHTML = ''; await refreshBalances();
+  } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { syncWaButtons(); }
+});
+
+// ---------- disclose ----------
+$('discloseBtn').addEventListener('click', async () => {
+  const btn = $('discloseBtn'); btn.disabled = true;
+  const st = Steps('dsSteps', ['ds.s1', 'ds.s2', 'ds.s3']);
+  $('discloseResult').innerHTML = '';
+  try {
+    const note = decodeNote($('discloseNoteInput').value);
+    const pool = note.kind === 'v5' ? findPool(note.chainId, note.address) : currentPool();
+    if (!pool) throw new Error(t('err.unknownPoolShort'));
+    const nonceText = $('auditorNonceInput').value.trim();
+    if (!nonceText) throw new Error(t('err.nonce'));
+    const auditorNonce = BigInt(nonceText);
+    await ensureCorrectNetwork(pool);
+    st.go(0);
+    const circ = await loadCircuit('disclose');
+
+    st.go(1); st.tick(1);
+    setStatus('discloseStatus', t('ds.proving'), 'info');
+    const commitment = computeCommitment(note.spendKey, note.viewKey);
+    const disclosureTag = computeDisclosureTag(note.viewKey, auditorNonce);
+    const t0 = performance.now();
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve({
+      commitment: commitment.toString(), disclosureTag: disclosureTag.toString(), auditorNonce: auditorNonce.toString(),
+      spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString() }, circ.wasm, circ.zkey);
+    st.stopTick(); st.extra(1, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+    log('Disclosure proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
+    const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+
+    st.go(2);
+    setStatus('discloseStatus', t('ds.verifying'), 'info');
+    const ok = await new ethers.Contract(pool.net.discloseVerifier, VERIFIER_ABI.disclose, provider).verifyProof(pA, pB, pC, pub);
+    log('Disclosure on-chain verification: ' + (ok ? 'TRUE' : 'FALSE'));
+    if (!ok) { st.fail(); setStatus('discloseStatus', t('ds.bad'), 'err'); return; }
+    st.done();
+
+    const block = JSON.stringify({ pA, pB, pC, pubSignals: pub, pubSignalsOrder: ['commitment', 'disclosureTag', 'auditorNonce'],
+      verifierAddress: pool.net.discloseVerifier, network: pool.net.name, chainId: pool.net.chainId }, null, 2);
+    setStatus('discloseStatus', t('ds.ok'), 'ok');
+    $('discloseResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('ds.boxTitle')) + '</strong>' +
+      '<div class="muted small" style="margin-top:4px">' + esc(t('ds.boxSub')) + '</div>' +
+      '<textarea id="discloseBlock" readonly style="min-height:140px; margin-top:10px;"></textarea>' +
+      '<button id="copyDiscloseBtn" class="secondary small">' + esc(t('btn.copy')) + '</button></div>';
+    $('discloseBlock').value = block;
+    $('copyDiscloseBtn').addEventListener('click', () => copyText(block, 'what.disclosure'));
+  } catch (e) { st.fail(); setStatus('discloseStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; }
+});
+
+// ---------- auditor side ----------
+$('genNonceBtn').addEventListener('click', () => {
+  // 31 random bytes stay below the BN254 field size.
+  issuedNonce = BigInt(ethers.hexlify(ethers.randomBytes(31)));
+  $('nonceOut').textContent = issuedNonce.toString();
+  $('nonceOut').hidden = false; $('copyNonceBtn').hidden = false;
+  $('genNonceBtn').textContent = t('btn.newCode');
+  log('Auditor code generated: ' + issuedNonce.toString());
+});
+$('copyNonceBtn').addEventListener('click', () => copyText($('nonceOut').textContent, 'what.code'));
+
+// Look up a Deposit event by its (indexed) commitment across the given pools.
+// First tries the explorer's logs API (one request per pool); falls back to RPC block ranges.
+async function findCommitment(net, pools, commitment) {
+  const topic1 = ethers.zeroPadValue(ethers.toBeHex(commitment), 32);
+  if (net.blockscoutApi) {
+    try {
+      const base = net.blockscoutApi.replace(/\/v2\/?$/, '');
+      for (const p of pools) {
+        const url = `${base}?module=logs&action=getLogs&fromBlock=${p.startBlock}&toBlock=latest&address=${p.address}&topic0=${DEPOSIT_TOPIC}&topic1=${topic1}&topic0_1_opr=and`;
+        const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        if (!Array.isArray(j.result)) { if (String(j.message || '').toLowerCase().includes('no records')) continue; throw new Error('unexpected explorer response'); }
+        if (j.result.length) { const lg = j.result[0]; const ev = DEPOSIT_IFACE.parseLog({ topics: lg.topics.filter(Boolean), data: lg.data }); return { pool: p, leafIndex: Number(ev.args.leafIndex), timestamp: Number(ev.args.timestamp), txHash: lg.transactionHash }; }
+      }
+      return null;
+    } catch (e) { log('Explorer lookup failed (' + e.message + '); scanning block ranges over RPC instead…'); }
+  }
+  const rp = readProvider(net);
+  const latest = await rp.getBlockNumber();
+  const CHUNK = 9000, PARALLEL = 8;
+  for (const p of pools) {
+    const ranges = []; for (let f = p.startBlock; f <= latest; f += CHUNK) ranges.push([f, Math.min(f + CHUNK - 1, latest)]);
+    for (let i = 0; i < ranges.length; i += PARALLEL) {
+      const res = await Promise.all(ranges.slice(i, i + PARALLEL).map(([f, tt]) => rp.getLogs({ address: p.address, topics: [DEPOSIT_TOPIC, topic1], fromBlock: f, toBlock: tt })));
+      for (const r of res) if (r.length) { const ev = DEPOSIT_IFACE.parseLog(r[0]); return { pool: p, leafIndex: Number(ev.args.leafIndex), timestamp: Number(ev.args.timestamp), txHash: r[0].transactionHash }; }
+    }
+  }
+  return null;
+}
+
+$('auditVerifyBtn').addEventListener('click', async () => {
+  const btn = $('auditVerifyBtn'); btn.disabled = true;
+  const res = $('auditResult'); res.innerHTML = ''; hideStatus('auditStatus');
+  const st = Steps('auSteps', ['au.st1', 'au.st2', 'au.st3']);
+  // title and sub are already-safe HTML (built with th / esc)
+  const add = (cls, title, sub) => { res.insertAdjacentHTML('beforeend', '<li class="' + cls + '"><span>' + title + (sub ? '<small>' + sub + '</small>' : '') + '</span></li>'); };
+  try {
+    st.go(0);
+    let b; try { b = JSON.parse($('auditBlockInput').value); } catch (e) { throw new Error(t('au.errJson')); }
+    if (!b || !Array.isArray(b.pA) || !Array.isArray(b.pB) || !Array.isArray(b.pC) || !Array.isArray(b.pubSignals) || b.pubSignals.length !== 3)
+      throw new Error(t('au.errFields'));
+    const net = Object.values(CONFIG.networks).find((n) => n.chainId === Number(b.chainId));
+    if (!net) throw new Error(t('au.errNet', { id: b.chainId, list: Object.values(CONFIG.networks).map((n) => n.name).join(', ') }));
+    const [commitment, , nonce] = b.pubSignals.map((x) => BigInt(x));
+
+    st.go(1);
+    const ok = await new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, readProvider(net)).verifyProof(b.pA, b.pB, b.pC, b.pubSignals);
+    log('Auditor check — on-chain verification: ' + (ok ? 'TRUE' : 'FALSE'));
+    if (ok) add('ok', esc(t('au.valid')), th('au.validSub', { addr: short(net.discloseVerifier), net: net.name }));
+    else add('no', esc(t('au.invalid')), th('au.invalidSub', { net: net.name }));
+    if (b.verifierAddress && String(b.verifierAddress).toLowerCase() !== net.discloseVerifier.toLowerCase())
+      add('warn', esc(t('au.otherVerifier')), th('au.otherVerifierSub', { addr: b.verifierAddress }));
+
+    if (issuedNonce != null) {
+      if (nonce === issuedNonce) add('ok', esc(t('au.codeOk')), th('au.codeOkSub', { code: nonce.toString() }));
+      else add('no', esc(t('au.codeBad')), th('au.codeBadSub', { code: nonce.toString() }));
+    } else add('warn', esc(t('au.codeCheck')), th('au.codeCheckSub', { code: nonce.toString() }));
+
+    st.go(2);
+    const pools = POOLS.filter((p) => p.net.chainId === net.chainId).sort((x, y) => (x.legacy ? 1 : 0) - (y.legacy ? 1 : 0));
+    const hit = await findCommitment(net, pools, commitment);
+    if (hit) {
+      add('ok', esc(t('au.found')), th('au.foundSub', { net: net.name, label: hit.pool.label + (hit.pool.legacy ? ' (legacy)' : ' (V5)'), leaf: hit.leafIndex }) +
+        (hit.timestamp ? ' · ' + esc(new Date(hit.timestamp * 1000).toISOString().slice(0, 16).replace('T', ' ')) + ' UTC' : '') +
+        ' · <a href="' + esc(net.explorerUrl + '/tx/' + hit.txHash) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a>');
+    } else add('no', esc(t('au.notFound')), th('au.notFoundSub', { net: net.name }));
+    st.done();
+
+    const pass = ok && hit && (issuedNonce == null || nonce === issuedNonce);
+    setStatus('auditStatus', pass ? t('au.pass') : t('au.fail'), pass ? 'ok' : 'err');
+  } catch (e) { st.fail(); setStatus('auditStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; }
+});
+
+// ---------- start ----------
+(async () => {
+  try {
+    await loadConfig();
+    populatePoolSelect();
+    selectPool(POOLS.filter((p) => !p.legacy)[0].id);
+    $('connectBtn').disabled = false; $('checkNoteBtn').disabled = false;
+    $('genNonceBtn').disabled = false; $('auditVerifyBtn').disabled = false;
+    log(`Loaded ${POOLS.length} pools on ${Object.keys(CONFIG.networks).length} networks.`);
+  } catch (e) { setStatus('poolInfo', t('err.startup') + (e.message || e), 'err'); log('ERROR: ' + (e.message || e)); return; }
+  loadCircuit('v3').then(() => { circState.withdraw = ['circ.loaded', 'ok']; setStatus('circuitFilesStatus', t('circ.loaded'), 'ok'); },
+    (e) => { circState.withdraw = ['circ.failed', 'err', e.message]; setStatus('circuitFilesStatus', t('circ.failed', { err: e.message }), 'err'); $('advWithdraw').open = true; });
+  loadCircuit('disclose').then(() => { circState.disclose = ['dcirc.loaded', 'ok']; setStatus('discloseFilesStatus', t('dcirc.loaded'), 'ok'); },
+    (e) => { circState.disclose = ['circ.failed', 'err', e.message]; setStatus('discloseFilesStatus', t('circ.failed', { err: e.message }), 'err'); $('advDisclose').open = true; });
+})();
+</script>
+</body>
+</html>
