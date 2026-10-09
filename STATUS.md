@@ -57,6 +57,14 @@ V5 supersedes the V3/V4 pools for new use. It changes two things: the withdrawal
 - **Gas:** one on-chain reading per network so far, and the Ethereum Sepolia figure is unexplained; see the note at the top of `docs/gas-benchmark.en.md`.
 - **Deploying more pools:** `docs/deploying-v5.md`.
 
+## 2b. Distribution router (🟢 LIVE on testnets, no independent review)
+
+A small stateless contract (`contracts/LatheonDistributionPool.sol`) on top of the V5 pools: `deposit(amount, commitments)` splits an amount into 100 / 50 / 10 / 1 notes and places them in one transaction; `withdrawMany(items, recipient)` forwards up to 16 ordinary V5 withdrawals in one transaction. It holds no funds, has no owner and takes no fee; the V5 pools and circuit are unchanged.
+
+- **Deployed:** one router per token set: Arbitrum Sepolia (LTH), Robinhood Chain Testnet (LTH and USDG) and Ethereum Sepolia (LTH). Addresses, transactions and what was checked: `docs/distribution-pool-deployments.md`.
+- **Verified:** 48 automated checks with real proofs on a local EVM (`test/distribution`), plus one manual deposit of 11 units and one `withdrawMany` of two notes with real proofs on each of the four token sets. Router balance and allowances were zero afterwards.
+- **Not done:** no independent review; the wallet-side note planner and the demo are not built; `withdrawMany` pays one address, so it is a convenience and does not add privacy. Design: `docs/distribution-pool-architecture.md`.
+
 ## 3. Structured selective disclosure — experimental parallel track (🟢 LIVE, both flows confirmed)
 
 Separate from the production track above, and **not a replacement for it** — see `docs/selective-disclosure-design.md` for the full design. This addresses a real limitation of the production track's disclosure mechanism (§7 below): sharing your `secret` today grants full spending power, not just proof of authorship. The design splits a single secret into `spendKey` (spend-only) and `viewKey` (disclosure-only).

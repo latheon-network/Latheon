@@ -38,6 +38,6 @@ An earlier build without `withdrawMany` was deployed on Arbitrum Sepolia at `0x0
 ## Limits of this evidence
 
 - Gas figures are the ones Remix printed ("transaction cost") and are not comparable across networks: each network accounts for and prices gas differently. The Ethereum Sepolia deployment figure is about 6.6 times the others for identical bytecode; the cause has not been investigated.
-- After the run, the router's token balance and its allowances to the pools were read back (all zero) on **Arbitrum Sepolia only**. On the other three networks the logs show exact approvals and transfers, but those residual reads were not taken.
+- After the run, the router's token balance and its allowances to the pools were read back and were zero on all four networks (reported by the operator; the transcript of these reads is not included here).
 - Source verification on explorers was submitted from Remix; confirmation was not seen on every network.
 - One manual run per network, one pair of notes each. This is not an audit, and the V5 pools and circuit have had no independent review either.
