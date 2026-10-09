@@ -1,0 +1,295 @@
+{
+  "schema": 1,
+  "generated": "2026-10-04",
+  "networks": {
+    "ethereum-sepolia": {
+      "name": "Ethereum Sepolia",
+      "chainId": 11155111,
+      "chainIdHex": "0xaa36a7",
+      "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
+      "explorerUrl": "https://sepolia.etherscan.io",
+      "blockscoutApi": "https://eth-sepolia.blockscout.com/api/v2",
+      "v5Verifier": "0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD",
+      "discloseVerifier": "0xd56e6125b2dF850D32F8c3538fF840528c53caf5",
+      "poseidonDeployedThisRelease": [
+        "0x026B99Fd627848a2071351301C63fFa330AFa686"
+      ],
+      "tokens": {
+        "LTH": {
+          "address": "0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D",
+          "decimals": 18,
+          "faucet": "0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214"
+        }
+      }
+    },
+    "arbitrum-sepolia": {
+      "name": "Arbitrum Sepolia",
+      "chainId": 421614,
+      "chainIdHex": "0x66eee",
+      "rpcUrl": "https://sepolia-rollup.arbitrum.io/rpc",
+      "explorerUrl": "https://sepolia.arbiscan.io",
+      "blockscoutApi": "https://arbitrum-sepolia.blockscout.com/api/v2",
+      "v5Verifier": "0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9",
+      "discloseVerifier": "0x247d68Bee78bD2B3082d9380A22cC70c443cbd00",
+      "poseidonDeployedThisRelease": [
+        "0x006da9E656581A7740856aA89c690b3Abd296c30",
+        "0x7d957dA586C00010e69e5Ed1192171F9a117626C",
+        "0x4EB857fEb8FC91F438122270aBbb16F6a5891720"
+      ],
+      "tokens": {
+        "LTH": {
+          "address": "0x16b87f399a003E56eA6A680292b7278Df7D7b655",
+          "decimals": 18,
+          "faucet": "0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D"
+        }
+      }
+    },
+    "robinhood-testnet": {
+      "name": "Robinhood Chain Testnet",
+      "chainId": 46630,
+      "chainIdHex": "0xb626",
+      "rpcUrl": "https://rpc.testnet.chain.robinhood.com",
+      "explorerUrl": "https://explorer.testnet.chain.robinhood.com",
+      "blockscoutApi": "https://explorer.testnet.chain.robinhood.com/api/v2",
+      "v5Verifier": "0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174",
+      "discloseVerifier": "0x28BEd69D013A04066f36EF90F995dc7811AFb672",
+      "poseidonDeployedThisRelease": [
+        "0xa9b9114F976057578133E06dB15cD0281A66bb07",
+        "0x797A96c6B52d3df596a0E8fcba6503756B4036bd",
+        "0x33bA81C2f2ef705910Ee7022d8e2481eD83aDD1B"
+      ],
+      "tokens": {
+        "LTH": {
+          "address": "0x19DAD9E8595b5809a600c42273aC2a8360c15BA3",
+          "decimals": 18,
+          "faucet": "0xB0DD35A89f62617b1B19FaCC4eb71D20A21fb719"
+        },
+        "USDG": {
+          "address": "0x7E955252E15c84f5768B83c41a71F9eba181802F",
+          "decimals": 6,
+          "externalFaucet": "https://faucet.paxos.com/"
+        }
+      }
+    }
+  },
+  "pools": [
+    {
+      "id": "ethereum-sepolia:LTH-100",
+      "network": "ethereum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x851981f6a35EB0D91d927c0e854774f5d0ce6233",
+      "deployBlock": 11842583
+    },
+    {
+      "id": "ethereum-sepolia:LTH-50",
+      "network": "ethereum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0x09d3D081195304FD83bb79e4b5B97344cE5e89b4",
+      "deployBlock": 11842590
+    },
+    {
+      "id": "ethereum-sepolia:LTH-10",
+      "network": "ethereum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0x4402b051482B0304A118A4F8A8bb10095127499D",
+      "deployBlock": 11842595
+    },
+    {
+      "id": "ethereum-sepolia:LTH-1",
+      "network": "ethereum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876",
+      "deployBlock": 11842601
+    },
+    {
+      "id": "arbitrum-sepolia:LTH-100",
+      "network": "arbitrum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7",
+      "deployBlock": 315679153
+    },
+    {
+      "id": "arbitrum-sepolia:LTH-50",
+      "network": "arbitrum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0xded64ec452C95bA69Fe80d51447cb8c4953E52C0",
+      "deployBlock": 315679454
+    },
+    {
+      "id": "arbitrum-sepolia:LTH-10",
+      "network": "arbitrum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5",
+      "deployBlock": 315679601
+    },
+    {
+      "id": "arbitrum-sepolia:LTH-1",
+      "network": "arbitrum-sepolia",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0x4480012096726C670A2C89E05AA37DF7258EF26a",
+      "deployBlock": 315679833
+    },
+    {
+      "id": "robinhood-testnet:LTH-100",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C",
+      "deployBlock": 128804492
+    },
+    {
+      "id": "robinhood-testnet:LTH-50",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0x288b8E0281b85118135F7bd55902f7167EAe5169",
+      "deployBlock": 128804841
+    },
+    {
+      "id": "robinhood-testnet:LTH-10",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6",
+      "deployBlock": 128805364
+    },
+    {
+      "id": "robinhood-testnet:LTH-1",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0x24a394Fe56464A79A63Adbc57B785d599c3c0074",
+      "deployBlock": 128806055
+    },
+    {
+      "id": "robinhood-testnet:USDG-100",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "USDG",
+      "amount": 100,
+      "address": "0x6513862b2153c6AFd56C00B798a859548b0181e7",
+      "deployBlock": 128806906
+    },
+    {
+      "id": "robinhood-testnet:USDG-50",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "USDG",
+      "amount": 50,
+      "address": "0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214",
+      "deployBlock": 128807418
+    },
+    {
+      "id": "robinhood-testnet:USDG-10",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "USDG",
+      "amount": 10,
+      "address": "0xaA16653312E033623a6CD0D1f7DEFDFc21f30461",
+      "deployBlock": 128808106
+    },
+    {
+      "id": "robinhood-testnet:USDG-1",
+      "network": "robinhood-testnet",
+      "version": "v5",
+      "token": "USDG",
+      "amount": 1,
+      "address": "0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4",
+      "deployBlock": 128808711
+    },
+    {
+      "id": "ethereum-sepolia:legacy-eth-lth",
+      "network": "ethereum-sepolia",
+      "version": "v4",
+      "legacy": true,
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x8f64d930813936599f59De29eDb3B4aE38778f75",
+      "verifier": "0xc368136323c9d68351222ef5202f6875D8192EF8",
+      "startBlock": 11816700
+    },
+    {
+      "id": "arbitrum-sepolia:legacy-arb-lth",
+      "network": "arbitrum-sepolia",
+      "version": "v4",
+      "legacy": true,
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x0fA26142342aA8609fa7AF180DdF91A815A3bE23",
+      "verifier": "0xDfCd0A3e6D648DD656AAD45ed8C776b46ABbB4f4",
+      "startBlock": 309568000
+    },
+    {
+      "id": "robinhood-testnet:legacy-rh-lth",
+      "network": "robinhood-testnet",
+      "version": "v4",
+      "legacy": true,
+      "token": "LTH",
+      "amount": 100,
+      "address": "0xDD991cC7E560681e964f693eF5C5eA7f424318A8",
+      "verifier": "0x16b87f399a003E56eA6A680292b7278Df7D7b655",
+      "startBlock": 123709000
+    },
+    {
+      "id": "robinhood-testnet:legacy-rh-usdg",
+      "network": "robinhood-testnet",
+      "version": "v4",
+      "legacy": true,
+      "token": "USDG",
+      "amount": 100,
+      "address": "0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC",
+      "verifier": "0x16b87f399a003E56eA6A680292b7278Df7D7b655",
+      "startBlock": 123734000
+    }
+  ],
+  "routers": [
+    {
+      "id": "ethereum-sepolia:LTH",
+      "network": "ethereum-sepolia",
+      "token": "LTH",
+      "address": "0xC12095a1e7fAc20E827a93933576469e1122eB61",
+      "deployBlock": 11879141
+    },
+    {
+      "id": "arbitrum-sepolia:LTH",
+      "network": "arbitrum-sepolia",
+      "token": "LTH",
+      "address": "0x284985291A32cf0cfE48F6CA128615983952350e",
+      "deployBlock": 317439163
+    },
+    {
+      "id": "robinhood-testnet:LTH",
+      "network": "robinhood-testnet",
+      "token": "LTH",
+      "address": "0x006da9E656581A7740856aA89c690b3Abd296c30",
+      "deployBlock": 131756119
+    },
+    {
+      "id": "robinhood-testnet:USDG",
+      "network": "robinhood-testnet",
+      "token": "USDG",
+      "address": "0xded64ec452C95bA69Fe80d51447cb8c4953E52C0",
+      "deployBlock": 131766479
+    }
+  ]
+}
