@@ -13,3 +13,20 @@ Playwright with Chromium plus local browser bundles of `ethers`, `snarkjs` and `
 `poseidon-lite` needs explicit named exports). Adapt the paths before reuse.
 
 It does not replace a test with a real wallet and live RPC endpoints.
+
+## Router features: `router-e2e.js`
+
+Covers the demo's network/token selectors and the two router modes (deposit of any amount, withdrawal by amount and master
+key). It deploys the real V5 pools and `LatheonDistributionPool` on three local chains, injects a mock wallet and uses real
+Groth16 proofs. 35 checks: pool list shown only in the fixed modes; exact and rounded deposits (160, 99 → 90, 12 USDG with
+6 decimals, 999 = 23 notes, refusal above 32 notes); the master key format; amounts that cannot be paid (nearest sum shown,
+no transaction); wrong key, unknown router, malformed key; spent notes; partial withdrawals; separate notes withdrawn
+through the ordinary one-note flow; RU/ZH text; no JavaScript errors.
+
+```
+cd test/distribution && npm install && cd ../demo-e2e
+sh build-bundles.sh
+DEMO=/path/to/demo node router-e2e.js
+```
+
+It is a local test, not a replacement for a run with a real wallet. That was also done: see `STATUS.md`.

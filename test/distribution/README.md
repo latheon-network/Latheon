@@ -40,3 +40,7 @@ capacity and prove the rollback on the actual "Tree is full" revert (adds ten mi
 - Gas numbers are from a local EVM; live networks differ (L2 gas is priced differently), see `docs/gas-benchmark.en.md`
   for the V5 pool readings.
 - This is a local test. It does not replace an independent audit or a test against live networks.
+
+## wallet.js
+
+`node wallet.js` checks the wallet-side helpers in `sdk/distribution.js` (key derivation, master key format, deposit planning with exact/rounded modes, note selection checked against brute force on 300 random cases). 25 checks, seconds. With `DEMO=/path/to/demo/index.html` it also checks that the demo carries an identical copy of the helper block.
