@@ -8,7 +8,8 @@
 **Design**
 - [`architecture.md`](./architecture.md): overview and current flow.
 - [`selective-disclosure-design.md`](./selective-disclosure-design.md): the `spendKey` / `viewKey` split and the disclosure proof.
-- [`distribution-pool-architecture.md`](./distribution-pool-architecture.md): arbitrary deposit amounts over fixed pools (design only, with a simulation).
+- [`distribution-pool-architecture.md`](./distribution-pool-architecture.md): arbitrary deposit amounts over fixed pools (design, a simulation, and the router contract).
+- [`distribution-pool-deployments.md`](./distribution-pool-deployments.md): router addresses on the four testnet token sets and what was checked.
 - [`bridge-privacy-design.md`](./bridge-privacy-design.md): the L1 to L2 bridge privacy problem and options.
 
 **Security**
