@@ -1,14 +1,20 @@
-// REFERENCE ONLY. End-to-end browser test used to verify demo/index.html (18 checks, all passed; the router features are tested by router-e2e.js).
-// Paths are hard-coded for the sandbox it was written in; adapt them before reuse. See README.md in this folder.
+// End-to-end browser test of demo/index.html in the fixed-pool mode: registry, faucet, deposit, withdrawal, the same pool
+// address on two chains, a 6-decimals token, a note from another network, double spend, disclosure, the auditor tab, the
+// legacy V4 pool, malformed notes, no JavaScript errors. The router features are tested by router-e2e.js.
+// Needs test/distribution/node_modules (npm install there), Playwright with Chromium and the bundles from build-bundles.sh.
+//   DEMO=/path/to/demo node e2e.js
 const fs = require('fs');
 const path = require('path');
-const solc = require('solc');
-const ganache = require('ganache');
-const { ethers } = require('ethers');
-const { chromium } = require('/home/claude/.npm-global/lib/node_modules/playwright');
+const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
+const req = (m) => require(path.join(NM, m));
+const solc = req('solc'), ganache = req('ganache'), { ethers } = req('ethers');
+let chromium; try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/usr/lib/node_modules/playwright')); }
 
-const R = '/home/claude/latheon-count';
-const DEMO = '/mnt/user-data/outputs/v5-release/demo';
+const R = path.resolve(__dirname, '..', '..');
+if (!process.env.DEMO) { console.log('Set DEMO to the folder that holds index.html and deployments.json'); process.exit(2); }
+const DEMO = process.env.DEMO;
+const SHOTS = process.env.SHOTS || path.join(require('os').tmpdir(), 'latheon-demo-shots'); fs.mkdirSync(SHOTS, { recursive: true });
+const B = R + '/circuits/build';
 const rd = (p) => fs.readFileSync(p, 'utf8');
 const say = (...a) => console.log(...a);
 
@@ -19,9 +25,9 @@ const sources = {
   'contracts/PoseidonT3.sol': { content: rd(R + '/contracts/PoseidonT3.sol') },
   'contracts/LatheonToken.sol': { content: rd(R + '/contracts/LatheonToken.sol') },
   'contracts/LatheonFaucet.sol': { content: rd(R + '/contracts/LatheonFaucet.sol') },
-  'contracts/VerifierV5.sol': { content: rd('/home/claude/flex-test/v3/WithdrawVerifierV3.sol') },
-  'contracts/VerifierV2.sol': { content: rd('/home/claude/eth-verifier/EthWithdrawVerifier.sol') },
-  'contracts/VerifierDisclose.sol': { content: rd('/home/claude/disclose-verifier/DiscloseVerifier.sol') },
+  'contracts/VerifierV5.sol': { content: rd(R + '/contracts/WithdrawVerifierV3.sol') },
+  'contracts/VerifierV2.sol': { content: rd(__dirname + '/fixtures/WithdrawVerifierV2.sol') },
+  'contracts/VerifierDisclose.sol': { content: rd(R + '/contracts/DiscloseVerifier.sol') },
   'contracts/TestToken6.sol': { content: `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -30,7 +36,7 @@ contract TestToken6 is ERC20 {
     function decimals() public pure override returns (uint8) { return 6; }
 }` },
 };
-const imp = (p) => { const f = path.join(__dirname, 'node_modules', p); return fs.existsSync(f) ? { contents: rd(f) } : { error: 'nf ' + p }; };
+const imp = (p) => { const f = path.join(NM, p); return fs.existsSync(f) ? { contents: rd(f) } : { error: 'nf ' + p }; };
 say('Компилирую…');
 const out = JSON.parse(solc.compile(JSON.stringify({ language: 'Solidity', sources, settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: 'paris', outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences'] } } } }), { import: imp }));
 if ((out.errors || []).some((e) => e.severity === 'error')) { say(out.errors.filter((e) => e.severity === 'error').map((e) => e.formattedMessage).join('\n')); process.exit(1); }
@@ -130,12 +136,12 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
       };
     });
     const FILES = {
-      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v3/withdraw_v3.wasm': '/home/claude/flex-test/v3/withdraw_v3_js/withdraw_v3.wasm',
-      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v3/withdraw_v3_final.zkey': '/home/claude/flex-test/v3/withdraw_v3_final.zkey',
-      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v2/withdraw_v2.wasm': R + '/circuits/build/withdraw_v2/withdraw_v2.wasm',
-      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v2/withdraw_v2_final.zkey': R + '/circuits/build/withdraw_v2/withdraw_v2_final.zkey',
-      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/disclose/disclose.wasm': '/home/claude/disclose-verifier/build/disclose.wasm',
-      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/disclose/disclose_final.zkey': '/home/claude/disclose-verifier/disclose_final_zkey.zkey',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v3/withdraw_v3.wasm': B + '/withdraw_v3/withdraw_v3.wasm',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v3/withdraw_v3_final.zkey': B + '/withdraw_v3/withdraw_v3_final.zkey',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v2/withdraw_v2.wasm': B + '/withdraw_v2/withdraw_v2.wasm',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v2/withdraw_v2_final.zkey': B + '/withdraw_v2/withdraw_v2_final.zkey',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/disclose/disclose.wasm': B + '/disclose/disclose.wasm',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/disclose/disclose_final.zkey': B + '/disclose/disclose_final.zkey',
     };
     const BUNDLES = { 'https://esm.run/ethers': 'ethers', 'https://esm.run/poseidon-lite': 'poseidon', 'https://esm.run/snarkjs': 'snarkjs' };
     const cors = { 'access-control-allow-origin': '*' };
@@ -158,7 +164,15 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     });
 
     const waitText = (sel, re, ms = 240000) => page.waitForFunction(([s, r]) => new RegExp(r).test((document.querySelector(s) || {}).textContent || ''), [sel, re.source], { timeout: ms });
-    const pick = async (id) => { await page.selectOption('#poolSelect', id); await page.waitForTimeout(700); };
+    // The demo picks a pool in three steps: network, token, then the pool of that token.
+    const pick = async (id) => {
+      const pl = cfg.pools.find((x) => x.id === id); if (!pl) throw new Error('unknown pool ' + id);
+      if (!(await page.$('#netSelect'))) { await page.selectOption('#poolSelect', id); await page.waitForTimeout(700); return; } // single-list layout (sdk/demo-app-v5.html)
+      if (await page.isHidden('#poolRow')) { await page.click('#tab-deposit'); await page.waitForTimeout(300); } // the pool list is hidden on the auditor tab and in the any-amount modes
+      if ((await page.inputValue('#netSelect')) !== pl.network) { await page.selectOption('#netSelect', pl.network); await page.waitForTimeout(400); }
+      if ((await page.inputValue('#tokSelect')) !== pl.token) { await page.selectOption('#tokSelect', pl.token); await page.waitForTimeout(400); }
+      await page.selectOption('#poolSelect', id); await page.waitForTimeout(700);
+    };
     const deposit = async () => {
       await page.click('#tab-deposit');
       const old = await page.evaluate(() => { const e = document.getElementById('noteText'); return e ? e.textContent.trim() : ''; });
@@ -178,8 +192,15 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
 
     await page.goto('https://latheon.test/demo/');
     await waitText('#poolInfo', /contract 0x/, 60000);
-    const nOpts = await page.locator('#poolSelect option').count();
-    rec('T0. Страница загрузилась, deployments.json прочитан: 16 пулов V5 + 1 legacy в списке', nOpts === 17, 'опций: ' + nOpts);
+    const nNets = await page.locator('#netSelect option').count();
+    if (nNets) {
+      await pick('ethereum-sepolia:LTH-100');
+      const nOpts = await page.locator('#poolSelect option').count();
+      rec('T0. Страница загрузилась, deployments.json прочитан: 3 сети; для Ethereum и LTH 4 пула V5 + 1 legacy', nNets === 3 && nOpts === 5, 'сетей: ' + nNets + ', пулов: ' + nOpts);
+    } else {
+      const nOpts = await page.locator('#poolSelect option').count();
+      rec('T0. Страница загрузилась (один общий список): 16 пулов V5 + 1 legacy', nOpts === 17, 'пулов: ' + nOpts);
+    }
     rec('T0b. Самопроверка Poseidon прошла в браузере', (await page.textContent('#log')).includes('Poseidon self-check passed'), '');
 
     // ---- T1: Ethereum, 50 LTH, faucet + deposit + withdraw
@@ -269,12 +290,12 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     rec('T9. Старая нота при выбранном V5-пуле: понятная ошибка, ничего не отправлено', /old-format note/.test(msg), msg.slice(0, 70));
 
     rec('T10. В браузере не было необработанных JS-ошибок', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
-    await page.screenshot({ path: '/home/claude/e2e-final.png', fullPage: false });
+    await page.screenshot({ path: SHOTS + '/e2e-final.png', fullPage: false });
   } catch (e) {
     say('ОШИБКА ТЕСТА:', e && e.message ? e.message : e);
     try {
       say('--- консоль браузера (последние 15) ---'); consoleMsgs.slice(-15).forEach((m) => say('  ' + m));
-      if (page) { say('--- #poolInfo: ' + (await page.textContent('#poolInfo')).slice(0, 200)); say('--- #log (хвост): ' + (await page.textContent('#log')).slice(-500)); await page.screenshot({ path: '/home/claude/e2e-fail.png' }); }
+      if (page) { say('--- #poolInfo: ' + (await page.textContent('#poolInfo')).slice(0, 200)); say('--- #log (хвост): ' + (await page.textContent('#log')).slice(-500)); await page.screenshot({ path: SHOTS + '/e2e-fail.png' }); }
     } catch (e2) { say('(диагностика недоступна: ' + e2.message + ')'); }
     rec('Тест прервался', false, String(e && e.message).slice(0, 150));
   } finally {

@@ -1,4 +1,5 @@
-// Tests the RPC helpers of the demo (the block between "rpc-robust:begin" and "rpc-robust:end" in demo/index.html):
+// Tests the RPC helpers of the demo (the block between "rpc-robust:begin" and "rpc-robust:end" in demo/index.html, copied
+// verbatim into sdk/demo-app-v5.html):
 // retries on transient errors, splitting of refused block ranges, no retry on contract errors, bounded concurrency.
 // No network and no packages needed:  node rpc-robust.js
 const fs = require('fs'), path = require('path'), vm = require('vm');
@@ -66,6 +67,11 @@ const expected = (a, b) => fakeLogs(a, b).join(',');
   }
   // 7. The retry log names the operation and the error, so a user can report it.
   check('retries are logged with the operation and the error text', logs.some((l) => /Retry 1\/3/.test(l) && /coalesce/.test(l)));
+  // 8. The reference app (sdk/demo-app-v5.html) carries a verbatim copy of the same block.
+  {
+    const ref = fs.readFileSync(path.resolve(__dirname, '..', '..', 'sdk', 'demo-app-v5.html'), 'utf8').match(/\/\/ rpc-robust:begin\n([\s\S]*?)\/\/ rpc-robust:end/);
+    check('sdk/demo-app-v5.html has the same rpc-robust block as demo/index.html', !!ref && ref[1] === m[1]);
+  }
 
   const pass = results.filter(Boolean).length;
   console.log(`\n${pass}/${results.length} checks passed`);
