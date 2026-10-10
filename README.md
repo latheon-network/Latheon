@@ -2,7 +2,7 @@
 
 > **Private by default. Verifiable on demand.**
 
-Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure.
+Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure. Today it is a set of shielded pools on Ethereum-compatible testnets; the long-term goal is an Ethereum L2 with privacy by default. The L2 is a direction, not a product: the framework is not chosen (see [`ROADMAP.md`](./ROADMAP.md)).
 
 **Status: experimental public prototype, testnets only** (Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet). The Merkle commitment tree is fully on-chain, so no trusted operator is involved in the deposit-to-withdrawal flow. There is no formal audit yet, and the trusted-setup keys are development keys. See [`STATUS.md`](./STATUS.md) for exactly what is implemented versus planned.
 
@@ -10,13 +10,14 @@ Latheon is an early-stage, open-source project developing privacy-preserving blo
 
 ## Try it
 
-**Live demo: <https://latheon.xyz/demo>**. Pick a network and a pool, claim test tokens, deposit, withdraw to another address, and generate a disclosure proof for an auditor. Test tokens only, no real value. A browser wallet such as MetaMask is required.
+**Live demo: <https://latheon.xyz/demo>**. Pick a network and a token, claim test tokens, then either use one fixed pool, or deposit **any amount** through the router (one master key for all notes) and withdraw by **amount and master key**. You can also withdraw to another address and generate a disclosure proof for an auditor. Test tokens only, no real value. A browser wallet such as MetaMask is required.
 
 ## Current generation: V5
 
 - **Pools:** fixed-size pools of 100 / 50 / 10 / 1 tokens on three testnets (16 pools: LTH on all three, plus USDG on Robinhood Chain). Addresses: [`docs/deployments-v5.md`](./docs/deployments-v5.md); machine-readable: [`sdk/deployments.json`](./sdk/deployments.json).
 - **Recipient-bound proofs:** a withdrawal proof is valid only for the address it was made for. The earlier V3/V4 pools lacked this, so a pending withdrawal could be redirected to another address. This was found internally, reproduced and fixed; see [`docs/withdraw-recipient-binding.md`](./docs/withdraw-recipient-binding.md).
 - **Capacity:** each pool's Merkle tree has depth 8, so a pool holds at most 256 deposits.
+- **Any amount, via a router:** `contracts/LatheonDistributionPool.sol` is a stateless contract (no owner, no fee) that splits an amount into notes of 100 / 50 / 10 / 1 and deposits them into the four pools in one transaction; `withdrawMany` pays several notes to one address in one transaction (up to 16). Deployed on four testnet token sets, not independently reviewed. Several notes withdrawn to one address in one transaction are visibly linked to each other. Details: [`docs/distribution-pool-architecture.md`](./docs/distribution-pool-architecture.md), [`docs/distribution-pool-deployments.md`](./docs/distribution-pool-deployments.md).
 - **Selective disclosure:** a depositor can prove to one chosen auditor that they control a specific deposit, without giving that auditor any ability to spend it. The auditor learns which deposit it is (its commitment is public on-chain anyway), but not your keys, your other deposits, or where the funds went. Design: [`docs/selective-disclosure-design.md`](./docs/selective-disclosure-design.md).
 
 ## How a pool works
@@ -41,12 +42,13 @@ Full mechanics and limits: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 ## Repository structure
 
 ```
-contracts/   Solidity contracts: token, faucet, pools (V3, V4, V5), verifiers, Poseidon hashing
+contracts/   Solidity contracts: token, faucet, pools (V3, V4, V5), distribution router, verifiers, Poseidon hashing
 circuits/    circom circuits (withdraw v1/v2/v3, disclose) and compiled proving artifacts in build/
-sdk/         demo app (demo-app-v5.html), pool registry (deployments.json), JavaScript SDK (V3 pool)
+sdk/         pool and router registry (deployments.json), distribution helpers (distribution.js), reference app (demo-app-v5.html), JavaScript SDK (V3 pool)
+demo/        the live demo (latheon.xyz/demo): index.html and deployments.json
 site/        source of the landing page (latheon.xyz)
-test/        Remix unit tests (V3/V4), Node integration tests with real proofs (v5-integration),
-             reference browser end-to-end test (demo-e2e)
+test/        Remix unit tests (V3/V4), Node integration tests with real proofs (v5-integration, distribution),
+             browser end-to-end tests for the demo (demo-e2e)
 tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model)
 docs/        technical documentation, see docs/README.md
 ```
@@ -64,6 +66,8 @@ docs/        technical documentation, see docs/README.md
 ## Verify it yourself
 
 - `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
+- `cd test/distribution && npm install && npm test`: the router with real proofs on a local EVM (48 checks, a few minutes); `node wallet.js` checks the wallet-side helpers (25 checks).
+- `test/demo-e2e`: browser tests of the demo on local chains (reference scripts; see its README).
 - Remix unit tests for V3/V4 are in `test/` (open them in Remix; no local setup).
 - `tools/zk-toolkit.html` (serve it over `http://`, not `file://`) runs trusted setup and proof generation in the browser. Circuit sources are in `circuits/` and can be tried at [zkrepl.dev](https://zkrepl.dev).
 - V3 contracts are verified on Sourcify and Blockscout; check the explorer for the status of each V5 contract.

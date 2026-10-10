@@ -1,6 +1,6 @@
 # @latheon/sdk
 
-> **Scope:** this SDK targets the production **V3** pool (a single `secret`). It does not yet support the V4/V5 `spendKey` / `viewKey` split or V5's recipient-bound proofs. For a working V5 reference implementation (note format, Merkle path, proof inputs, withdraw call) see [`demo-app-v5.html`](./demo-app-v5.html); pool addresses are in [`deployments.json`](./deployments.json). An SDK update is on the roadmap.
+> **Scope:** this SDK targets the production **V3** pool (a single `secret`). It does not yet support the V4/V5 `spendKey` / `viewKey` split or V5's recipient-bound proofs. For a working V5 reference implementation (note format, Merkle path, proof inputs, withdraw call) see [`demo-app-v5.html`](./demo-app-v5.html); pool addresses are in [`deployments.json`](./deployments.json). An SDK update is on the roadmap. Helpers for the distribution router (deposit planning, master key, note selection) are in [`distribution.js`](./distribution.js); the router addresses are in `deployments.json` under `routers`.
 
 A JavaScript SDK for interacting with Latheon's shielded pool — deposits, automatic Merkle proof construction, and withdrawals, without needing to manually read `zeros()` from the contract or hand-build a Merkle path (which is exactly what the Latheon team had to do by hand before this existed).
 

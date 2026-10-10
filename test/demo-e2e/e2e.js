@@ -1,4 +1,4 @@
-// REFERENCE ONLY. End-to-end browser test used to verify demo/index.html (16 checks, all passed on 2026-10-04).
+// REFERENCE ONLY. End-to-end browser test used to verify demo/index.html (18 checks, all passed; the router features are tested by router-e2e.js).
 // Paths are hard-coded for the sandbox it was written in; adapt them before reuse. See README.md in this folder.
 const fs = require('fs');
 const path = require('path');

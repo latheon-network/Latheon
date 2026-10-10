@@ -73,6 +73,16 @@ In `LatheonShieldedPoolV3` and `V4`, the `recipient` passed to `withdraw()` is n
 
 A future L2 faces a leak that the cryptography does not cover: funding an L2 wallet through a standard bridge from an L1 address that is linkable to an identity links that identity to the later shielded deposit. This is unsolved; options and trade-offs are in `docs/bridge-privacy-design.md`.
 
+### 8.3 Distribution router and master key (V5 pools; testnets, not independently reviewed)
+
+The router (`LatheonDistributionPool`) places ordinary V5 notes in the four fixed pools and can pay several of them out in one transaction. What this does and does not protect:
+
+- **Linkage by design.** All notes of one `withdrawMany` go to one recipient in one transaction, so an observer can see that they belong together. The anonymity of each note inside its pool is unchanged, but the group is visible. For unlinked payouts, withdraw notes separately to different addresses (the demo has a "show separate notes" mode).
+- **Amount pattern.** Depositing a round amount in one transaction places a recognisable set of notes. Rounding down to a step and withdrawing in different shapes lowers this; the numbers in `docs/distribution-pool-architecture.md` come from a toy model and are not guarantees.
+- **Master key.** One key derives every note of a deposit (indexes 0 to 63). Whoever holds it can withdraw all unspent notes of that deposit, and it cannot be recovered if lost. It is generated in the browser and must be stored by the user.
+- **Gas payer.** The wallet that sends a withdrawal pays gas in public; using the depositor's wallet links the two.
+- **Trust.** The router holds no funds between calls and has no owner, fee or upgrade path, but it is new code with no independent review. A bug in it would not break the pools (it only calls their public functions), but could lose or strand a user's funds in transit.
+
 ## 9. Future work
 
 ### 9.1 Long-term cryptographic risk: post-quantum security (not urgent, but not zero)

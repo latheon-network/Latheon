@@ -1,9 +1,11 @@
 # Distribution pool and composable privacy: design (v0.5)
 
 **Status:** the router contract (`contracts/LatheonDistributionPool.sol`) and the client mirror of its split rule
-(`sdk/distribution.js`) are implemented and tested on a local EVM (`test/distribution`). **Deployed on four testnet token sets and checked by hand with real proofs (addresses and transactions: `docs/distribution-pool-deployments.md`); not reviewed by anyone else.** The wallet side (decisions D2 to D4) is not built yet. Supersedes v0.3. All numbers below come from a toy model
+(`sdk/distribution.js`) are implemented and tested on a local EVM (`test/distribution`). **Deployed on four testnet token sets and checked by hand with real proofs (addresses and transactions: `docs/distribution-pool-deployments.md`); not reviewed by anyone else.** The wallet side is built in the demo for D3 (rounding chosen by the user, exact amount preselected), one master key per deposit, and withdrawal by amount and key (`sdk/distribution.js`, `test/distribution/wallet.js`, `test/demo-e2e/router-e2e.js`; run live on Ethereum Sepolia). D2 (a planner that proposes several addresses and delays) and D4 (pool-activity indicators) are not built; the demo offers separate notes for unlinked payouts and warns that one `withdrawMany` links its notes. Supersedes v0.3. All numbers below come from a toy model
 (`tools/privacy-simulation/privacy_sim.py`); they compare design options under explicit assumptions and are
 **not** guarantees of privacy.
+
+**Changes from v0.5 (October 2026):** status only: the wallet side and the demo are built (see above). No change to the contract or the decisions.
 
 **Changes from v0.4:** the router gains `withdrawMany` (several ordinary V5 withdrawals in one transaction); section 9
 records it, its tests (48 checks) and its limits. Nothing else changed.
@@ -107,7 +109,7 @@ Quiet pool, about 7 deposits per day:
 ## 6. Open questions
 
 - Which real-world signals outside this model matter most for our users?
-- Which D3 option is preselected in the demo (exact amount or a rounded one); the contract does not enforce rounding.
+- Which D3 option is preselected in the demo: currently the exact amount, with rounding one click away; the contract does not enforce rounding. Whether that default is right is open.
 - How to present the remainder left outside the pool.
 - Wallet: one fresh spendKey/viewKey pair per note, and storage for several notes per deposit (step 2 of section 7).
   The router refuses a repeated commitment inside one call, but it cannot see a repeat across calls.
@@ -116,9 +118,9 @@ Quiet pool, about 7 deposits per day:
 ## 7. Implementation order
 
 1. Fixed-denomination pools (done: V5 deployed on three testnets).
-2. Wallet: storage for several notes, coin selection and the withdrawal planner (client only).
-3. Deposit UI: rounding, warnings, pool-activity indicators.
-4. DistributionPool contract (canonical split, no queue). **Done locally; not deployed.**
+2. Wallet: one master key per deposit, coin selection by amount (**done in the demo**); a withdrawal planner with several addresses and delays (not done).
+3. Deposit UI: rounding and warnings (**done**); pool-activity indicators (not done).
+4. DistributionPool contract (canonical split, no queue). **Done and deployed on four testnet token sets.**
 5. Optional: queue; bridge variant.
 
 ## 8. Reproducing the numbers

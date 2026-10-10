@@ -157,8 +157,10 @@ section.block { padding: 112px 0; }
 .net-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
 .tab { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 7px 14px; border-radius: 20px; font: 500 13px 'IBM Plex Sans', sans-serif; cursor: pointer; }
 .tab[aria-selected="true"] { color: var(--text-primary); border-color: var(--teal); }
-.prow { display: grid; grid-template-columns: 90px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--border); font-size: 13.5px; }
+.prow { display: grid; grid-template-columns: 112px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--border); font-size: 13.5px; }
 .prow .amt { font-weight: 600; }
+.prow.router { border-top-color: var(--violet); }
+.prow.router .amt { color: var(--violet); }
 .prow .addr { font: 12.5px 'IBM Plex Mono', monospace; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .prow button, .prow a { background: none; border: 0; color: var(--teal); font: 12px 'IBM Plex Mono', monospace; cursor: pointer; text-decoration: none; }
 .prow button:hover, .prow a:hover { text-decoration: underline; }
@@ -307,6 +309,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       <div class="big"><b>16</b><span data-i18n="pools.n1">V5 pools</span></div>
       <div class="big"><b>3</b><span data-i18n="pools.n2">testnets</span></div>
       <div class="big"><b>2</b><span data-i18n="pools.n3">tokens: LTH, USDG</span></div>
+      <div class="big"><b>4</b><span data-i18n="pools.n4">distribution routers</span></div>
     </div>
     <p class="honest reveal" data-i18n="pools.honest"><strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.</p>
     <p class="gas-note reveal" data-i18n="pools.gasNote">Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.</p>
@@ -373,6 +376,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       'status.eyebrow': 'Status', 'status.h2': 'What works, what we fixed, what\'s open', 'status.p': 'Click a line for details and the source.',
       'col.live': 'Works on testnets', 'col.fixed': 'Fixed', 'col.open': 'Still open',
       'st.pools.t': '16 V5 pools on 3 testnets', 'st.pools.d': '4 on Ethereum Sepolia, 4 on Arbitrum Sepolia, 8 on Robinhood Chain Testnet (LTH and USDG).',
+      'st.router.t': 'Distribution router: any amount, one transaction', 'st.router.d': 'Splits an amount into 100 / 50 / 10 / 1 notes and deposits them in one transaction; <code>withdrawMany</code> collects several notes in one. No owner, no fee, holds no funds. Checked by hand with real proofs on all four token sets, no independent review. It pays one address, so it is convenience, not privacy.',
       'st.bind.t': 'Recipient bound to the proof', 'st.bind.d': 'The receiving address is part of the withdraw proof and cannot be swapped in transit.',
       'st.tree.t': 'On-chain Merkle tree', 'st.tree.d': 'Updated by the contract on every deposit. 256 deposits per pool.',
       'st.disc.t': 'Selective disclosure', 'st.disc.d': 'Proves control of one specific deposit to one auditor, tied to that auditor\'s one-time code.',
@@ -383,6 +387,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       'st.bridge.t': 'Bridge privacy', 'st.bridge.d': 'Moving funds between L1 and L2 is not private yet.',
       'st.meta.t': 'Public metadata', 'st.meta.d': 'Timing and gas of each transaction are visible.',
       'pools.eyebrow': 'Deployed', 'pools.h2': 'Live on three testnets', 'pools.n1': 'V5 pools', 'pools.n2': 'testnets', 'pools.n3': 'tokens: LTH, USDG',
+      'pools.n4': 'distribution routers', 'pools.router': 'Router',
       'pools.honest': '<strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.',
       'pools.gasNote': 'Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.',
       'pools.show': 'Show contract addresses', 'pools.hide': 'Hide contract addresses', 'pools.copy': 'copy', 'pools.view': 'view ↗', 'pools.copied': 'Copied {what}',
@@ -413,6 +418,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       'status.eyebrow': 'Статус', 'status.h2': 'Что работает, что исправили, что открыто', 'status.p': 'Нажмите на строку, чтобы увидеть подробности и источник.',
       'col.live': 'Работает в тестовых сетях', 'col.fixed': 'Исправлено', 'col.open': 'Пока открыто',
       'st.pools.t': '16 пулов V5 в 3 тестовых сетях', 'st.pools.d': '4 в Ethereum Sepolia, 4 в Arbitrum Sepolia, 8 в Robinhood Chain Testnet (LTH и USDG).',
+      'st.router.t': 'Роутер распределения: любая сумма, одна транзакция', 'st.router.d': 'Делит сумму на ноты 100 / 50 / 10 / 1 и вносит их одной транзакцией; <code>withdrawMany</code> выводит несколько нот одной. Без владельца и комиссии, средств не хранит. Проверен вручную с настоящими доказательствами на всех четырёх наборах токенов, независимой проверки нет. Платит на один адрес: это удобство, а не приватность.',
       'st.bind.t': 'Получатель привязан к доказательству', 'st.bind.d': 'Адрес получателя входит в доказательство вывода, и подменить его по дороге нельзя.',
       'st.tree.t': 'Дерево Меркла в блокчейне', 'st.tree.d': 'Контракт обновляет его при каждом депозите. 256 депозитов на пул.',
       'st.disc.t': 'Избирательное раскрытие', 'st.disc.d': 'Доказывает одному аудитору контроль над одним конкретным депозитом; доказательство привязано к одноразовому коду этого аудитора.',
@@ -423,6 +429,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       'st.bridge.t': 'Приватность моста', 'st.bridge.d': 'Перевод средств между L1 и L2 пока не приватен.',
       'st.meta.t': 'Публичные метаданные', 'st.meta.d': 'Время и газ каждой транзакции видны всем.',
       'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в трёх тестовых сетях', 'pools.n1': 'пулов V5', 'pools.n2': 'тестовые сети', 'pools.n3': 'токена: LTH, USDG',
+      'pools.n4': 'роутера распределения', 'pools.router': 'Роутер',
       'pools.honest': '<strong>Честно:</strong> в пулах в основном наши собственные тестовые депозиты, поэтому толпа, в которой вы прячетесь, почти пуста. Механика работает и проверяется в блокчейне; для настоящей приватности нужны настоящие пользователи.',
       'pools.gasNote': 'Честно о газе: число единиц газа различается по сетям и меняется со временем. Наши последние одиночные выводы в блокчейне на V5: Ethereum Sepolia 419 919 · Arbitrum Sepolia 276 769 · Robinhood Chain 297 197 (LTH) и 306 346 (USDG). Цифру Ethereum мы пока не можем объяснить, поэтому не утверждаем, что L2 тратит больше или меньше единиц газа, чем L1; комиссия зависит от цены газа. Контролируемый перемер запланирован.',
       'pools.show': 'Показать адреса контрактов', 'pools.hide': 'Скрыть адреса контрактов', 'pools.copy': 'копировать', 'pools.view': 'смотреть ↗', 'pools.copied': 'Скопировано: {what}',
@@ -453,6 +460,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       'status.eyebrow': '状态', 'status.h2': '哪些已可用，哪些已修复，哪些仍待解决', 'status.p': '点击任一行查看详情和来源。',
       'col.live': '已在测试网运行', 'col.fixed': '已修复', 'col.open': '仍待解决',
       'st.pools.t': '3 个测试网上的 16 个 V5 资金池', 'st.pools.d': 'Ethereum Sepolia 上 4 个，Arbitrum Sepolia 上 4 个，Robinhood Chain Testnet 上 8 个（LTH 和 USDG）。',
+      'st.router.t': '分配路由合约：任意金额，一笔交易', 'st.router.d': '把金额拆分为 100 / 50 / 10 / 1 的票据并在一笔交易中存入；<code>withdrawMany</code> 可在一笔交易中提取多张票据。无所有者、无手续费、不持有资金。已在四组代币上用真实证明手动验证，尚无独立审查。它付给同一个地址，因此方便但不隐私。',
       'st.bind.t': '接收地址与证明绑定', 'st.bind.d': '接收地址是取款证明的一部分，传输途中无法被替换。',
       'st.tree.t': '链上 Merkle 树', 'st.tree.d': '每次存款时由合约更新。每个资金池可容纳 256 笔存款。',
       'st.disc.t': '选择性披露', 'st.disc.d': '向一位审计方证明对某一笔特定存款的控制权，并与该审计方的一次性代码绑定。',
@@ -463,6 +471,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       'st.bridge.t': '跨链桥隐私', 'st.bridge.d': '在 L1 和 L2 之间转移资金目前还不具备隐私。',
       'st.meta.t': '元数据公开', 'st.meta.d': '每笔交易的时间和 Gas 对所有人可见。',
       'pools.eyebrow': '已部署', 'pools.h2': '已在三个测试网上运行', 'pools.n1': 'V5 资金池', 'pools.n2': '测试网', 'pools.n3': '代币：LTH、USDG',
+      'pools.n4': '分配路由合约', 'pools.router': '路由',
       'pools.honest': '<strong>坦诚说明：</strong>资金池中主要是我们自己的测试存款，因此您所隐藏其中的人群几乎是空的。机制可用且可在链上验证；真正的隐私需要真实用户。',
       'pools.gasNote': '关于 Gas 的坦诚说明：各网络的 Gas 消耗量不同，且会随时间变化。我们在 V5 上最近一次链上取款的单次数据：Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197（LTH）和 306,346（USDG）。我们暂时无法解释 Ethereum 的数值，因此不声称 L2 的 Gas 消耗量高于或低于 L1；费用取决于 Gas 价格。计划进行受控重测。',
       'pools.show': '显示合约地址', 'pools.hide': '隐藏合约地址', 'pools.copy': '复制', 'pools.view': '查看 ↗', 'pools.copied': '已复制 {what}',
@@ -622,7 +631,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
 
   /* ---------- status columns ---------- */
   var COLS = [
-    ['live', 'col.live', [['st.pools', 'sdk/deployments.json'], ['st.bind', 'docs/withdraw-recipient-binding.md'], ['st.tree', 'STATUS.md'], ['st.disc', 'STATUS.md']]],
+    ['live', 'col.live', [['st.pools', 'sdk/deployments.json'], ['st.bind', 'docs/withdraw-recipient-binding.md'], ['st.tree', 'STATUS.md'], ['st.disc', 'STATUS.md'], ['st.router', 'docs/distribution-pool-deployments.md']]],
     ['fixed', 'col.fixed', [['st.swap', 'docs/withdraw-recipient-binding.md']]],
     ['open', 'col.open', [['st.audit', 'THREAT-MODEL.md'], ['st.keys', 'docs/dev-ceremony-v3.md'], ['st.anon', 'THREAT-MODEL.md'], ['st.bridge', 'STATUS.md'], ['st.meta', 'THREAT-MODEL.md']]]
   ];
@@ -660,6 +669,13 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
     ['robinhood-testnet','USDG',10,'0xaA16653312E033623a6CD0D1f7DEFDFc21f30461'],
     ['robinhood-testnet','USDG',1,'0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4']
   ];
+  /* distribution routers, one per token set (docs/distribution-pool-deployments.md) */
+  var ROUTERS = [
+    ['ethereum-sepolia','LTH','0xC12095a1e7fAc20E827a93933576469e1122eB61'],
+    ['arbitrum-sepolia','LTH','0x284985291A32cf0cfE48F6CA128615983952350e'],
+    ['robinhood-testnet','LTH','0x006da9E656581A7740856aA89c690b3Abd296c30'],
+    ['robinhood-testnet','USDG','0xded64ec452C95bA69Fe80d51447cb8c4953E52C0']
+  ];
   var toastT, currentNet = null;
   function toast(m) { var el2 = $('toast'); el2.textContent = m; el2.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { el2.classList.remove('on'); }, 1500); }
   function copy(text, label) {
@@ -674,6 +690,10 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
       return '<div class="prow"><span class="amt">' + p[2] + ' ' + p[1] + '</span><span class="addr" title="' + p[3] + '">' + p[3] + '</span>' +
         '<button data-a="' + p[3] + '" data-l="' + p[2] + ' ' + p[1] + ' · ' + NETS[net][0] + '">' + t('pools.copy') + '</button>' +
         '<a href="' + NETS[net][1] + '/address/' + p[3] + '" target="_blank" rel="noopener">' + t('pools.view') + '</a></div>';
+    }).join('') + ROUTERS.filter(function (r) { return r[0] === net; }).map(function (r) {
+      return '<div class="prow router"><span class="amt">' + t('pools.router') + ' ' + r[1] + '</span><span class="addr" title="' + r[2] + '">' + r[2] + '</span>' +
+        '<button data-a="' + r[2] + '" data-l="' + t('pools.router') + ' ' + r[1] + ' · ' + NETS[net][0] + '">' + t('pools.copy') + '</button>' +
+        '<a href="' + NETS[net][1] + '/address/' + r[2] + '" target="_blank" rel="noopener">' + t('pools.view') + '</a></div>';
     }).join('');
     $('poolRows').querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { copy(b.dataset.a, b.dataset.l); }); });
   }

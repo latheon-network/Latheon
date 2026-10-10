@@ -261,5 +261,35 @@
       "verifier": "0x16b87f399a003E56eA6A680292b7278Df7D7b655",
       "startBlock": 123734000
     }
+  ],
+  "routers": [
+    {
+      "id": "ethereum-sepolia:LTH",
+      "network": "ethereum-sepolia",
+      "token": "LTH",
+      "address": "0xC12095a1e7fAc20E827a93933576469e1122eB61",
+      "deployBlock": 11879141
+    },
+    {
+      "id": "arbitrum-sepolia:LTH",
+      "network": "arbitrum-sepolia",
+      "token": "LTH",
+      "address": "0x284985291A32cf0cfE48F6CA128615983952350e",
+      "deployBlock": 317439163
+    },
+    {
+      "id": "robinhood-testnet:LTH",
+      "network": "robinhood-testnet",
+      "token": "LTH",
+      "address": "0x006da9E656581A7740856aA89c690b3Abd296c30",
+      "deployBlock": 131756119
+    },
+    {
+      "id": "robinhood-testnet:USDG",
+      "network": "robinhood-testnet",
+      "token": "USDG",
+      "address": "0xded64ec452C95bA69Fe80d51447cb8c4953E52C0",
+      "deployBlock": 131766479
+    }
   ]
 }
