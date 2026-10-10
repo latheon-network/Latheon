@@ -30,3 +30,14 @@ DEMO=/path/to/demo node router-e2e.js
 ```
 
 It is a local test, not a replacement for a run with a real wallet. That was also done: see `STATUS.md`.
+
+## RPC robustness: `rpc-robust.js`
+
+Checks the block between `rpc-robust:begin` and `rpc-robust:end` in `demo/index.html` with a fake endpoint: transient
+errors such as "could not coalesce error" are retried with backoff, a block range the endpoint refuses is split in half
+until it fits, a contract error (`CALL_EXCEPTION`) is not retried, an endpoint that stays down ends with its original
+error instead of looping, at most 4 requests are in flight, and every retry is written to the page log. 8 checks, no
+network and no packages: `node rpc-robust.js`. It does not replace a run against live endpoints.
+
+Note: `e2e.js` predates the network and token selectors. Against the current demo its single-pool deposit and withdrawal
+still pass, but it stops at the pool selector (`#poolSelect`) and needs updating; `router-e2e.js` covers the selectors.

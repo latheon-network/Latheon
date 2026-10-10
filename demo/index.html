@@ -1240,7 +1240,7 @@ function manualCircuit(group, part, kind, buf) {
 // disclosure needs no wallet and never asks the wallet to switch networks.
 const readProviders = {};
 function readProvider(net) {
-  if (!readProviders[net.chainId]) readProviders[net.chainId] = new ethers.JsonRpcProvider(net.rpcUrl, net.chainId, { staticNetwork: true });
+  if (!readProviders[net.chainId]) readProviders[net.chainId] = new ethers.JsonRpcProvider(net.rpcUrl, net.chainId, { staticNetwork: true, batchMaxCount: 1 });
   return readProviders[net.chainId];
 }
 
@@ -1274,6 +1274,51 @@ async function refreshBalances() {
   $('tokenOut').textContent = ethers.formatUnits(bal, p.decimals) + ' ' + p.token;
 }
 
+// rpc-robust:begin
+// Public RPC endpoints sometimes fail a request (rate limits, "could not coalesce error", timeouts) or refuse a block
+// range. Retry with backoff, split a refused range in half, and keep the number of requests in flight small.
+const RPC_RETRIES = 4, RPC_MIN_SPAN = 250;
+const rpcSleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function rpcErrText(e) { return String((e && (e.shortMessage || e.message)) || e); }
+function rpcIsRangeError(e) {
+  let extra = ''; try { extra = JSON.stringify((e && (e.error || e.info)) || ''); } catch (x) { /* ignore */ }
+  return /block range|range is too|too many (results|logs|blocks)|query returned more than|response size|limit exceeded|exceeds? .*limit/i.test(rpcErrText(e) + ' ' + extra);
+}
+function rpcIsFatal(e) { return !!(e && ['CALL_EXCEPTION', 'INVALID_ARGUMENT', 'ACTION_REJECTED', 'BAD_DATA'].includes(e.code)); }
+async function withRetry(fn, label, opts) {
+  const tries = (opts && opts.tries) || RPC_RETRIES, logf = (opts && opts.log) || log;
+  for (let a = 1; ; a++) {
+    try { return await fn(); } catch (e) {
+      if (rpcIsFatal(e) || rpcIsRangeError(e) || a >= tries) throw e;
+      const wait = Math.min(8000, 400 * 2 ** (a - 1)) + Math.floor(Math.random() * 250);
+      logf(`RPC error during ${label}: ${rpcErrText(e).slice(0, 140)}. Retry ${a}/${tries - 1} in ${wait} ms…`);
+      await rpcSleep(wait);
+    }
+  }
+}
+// getRange(from, to) returns an array of logs. On a range error, or after the retries run out, the range is split in
+// half (down to RPC_MIN_SPAN blocks) before giving up, so one bad request does not lose the whole scan.
+async function getLogsRobust(getRange, from, to, label, opts) {
+  try { return await withRetry(() => getRange(from, to), `${label} ${from}–${to}`, opts); }
+  catch (e) {
+    const minSpan = (opts && opts.minSpan) || RPC_MIN_SPAN;
+    if (rpcIsFatal(e) || to - from + 1 <= minSpan) throw e;
+    const mid = Math.floor((from + to) / 2);
+    ((opts && opts.log) || log)(`Splitting blocks ${from}–${to} into two smaller requests (${rpcErrText(e).slice(0, 100)})`);
+    const left = await getLogsRobust(getRange, from, mid, label, opts);
+    const right = await getLogsRobust(getRange, mid + 1, to, label, opts);
+    return left.concat(right);
+  }
+}
+// Runs fn over items with at most `limit` calls in flight; results keep the input order.
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length); let next = 0;
+  const worker = async () => { while (next < items.length) { const i = next++; out[i] = await fn(items[i], i); } };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker));
+  return out;
+}
+// rpc-robust:end
+
 // ---------- deposit scan, cached per (chain, contract) ----------
 const CACHE_PREFIX = 'latheon-cache-v5-';
 const cacheKey = (pool) => CACHE_PREFIX + pool.net.chainId + ':' + pool.address.toLowerCase();
@@ -1293,8 +1338,8 @@ async function fetchDeposits(pool, useCache, prov) {
   prov = prov || provider;
   const poolContract = new ethers.Contract(pool.address, POOL_ABI[pool.version], prov);
   const filter = poolContract.filters.Deposit();
-  const latestBlock = await prov.getBlockNumber();
-  const CHUNK = 9000, PARALLEL = 8;
+  const latestBlock = await withRetry(() => prov.getBlockNumber(), 'reading the latest block');
+  const CHUNK = 9000, PARALLEL = 4;
   const cache = useCache ? loadCache(pool) : { deposits: [], lastBlock: 0 };
   const start = cache.lastBlock >= pool.startBlock ? cache.lastBlock + 1 : pool.startBlock;
   if (useCache && cache.lastBlock >= pool.startBlock) log(`Using cached deposits up to block ${cache.lastBlock} (${cache.deposits.length} known); scanning only newer blocks.`);
@@ -1304,7 +1349,7 @@ async function fetchDeposits(pool, useCache, prov) {
   for (let i = 0; i < ranges.length; i += PARALLEL) {
     const batch = ranges.slice(i, i + PARALLEL);
     log(`Querying Deposit events in blocks ${batch[0][0]}–${batch[batch.length - 1][1]} (${batch.length} parallel request${batch.length > 1 ? 's' : ''})…`);
-    const res = await Promise.all(batch.map(([f, tt]) => poolContract.queryFilter(filter, f, tt)));
+    const res = await mapLimit(batch, PARALLEL, ([f, tt]) => getLogsRobust((a, b) => poolContract.queryFilter(filter, a, b), f, tt, 'Deposit scan'));
     for (const r of res) events = events.concat(r);
   }
   const fresh = events.map((e) => ({ commitment: BigInt(e.args.commitment), leafIndex: Number(e.args.leafIndex), timestamp: Number(e.args.timestamp) }));
@@ -1530,7 +1575,7 @@ $('checkNoteBtn').addEventListener('click', async () => {
     const { deposits, mine } = await findDeposit(pool, commitment, rp);
     if (!mine) throw new Error(t('err.notFound'));
     st.go(2);
-    const spent = await new ethers.Contract(pool.address, POOL_ABI[pool.version], rp).nullifierHashes(computeNullifierHash(note.spendKey));
+    const spent = await withRetry(() => new ethers.Contract(pool.address, POOL_ABI[pool.version], rp).nullifierHashes(computeNullifierHash(note.spendKey)), 'checking whether the note is spent');
     st.done();
     lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
     renderTree(pool, deposits, mine.leafIndex);
@@ -1765,7 +1810,7 @@ async function waScan(st) {
   if (!router) throw new Error(t('wa.errRouter', { addr: short(mk.router), chain: mk.chainId }));
   const rp = readProvider(router.net);
   st.go(0);
-  const deps = await Promise.all(router.pools.map((p) => fetchDeposits(p, true, rp)));
+  const deps = await mapLimit(router.pools, 2, (p) => fetchDeposits(p, true, rp));
   st.go(1);
   const byCommit = new Map();
   deps.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex })));
@@ -1775,7 +1820,7 @@ async function waScan(st) {
     const hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey));
     if (hit) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) });
   }
-  await Promise.all(found.map(async (n) => { n.spent = await new ethers.Contract(router.pools[n.pi].address, POOL_ABI.v5, rp).nullifierHashes(n.nullifierHash); }));
+  await mapLimit(found, 4, async (n) => { n.spent = await withRetry(() => new ethers.Contract(router.pools[n.pi].address, POOL_ABI.v5, rp).nullifierHashes(n.nullifierHash), 'checking whether a note is spent'); });
   return { router, mk, found, deps, rp };
 }
 function waAmount() {
@@ -1950,12 +1995,12 @@ async function findCommitment(net, pools, commitment) {
     } catch (e) { log('Explorer lookup failed (' + e.message + '); scanning block ranges over RPC instead…'); }
   }
   const rp = readProvider(net);
-  const latest = await rp.getBlockNumber();
-  const CHUNK = 9000, PARALLEL = 8;
+  const latest = await withRetry(() => rp.getBlockNumber(), 'reading the latest block');
+  const CHUNK = 9000, PARALLEL = 4;
   for (const p of pools) {
     const ranges = []; for (let f = p.startBlock; f <= latest; f += CHUNK) ranges.push([f, Math.min(f + CHUNK - 1, latest)]);
     for (let i = 0; i < ranges.length; i += PARALLEL) {
-      const res = await Promise.all(ranges.slice(i, i + PARALLEL).map(([f, tt]) => rp.getLogs({ address: p.address, topics: [DEPOSIT_TOPIC, topic1], fromBlock: f, toBlock: tt })));
+      const res = await mapLimit(ranges.slice(i, i + PARALLEL), PARALLEL, ([f, tt]) => getLogsRobust((a, b) => rp.getLogs({ address: p.address, topics: [DEPOSIT_TOPIC, topic1], fromBlock: a, toBlock: b }), f, tt, 'commitment lookup'));
       for (const r of res) if (r.length) { const ev = DEPOSIT_IFACE.parseLog(r[0]); return { pool: p, leafIndex: Number(ev.args.leafIndex), timestamp: Number(ev.args.timestamp), txHash: r[0].transactionHash }; }
     }
   }

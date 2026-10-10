@@ -67,10 +67,11 @@ docs/        technical documentation, see docs/README.md
 
 - `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
 - `cd test/distribution && npm install && npm test`: the router with real proofs on a local EVM (48 checks, a few minutes); `node wallet.js` checks the wallet-side helpers (25 checks).
+- `node test/demo-e2e/rpc-robust.js`: the demo's RPC retry and block-range splitting (8 checks, no network, no packages).
 - `test/demo-e2e`: browser tests of the demo on local chains (reference scripts; see its README).
 - Remix unit tests for V3/V4 are in `test/` (open them in Remix; no local setup).
 - `tools/zk-toolkit.html` (serve it over `http://`, not `file://`) runs trusted setup and proof generation in the browser. Circuit sources are in `circuits/` and can be tried at [zkrepl.dev](https://zkrepl.dev).
-- V3 contracts are verified on Sourcify and Blockscout; check the explorer for the status of each V5 contract.
+- V3 contracts and the four distribution routers are verified on Sourcify; check the explorer for the status of each V5 contract.
 
 ## Contributing
 

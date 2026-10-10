@@ -55,7 +55,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [x] Distribution router for arbitrary deposit amounts (`deposit` and `withdrawMany`): deployed on four testnet token sets and checked by hand, not reviewed independently (`docs/distribution-pool-architecture.md`, `docs/distribution-pool-deployments.md`).
 - [x] Wallet-side note selection and the deposit rounding choice in the demo (exact or rounded down, user's choice; one master key; withdrawal by amount and key). Built and tested on local chains, run live on Ethereum Sepolia. Still open: pool-activity indicators and a planner that proposes several addresses and delays (`docs/distribution-pool-architecture.md`, D2 and D4).
 - [ ] Update the JavaScript SDK for the `spendKey` / `viewKey` split and recipient-bound proofs (it currently targets the V3 pool).
-- [ ] Re-measure gas on V5 under controlled conditions (two consecutive withdrawals per network); see the note in `docs/gas-benchmark.en.md`.
+- [ ] Re-measure gas on V5 under controlled conditions (two consecutive withdrawals per network); see the note in `docs/gas-benchmark.en.md`. Ethereum Sepolia runs Glamsterdam (EIP-8037) since 6 October 2026, so compare like with like.
 - [ ] Proof-generation timing, partly done: `docs/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the V5 circuit (`withdraw_v3`), a named device, and phones.
 
 ---
