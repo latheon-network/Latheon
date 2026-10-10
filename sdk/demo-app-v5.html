@@ -849,7 +849,7 @@ function manualCircuit(group, part, kind, buf) {
 // disclosure needs no wallet and never asks the wallet to switch networks.
 const readProviders = {};
 function readProvider(net) {
-  if (!readProviders[net.chainId]) readProviders[net.chainId] = new ethers.JsonRpcProvider(net.rpcUrl, net.chainId, { staticNetwork: true, batchMaxCount: 1 });
+  if (!readProviders[net.chainId]) readProviders[net.chainId] = new ethers.JsonRpcProvider(net.rpcUrl, net.chainId, { staticNetwork: true });
   return readProviders[net.chainId];
 }
 
@@ -885,7 +885,8 @@ async function refreshBalances() {
 
 // rpc-robust:begin
 // Public RPC endpoints sometimes fail a request (rate limits, "could not coalesce error", timeouts) or refuse a block
-// range. Retry with backoff, split a refused range in half, and keep the number of requests in flight small.
+// range. Retry with backoff and split a refused range in half. Both act only on an error, so a scan without errors
+// runs exactly as before, with the same parallelism.
 const RPC_RETRIES = 4, RPC_MIN_SPAN = 250;
 const rpcSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function rpcErrText(e) { return String((e && (e.shortMessage || e.message)) || e); }
@@ -948,7 +949,7 @@ async function fetchDeposits(pool, useCache, prov) {
   const poolContract = new ethers.Contract(pool.address, POOL_ABI[pool.version], prov);
   const filter = poolContract.filters.Deposit();
   const latestBlock = await withRetry(() => prov.getBlockNumber(), 'reading the latest block');
-  const CHUNK = 9000, PARALLEL = 4;
+  const CHUNK = 9000, PARALLEL = 8;
   const cache = useCache ? loadCache(pool) : { deposits: [], lastBlock: 0 };
   const start = cache.lastBlock >= pool.startBlock ? cache.lastBlock + 1 : pool.startBlock;
   if (useCache && cache.lastBlock >= pool.startBlock) log(`Using cached deposits up to block ${cache.lastBlock} (${cache.deposits.length} known); scanning only newer blocks.`);
@@ -1329,7 +1330,7 @@ async function findCommitment(net, pools, commitment) {
   }
   const rp = readProvider(net);
   const latest = await withRetry(() => rp.getBlockNumber(), 'reading the latest block');
-  const CHUNK = 9000, PARALLEL = 4;
+  const CHUNK = 9000, PARALLEL = 8;
   for (const p of pools) {
     const ranges = []; for (let f = p.startBlock; f <= latest; f += CHUNK) ranges.push([f, Math.min(f + CHUNK - 1, latest)]);
     for (let i = 0; i < ranges.length; i += PARALLEL) {
