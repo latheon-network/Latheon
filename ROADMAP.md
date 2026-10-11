@@ -28,7 +28,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 **Developer experience**
 - [x] ~~Public faucet~~ — done, live. `LatheonFaucet`, 500 test LTH per address every 24h.
-- [x] ~~Block explorer integration~~ — done. Live on-chain activity feed on the website, pulling real-time data from Blockscout.
+- [x] ~~Block explorer integration~~ — done. The website shows live deposit counts per network, read from the pool contracts (`nextIndex()`); explorer links on the site and in the demo.
 - [x] ~~Deployment automation and reproducible build instructions~~ — done. See `DEPLOYMENT-CHECKLIST.en.md`.
 - [x] ~~Developer documentation and an initial SDK~~ — done. See `sdk/`, including a real, wallet-connected demo app tested end-to-end.
 

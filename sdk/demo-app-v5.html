@@ -666,7 +666,12 @@ function hideStatus(id) { $(id).style.display = 'none'; }
 function setWalletStatus(key, vars, cls, suffix) { walletStatusArgs = [key, vars, cls, suffix || '']; setStatus('walletStatus', t(key, vars) + (suffix || ''), cls); }
 const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const errText = (e) => (e && (e.shortMessage || e.message)) || String(e);
+const errText = (e) => {
+  const base = (e && (e.shortMessage || e.message)) || String(e);
+  // ethers wraps wallet/RPC errors it cannot classify; the useful text is inside (e.g. MetaMask "Internal JSON-RPC error", 429).
+  const inner = e && ((e.error && (e.error.data && e.error.data.message || e.error.message)) || (e.info && e.info.error && (e.info.error.data && e.info.error.data.message || e.info.error.message)));
+  return inner && !base.includes(inner) ? base + ' (' + String(inner).slice(0, 200) + ')' : base;
+};
 let toastT;
 function toast(m) { const tt = $('toast'); tt.textContent = m; tt.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => tt.classList.remove('on'), 1600); }
 async function copyText(text, whatKey) {
@@ -847,10 +852,62 @@ function manualCircuit(group, part, kind, buf) {
 // ---------- providers ----------
 // Read-only access goes through the network's public RPC, so checking a note or a
 // disclosure needs no wallet and never asks the wallet to switch networks.
+// One provider per RPC URL. At most RPC_PARALLEL requests run at once, so a burst of reads stays under public rate limits
+// (the public Tenderly gateway answers about 10 at once and returns 429 for the rest), and every read except eth_getLogs
+// (which the scan helpers split and retry themselves) is retried on transient errors. ethers' own retry of HTTP 429 is
+// cut to 3 attempts, so a rate limit reaches this code and the page log instead of stalling for minutes.
 const readProviders = {};
-function readProvider(net) {
-  if (!readProviders[net.chainId]) readProviders[net.chainId] = new ethers.JsonRpcProvider(net.rpcUrl, net.chainId, { staticNetwork: true });
-  return readProviders[net.chainId];
+function providerFor(url, chainId) {
+  if (readProviders[url]) return readProviders[url];
+  const req = new ethers.FetchRequest(url);
+  req.setThrottleParams({ maxAttempts: 3 });
+  const p = new ethers.JsonRpcProvider(req, chainId, { staticNetwork: true });
+  const send = p.send.bind(p), limit = rpcLimiter(RPC_PARALLEL);
+  p.send = (method, params) => limit(() => (method === 'eth_getLogs' ? send(method, params) : withRetry(() => send(method, params), method)));
+  return (readProviders[url] = p);
+}
+const readProvider = (net) => providerFor(net.rpcUrl, net.chainId);
+// Event logs need an endpoint that keeps the full history; deployments.json may name one (logsRpcUrl) per network.
+const logsProvider = (net) => providerFor(net.logsRpcUrl || net.rpcUrl, net.chainId);
+// Reads logs from the log endpoint; if it refuses (rate limit, outage), from the network's RPC; if that fails too and an
+// explorer fallback is given, from the explorer. Whatever the source, fetchDeposits checks the result against nextIndex().
+function logsWithFallback(net, query, explorerQuery) {
+  const lp = logsProvider(net), rp = readProvider(net);
+  return async (a, b) => {
+    try { return await query(lp, a, b); }
+    catch (e1) {
+      if (rpcIsFatal(e1)) throw e1;
+      if (lp !== rp) { try { return await query(rp, a, b); } catch (e2) { if (rpcIsFatal(e2) || !explorerQuery) throw e2; } }
+      else if (!explorerQuery) throw e1;
+      return explorerQuery(a, b);
+    }
+  };
+}
+// Deposit events of one pool from the explorer's logs API, in the same shape as queryFilter results ({ args }).
+async function explorerDeposits(net, address, a, b) {
+  const base = net.blockscoutApi.replace(/\/v2\/?$/, '');
+  const r = await fetch(`${base}?module=logs&action=getLogs&fromBlock=${a}&toBlock=${b}&address=${address}&topic0=${DEPOSIT_TOPIC}`);
+  if (!r.ok) throw new Error('explorer HTTP ' + r.status);
+  const j = await r.json();
+  if (!Array.isArray(j.result)) { if (String(j.message || '').toLowerCase().includes('no records')) return []; throw new Error('unexpected explorer response'); }
+  return j.result.map((lg) => DEPOSIT_IFACE.parseLog({ topics: lg.topics.filter(Boolean), data: lg.data }));
+}
+// The newest block both endpoints have seen, so a log endpoint one block behind does not miss a fresh deposit.
+// Shared for 1.5 s, so the pools of one scan ask once.
+const scanHeads = {};
+function scanHead(net) {
+  const k = net.chainId, now = Date.now();
+  if (scanHeads[k] && now - scanHeads[k].t < 1500) return scanHeads[k].p;
+  const lp = logsProvider(net), rp = readProvider(net);
+  const p = (async () => { const h = await rp.getBlockNumber(); if (lp === rp) return h; try { return Math.min(h, await lp.getBlockNumber()); } catch (e) { return h; } })();
+  scanHeads[k] = { t: now, p }; p.catch(() => { delete scanHeads[k]; });
+  return p;
+}
+// Fee caps for a transaction sent after proof generation: twice the latest base fee plus the tip (ethers' rule), from
+// the network's RPC, so a base fee that rose while proofs were made does not get the transaction refused.
+async function feeOverrides(net) {
+  try { const fd = await readProvider(net).getFeeData(); return fd.maxFeePerGas ? { maxFeePerGas: fd.maxFeePerGas, maxPriorityFeePerGas: fd.maxPriorityFeePerGas } : {}; }
+  catch (e) { return {}; }
 }
 
 // ---------- wallet ----------
@@ -884,41 +941,65 @@ async function refreshBalances() {
 }
 
 // rpc-robust:begin
-// Public RPC endpoints sometimes fail a request (rate limits, "could not coalesce error", timeouts) or refuse a block
-// range. Retry with backoff and split a refused range in half. Both act only on an error, so a scan without errors
-// runs exactly as before, with the same parallelism.
-const RPC_RETRIES = 4, RPC_MIN_SPAN = 250;
+// Reads logs with as few requests as the endpoint allows. The whole block range is asked for first (several public
+// endpoints answer millions of blocks in one request); a range the endpoint refuses, or that keeps failing, is split
+// in half, down to RPC_CHUNK blocks, where the full retries with backoff apply. Transient errors (rate limits,
+// "could not coalesce error", "Failed to fetch", pruned nodes) are retried; contract errors are not.
+const RPC_RETRIES = 4, RPC_CHUNK = 9000, RPC_MIN_SPAN = 250, RPC_PARALLEL = 8, RPC_MAX_FAILURES = 40;
 const rpcSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function rpcErrText(e) { return String((e && (e.shortMessage || e.message)) || e); }
 function rpcIsRangeError(e) {
   let extra = ''; try { extra = JSON.stringify((e && (e.error || e.info)) || ''); } catch (x) { /* ignore */ }
-  return /block range|range is too|too many (results|logs|blocks)|query returned more than|response size|limit exceeded|exceeds? .*limit/i.test(rpcErrText(e) + ' ' + extra);
+  return /block range|range is too|too many (results|logs|blocks)|query returned more than|response size|limit exceeded|exceeds? .*limit|ranges over|maximum block range/i.test(rpcErrText(e) + ' ' + extra);
 }
-function rpcIsFatal(e) { return !!(e && ['CALL_EXCEPTION', 'INVALID_ARGUMENT', 'ACTION_REJECTED', 'BAD_DATA'].includes(e.code)); }
+function rpcIsFatal(e) { return !!(e && (e.rpcAbort || ['CALL_EXCEPTION', 'INVALID_ARGUMENT', 'ACTION_REJECTED', 'BAD_DATA'].includes(e.code))); }
 async function withRetry(fn, label, opts) {
-  const tries = (opts && opts.tries) || RPC_RETRIES, logf = (opts && opts.log) || log;
+  const tries = (opts && opts.tries) || RPC_RETRIES, logf = (opts && opts.log) || log, quiet = !!(opts && opts.quiet);
   for (let a = 1; ; a++) {
     try { return await fn(); } catch (e) {
       if (rpcIsFatal(e) || rpcIsRangeError(e) || a >= tries) throw e;
       const wait = Math.min(8000, 400 * 2 ** (a - 1)) + Math.floor(Math.random() * 250);
-      logf(`RPC error during ${label}: ${rpcErrText(e).slice(0, 140)}. Retry ${a}/${tries - 1} in ${wait} ms…`);
+      if (!quiet) logf(`RPC error during ${label}: ${rpcErrText(e).slice(0, 140)}. Retry ${a}/${tries - 1} in ${wait} ms…`);
       await rpcSleep(wait);
     }
   }
 }
-// getRange(from, to) returns an array of logs. On a range error, or after the retries run out, the range is split in
-// half (down to RPC_MIN_SPAN blocks) before giving up, so one bad request does not lose the whole scan.
-async function getLogsRobust(getRange, from, to, label, opts) {
-  try { return await withRetry(() => getRange(from, to), `${label} ${from}–${to}`, opts); }
-  catch (e) {
-    const minSpan = (opts && opts.minSpan) || RPC_MIN_SPAN;
-    if (rpcIsFatal(e) || to - from + 1 <= minSpan) throw e;
-    const mid = Math.floor((from + to) / 2);
-    ((opts && opts.log) || log)(`Splitting blocks ${from}–${to} into two smaller requests (${rpcErrText(e).slice(0, 100)})`);
-    const left = await getLogsRobust(getRange, from, mid, label, opts);
-    const right = await getLogsRobust(getRange, mid + 1, to, label, opts);
-    return left.concat(right);
-  }
+// Returns a function that runs at most `limit` tasks at once.
+function rpcLimiter(limit) {
+  let active = 0; const waiting = [];
+  const next = () => { if (active < limit && waiting.length) { active++; waiting.shift()(); } };
+  return async (task) => { await new Promise((r) => { waiting.push(r); next(); }); try { return await task(); } finally { active--; next(); } };
+}
+// getRange(from, to) returns an array of logs. Results come back in block order. After RPC_MAX_FAILURES failed requests
+// (an endpoint that is down) the scan stops with the last error instead of splitting further.
+async function getLogsAdaptive(getRange, from, to, label, opts) {
+  const logf = (opts && opts.log) || log, minSpan = (opts && opts.minSpan) || RPC_MIN_SPAN;
+  const run = (opts && opts.limiter) || rpcLimiter((opts && opts.limit) || RPC_PARALLEL);
+  const maxFailures = (opts && opts.maxFailures) || RPC_MAX_FAILURES;
+  let splits = 0, failures = 0, aborted = null;
+  const attempt = async (a, b) => {
+    if (aborted) throw aborted;
+    try { return await getRange(a, b); } catch (e) {
+      if (!rpcIsFatal(e) && !rpcIsRangeError(e) && ++failures >= maxFailures && !aborted) { aborted = e; try { e.rpcAbort = true; } catch (x) { /* frozen error object */ } }
+      throw e;
+    }
+  };
+  const go = async (a, b) => {
+    const span = b - a + 1, big = span > RPC_CHUNK;
+    try { return await run(() => withRetry(() => attempt(a, b), `${label} ${a}–${b}`, { log: logf, tries: big ? 2 : RPC_RETRIES, quiet: big })); }
+    catch (e) {
+      if (aborted) throw aborted;
+      if (rpcIsFatal(e) || span <= minSpan || (!big && !rpcIsRangeError(e))) throw e;   // small range: only a range cap is worth splitting
+      if (!big) logf(`Splitting blocks ${a}–${b} into two smaller requests (${rpcErrText(e).slice(0, 100)})`);
+      splits++;
+      const mid = Math.floor((a + b) / 2);
+      const [l, r] = await Promise.all([go(a, mid), go(mid + 1, b)]);
+      return l.concat(r);
+    }
+  };
+  const out = await go(from, to);
+  if (splits) logf(`${label}: the endpoint refused large block ranges, so the range was split (${splits} time${splits > 1 ? 's' : ''}).`);
+  return out;
 }
 // Runs fn over items with at most `limit` calls in flight; results keep the input order.
 async function mapLimit(items, limit, fn) {
@@ -944,33 +1025,35 @@ function saveCache(pool, deposits, lastBlock) {
     localStorage.setItem(cacheKey(pool) + ':lastblock', String(lastBlock));
   } catch (e) { log('Cache write failed (not fatal): ' + e.message); }
 }
-async function fetchDeposits(pool, useCache, prov) {
-  prov = prov || provider;
-  const poolContract = new ethers.Contract(pool.address, POOL_ABI[pool.version], prov);
+// Calls go to the network's RPC; event logs to its log endpoint (logsRpcUrl in deployments.json), with the RPC as fallback.
+async function fetchDeposits(pool, useCache) {
+  const rp = readProvider(pool.net);
+  const poolContract = new ethers.Contract(pool.address, POOL_ABI[pool.version], rp);
   const filter = poolContract.filters.Deposit();
-  const latestBlock = await withRetry(() => prov.getBlockNumber(), 'reading the latest block');
-  const CHUNK = 9000, PARALLEL = 8;
+  const latestBlock = await scanHead(pool.net);
   const cache = useCache ? loadCache(pool) : { deposits: [], lastBlock: 0 };
   const start = cache.lastBlock >= pool.startBlock ? cache.lastBlock + 1 : pool.startBlock;
   if (useCache && cache.lastBlock >= pool.startBlock) log(`Using cached deposits up to block ${cache.lastBlock} (${cache.deposits.length} known); scanning only newer blocks.`);
-  const ranges = [];
-  for (let from = start; from <= latestBlock; from += CHUNK) ranges.push([from, Math.min(from + CHUNK - 1, latestBlock)]);
   let events = [];
-  for (let i = 0; i < ranges.length; i += PARALLEL) {
-    const batch = ranges.slice(i, i + PARALLEL);
-    log(`Querying Deposit events in blocks ${batch[0][0]}–${batch[batch.length - 1][1]} (${batch.length} parallel request${batch.length > 1 ? 's' : ''})…`);
-    const res = await mapLimit(batch, PARALLEL, ([f, tt]) => getLogsRobust((a, b) => poolContract.queryFilter(filter, a, b), f, tt, 'Deposit scan'));
-    for (const r of res) events = events.concat(r);
+  if (start <= latestBlock) {
+    log(`Querying Deposit events in blocks ${start}–${latestBlock}…`);
+    const viaExplorer = pool.net.blockscoutApi ? (a, b) => explorerDeposits(pool.net, pool.address, a, b) : null;
+    events = await getLogsAdaptive(logsWithFallback(pool.net, (pr, a, b) => poolContract.connect(pr).queryFilter(filter, a, b), viaExplorer), start, latestBlock, 'Deposit scan');
   }
   const fresh = events.map((e) => ({ commitment: BigInt(e.args.commitment), leafIndex: Number(e.args.leafIndex), timestamp: Number(e.args.timestamp) }));
-  const deposits = cache.deposits.concat(fresh).sort((a, b) => a.leafIndex - b.leafIndex);
+  const byLeaf = new Map(); for (const d of cache.deposits.concat(fresh)) byLeaf.set(d.leafIndex, d);
+  const deposits = [...byLeaf.values()].sort((a, b) => a.leafIndex - b.leafIndex);
+  // Completeness check: the pool itself says how many deposits it holds. A scan that missed any (an endpoint that
+  // silently returned too little) is not cached and not used, so no proof is built on an incomplete tree.
+  const onChain = Number(await new ethers.Contract(pool.address, ['function nextIndex() view returns (uint32)'], rp).nextIndex({ blockTag: latestBlock }));
+  if (deposits.length !== onChain || deposits.some((d, i) => d.leafIndex !== i)) throw new Error(`Deposit scan incomplete: found ${deposits.length} of ${onChain} deposits in this pool. Please try again.`);
   saveCache(pool, deposits, latestBlock);
   return deposits;
 }
-async function findDeposit(pool, commitment, prov) {
-  let deposits = await fetchDeposits(pool, true, prov);
+async function findDeposit(pool, commitment) {
+  let deposits = await fetchDeposits(pool, true);
   let mine = deposits.find((d) => d.commitment === commitment);
-  if (!mine) { log('Deposit not in the cached range — rescanning this pool from its first block…'); deposits = await fetchDeposits(pool, false, prov); mine = deposits.find((d) => d.commitment === commitment); }
+  if (!mine) { log('Deposit not in the cached range — rescanning this pool from its first block…'); deposits = await fetchDeposits(pool, false); mine = deposits.find((d) => d.commitment === commitment); }
   return { deposits, mine };
 }
 function buildTreeLevels(leaves, zeros) {
@@ -1166,7 +1249,7 @@ $('checkNoteBtn').addEventListener('click', async () => {
     const rp = readProvider(pool.net);
     st.go(1);
     const commitment = computeCommitment(note.spendKey, note.viewKey);
-    const { deposits, mine } = await findDeposit(pool, commitment, rp);
+    const { deposits, mine } = await findDeposit(pool, commitment);
     if (!mine) throw new Error(t('err.notFound'));
     st.go(2);
     const spent = await withRetry(() => new ethers.Contract(pool.address, POOL_ABI[pool.version], rp).nullifierHashes(computeNullifierHash(note.spendKey)), 'checking whether the note is spent');
@@ -1205,7 +1288,7 @@ $('withdrawBtn').addEventListener('click', async () => {
     st.go(1);
     setStatus('withdrawStatus', t('wd.finding'), 'info');
     const commitment = computeCommitment(note.spendKey, note.viewKey);
-    const { deposits, mine } = await findDeposit(pool, commitment);
+    const { deposits, mine } = await findDeposit(pool, commitment);   // read through the network's RPC, not the wallet's
     if (!mine) throw new Error(t('err.notFound'));
     log('Found deposit at leaf index ' + mine.leafIndex);
     lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
@@ -1217,7 +1300,7 @@ $('withdrawBtn').addEventListener('click', async () => {
     const { pathElements, pathIndices, root } = getMerklePath(buildTreeLevels(leaves, zeros), mine.leafIndex, zeros);
     const nullifierHash = computeNullifierHash(note.spendKey);
 
-    const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], provider);
+    const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], readProvider(pool.net));
     if (await poolRead.nullifierHashes(nullifierHash)) throw new Error(t('err.spent'));
     if (!(await poolRead.isKnownRoot(root))) throw new Error(t('err.root'));
 
@@ -1241,7 +1324,8 @@ $('withdrawBtn').addEventListener('click', async () => {
     st.go(5, t('x.confirm'));
     setStatus('withdrawStatus', t('wd.submitting'), 'info');
     const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
-    const tx = pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient) : await poolW.withdraw(pA, pB, pC, pub, recipient);
+    const fees = await feeOverrides(pool.net);
+    const tx = pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
     log('Withdraw tx: ' + tx.hash);
     st.extra(5, t('x.block'));
     const rc = await tx.wait();
@@ -1325,19 +1409,12 @@ async function findCommitment(net, pools, commitment) {
         if (!Array.isArray(j.result)) { if (String(j.message || '').toLowerCase().includes('no records')) continue; throw new Error('unexpected explorer response'); }
         if (j.result.length) { const lg = j.result[0]; const ev = DEPOSIT_IFACE.parseLog({ topics: lg.topics.filter(Boolean), data: lg.data }); return { pool: p, leafIndex: Number(ev.args.leafIndex), timestamp: Number(ev.args.timestamp), txHash: lg.transactionHash }; }
       }
-      return null;
-    } catch (e) { log('Explorer lookup failed (' + e.message + '); scanning block ranges over RPC instead…'); }
+      log('Not found through the explorer; checking the chain directly…');
+    } catch (e) { log('Explorer lookup failed (' + e.message + '); checking the chain directly…'); }
   }
-  const rp = readProvider(net);
-  const latest = await withRetry(() => rp.getBlockNumber(), 'reading the latest block');
-  const CHUNK = 9000, PARALLEL = 8;
-  for (const p of pools) {
-    const ranges = []; for (let f = p.startBlock; f <= latest; f += CHUNK) ranges.push([f, Math.min(f + CHUNK - 1, latest)]);
-    for (let i = 0; i < ranges.length; i += PARALLEL) {
-      const res = await mapLimit(ranges.slice(i, i + PARALLEL), PARALLEL, ([f, tt]) => getLogsRobust((a, b) => rp.getLogs({ address: p.address, topics: [DEPOSIT_TOPIC, topic1], fromBlock: a, toBlock: b }), f, tt, 'commitment lookup'));
-      for (const r of res) if (r.length) { const ev = DEPOSIT_IFACE.parseLog(r[0]); return { pool: p, leafIndex: Number(ev.args.leafIndex), timestamp: Number(ev.args.timestamp), txHash: r[0].transactionHash }; }
-    }
-  }
+  const latest = await scanHead(net);
+  const found = await mapLimit(pools, pools.length, (p) => getLogsAdaptive(logsWithFallback(net, (pr, a, b) => pr.getLogs({ address: p.address, topics: [DEPOSIT_TOPIC, topic1], fromBlock: a, toBlock: b })), p.startBlock, latest, 'commitment lookup'));
+  for (let i = 0; i < pools.length; i++) if (found[i].length) { const r = found[i][0], ev = DEPOSIT_IFACE.parseLog(r); return { pool: pools[i], leafIndex: Number(ev.args.leafIndex), timestamp: Number(ev.args.timestamp), txHash: r.transactionHash }; }
   return null;
 }
 

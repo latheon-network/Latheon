@@ -151,7 +151,7 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
       if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
-      const rk = Object.entries(cfg.networks).find(([k, n]) => url.startsWith(n.rpcUrl));
+      const rk = Object.entries(cfg.networks).find(([k, n]) => [n.rpcUrl, n.logsRpcUrl].filter(Boolean).some((u) => url.startsWith(u)));
       if (rk) {
         const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
         if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });

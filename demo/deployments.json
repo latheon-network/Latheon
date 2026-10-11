@@ -1,12 +1,13 @@
 {
   "schema": 1,
-  "generated": "2026-10-09",
+  "generated": "2026-10-10",
   "networks": {
     "ethereum-sepolia": {
       "name": "Ethereum Sepolia",
       "chainId": 11155111,
       "chainIdHex": "0xaa36a7",
       "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
+      "logsRpcUrl": "https://sepolia.gateway.tenderly.co",
       "explorerUrl": "https://sepolia.etherscan.io",
       "blockscoutApi": "https://eth-sepolia.blockscout.com/api/v2",
       "v5Verifier": "0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD",

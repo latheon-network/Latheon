@@ -192,6 +192,103 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation: none !important; } }
 </style>
+<style id="explore-theme">
+/* ===== Explore: "showcase". Delete this block (and the x- blocks) to return to the brand page. ===== */
+body { background: radial-gradient(1200px 640px at 50% -8%, rgba(83,74,183,.20), transparent 62%), var(--ink); }
+/* hero */
+.x-aurora { position: absolute; inset: -20%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(38% 34% at 28% 42%, rgba(127,119,221,.55), transparent 70%),
+    radial-gradient(34% 30% at 72% 56%, rgba(93,202,165,.40), transparent 70%),
+    radial-gradient(30% 24% at 52% 84%, rgba(246,197,90,.26), transparent 70%);
+  filter: blur(30px); opacity: .9; animation: xDrift 20s ease-in-out infinite alternate; }
+@keyframes xDrift { from { transform: translate3d(-3%, -2%, 0) scale(1); } to { transform: translate3d(3%, 2%, 0) scale(1.08); } }
+.x-mark { display: block; width: 150px; height: auto; margin: 0 auto 22px; filter: drop-shadow(0 14px 40px rgba(127,119,221,.38)); }
+.x-piece { animation: xSettle 1.2s cubic-bezier(.16,1,.3,1) both; }
+.x-p1 { animation-delay: .25s; } .x-p2 { animation-delay: .4s; } .x-p3 { animation-delay: .55s; }
+@keyframes xSettle { from { transform: translateY(-26px); opacity: 0; } to { transform: none; opacity: 1; } }
+.hero { max-width: 1000px; }
+.hero h1 { font-size: clamp(36px, 6vw, 70px); line-height: 1.06; text-shadow: 0 0 48px rgba(127,119,221,.28); }
+.hero h1 .t { background: linear-gradient(90deg, #5DCAA5, #9BE3C9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero h1 .v { background: linear-gradient(90deg, #7F77DD, #B7B1F0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { font-size: 19px; }
+.btn-gold { box-shadow: 0 0 0 1px rgba(246,197,90,.45), 0 12px 32px rgba(246,197,90,.20); }
+.btn { will-change: transform; }
+/* rhythm */
+section.block { padding: 132px 0; }
+.head h2 { font-size: clamp(28px, 4vw, 46px); letter-spacing: .2px; }
+html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel has no Cyrillic or CJK glyphs */
+.head p { font-size: 17px; }
+#status { background: linear-gradient(180deg, rgba(28,25,39,.6), rgba(28,25,39,.95)) !important; }
+.x-divider { height: 1px; max-width: 1120px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(127,119,221,.55), rgba(93,202,165,.55), transparent); }
+#tree { filter: drop-shadow(0 0 22px rgba(127,119,221,.20)); }
+/* sheen on cards (pointer position set by the x-script) */
+.col, .gas-note, .x-card, .x-cmp { position: relative; overflow: hidden; }
+.col::after, .x-card::after, .x-cmp::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(242,239,233,.07), transparent 60%); }
+.col:hover::after, .x-card:hover::after, .x-cmp:hover::after { opacity: 1; }
+.col { transition: transform .25s, border-color .25s; }
+.col:hover { transform: translateY(-3px); }
+/* why: comparison */
+.x-cmp { background: var(--ink-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.x-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; border-top: 1px solid var(--border); }
+.x-row:first-child { border-top: 0; }
+.x-row > div { padding: 16px 18px; font-size: 14px; color: var(--text-muted); }
+.x-row > div:first-child { color: var(--text-primary); font-weight: 500; }
+.x-row.x-hdr > div { font: 12px 'IBM Plex Mono', monospace; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+.x-row > .x-us { background: linear-gradient(180deg, rgba(127,119,221,.12), rgba(93,202,165,.08)); color: var(--text-primary); border-left: 1px solid rgba(127,119,221,.35); }
+.x-row.x-hdr > .x-us { color: var(--gold); }
+.x-yes::before { content: '✓ '; color: var(--teal); font-weight: 600; }
+.x-no::before { content: '✗ '; color: #E06C75; font-weight: 600; }
+.x-mid::before { content: '~ '; color: var(--gold); font-weight: 600; }
+.x-fine { text-align: center; font-size: 12.5px; color: var(--text-muted); margin-top: 16px; }
+@media (max-width: 760px) {
+  .x-row { grid-template-columns: 1fr 1fr 1fr; }
+  .x-row > div:first-child { grid-column: 1 / -1; padding-bottom: 4px; }
+  .x-row.x-hdr > div:first-child { display: none; }
+  .x-row > div { padding: 10px 12px; font-size: 13px; }
+}
+/* use cases */
+.x-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 900px) { .x-cards { grid-template-columns: 1fr; } }
+.x-card { background: var(--ink-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: transform .25s, border-color .25s; }
+.x-card:hover { transform: translateY(-4px); border-color: rgba(242,239,233,.2); }
+.x-card svg { width: 44px; height: 44px; margin-bottom: 16px; }
+.x-card h3 { font-size: 18px; margin-bottom: 8px; }
+.x-card p { font-size: 14px; color: var(--text-muted); }
+/* verify */
+.x-verify { background: radial-gradient(800px 300px at 50% 0%, rgba(93,202,165,.08), transparent 70%); }
+.x-net { display: flex; flex-direction: column; gap: 6px; }
+.x-net b { font: 600 13px 'IBM Plex Mono', monospace; color: var(--teal); letter-spacing: .5px; }
+.x-net .x-num { font-family: 'Cinzel', Georgia, serif; font-size: 34px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+.x-net small { font-size: 12px; color: var(--text-muted); }
+.x-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+/* founder */
+.x-founder { display: grid; grid-template-columns: 240px 1fr; gap: 48px; align-items: center; max-width: 920px; margin: 0 auto; padding: 40px; }
+@media (max-width: 760px) { .x-founder { grid-template-columns: 1fr; gap: 24px; padding: 28px 22px; } .x-founder h3 { text-align: center; } .x-founder .x-x { display: flex; justify-content: center; } }
+.x-photo { position: relative; width: 240px; height: 240px; margin: 0 auto; border-radius: 50%; padding: 4px;
+  background: conic-gradient(from 200deg, #7F77DD, #5DCAA5, #F6C55A, #7F77DD); box-shadow: 0 20px 60px rgba(127,119,221,.30); }
+@media (max-width: 760px) { .x-photo { width: 180px; height: 180px; } }
+.x-photo img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--ink-card); }
+.x-founder h3 { font-size: 22px; margin-bottom: 14px; }
+.x-founder p { color: var(--text-muted); font-size: 15.5px; margin-bottom: 12px; }
+.x-founder .x-x { display: inline-flex; gap: 8px; align-items: center; margin-top: 6px; font: 500 14px 'IBM Plex Mono', monospace; color: var(--teal); text-decoration: none; }
+.x-founder .x-x:hover { text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) { .x-aurora, .x-piece { animation: none !important; } }
+</style>
+<!-- x-begin -->
+<meta name="description" content="Latheon: a privacy protocol prototype on Ethereum-compatible testnets. Private by default, verifiable on demand.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://latheon.xyz/">
+<meta property="og:title" content="Latheon — Private by default. Verifiable on demand.">
+<meta property="og:description" content="Zero-knowledge privacy pools with selective disclosure to one chosen auditor. Public prototype on testnets.">
+<meta property="og:image" content="https://latheon.xyz/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@Latheon_net">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- x-end -->
 </head>
 <body>
 
@@ -241,7 +338,32 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
 <!-- 1. HERO: one message -->
 <div class="hero-shell" id="top">
   <canvas id="hexField" aria-hidden="true"></canvas>
+  <!-- x-begin --><div class="x-aurora" aria-hidden="true"></div><!-- x-end -->
   <header class="wrap hero">
+    <!-- x-begin --><svg class="x-mark" width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <mask id="xMarkMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#xMarkMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon class="x-piece x-p1" points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon class="x-piece x-p2" points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon class="x-piece x-p3" points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><!-- x-end -->
     <div class="eyebrow" data-i18n="hero.eyebrow">Private by default · Verifiable on demand</div>
     <h1 class="display" data-i18n="hero.h1">Prove what's <span class="t">true</span>.<br>Reveal only what's <span class="v">needed</span>.</h1>
     <p data-i18n="hero.lede">A privacy protocol on Ethereum-compatible testnets, built on zero-knowledge proofs.</p>
@@ -254,6 +376,40 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
   <a class="scroll-cue" href="#how" aria-label="Scroll to how it works" data-i18n="hero.scroll">SCROLL ↓</a>
 </div>
 
+<!-- x-begin -->
+<div class="x-divider" aria-hidden="true"></div>
+<section class="block" id="why">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow" data-xi18n="why.eyebrow">Why it matters</div>
+      <h2 data-xi18n="why.h2">Privacy and proof, at the same time</h2>
+      <p data-xi18n="why.p">Public chains show everything to everyone. Privacy-only pools hide everything, so proving anything means giving up control. Latheon is built for the space in between.</p>
+    </div>
+    <div class="x-cmp reveal" role="table" aria-label="Comparison">
+      <div class="x-row x-hdr" role="row"><div role="columnheader"></div><div role="columnheader" data-xi18n="why.c1">Public ledger</div><div role="columnheader" data-xi18n="why.c2">Privacy-only pool</div><div class="x-us" role="columnheader">Latheon</div></div>
+      <div class="x-row" role="row"><div role="rowheader" data-xi18n="why.r1">Link between deposit and withdrawal</div><div class="x-no" data-xi18n="why.r1a">Visible to everyone</div><div class="x-yes" data-xi18n="why.r1b">Hidden</div><div class="x-us x-yes" data-xi18n="why.r1c">Hidden</div></div>
+      <div class="x-row" role="row"><div role="rowheader" data-xi18n="why.r2">Prove one deposit to one chosen auditor</div><div class="x-mid" data-xi18n="why.r2a">Only because it is public to all</div><div class="x-no" data-xi18n="why.r2b">Only by sharing the secret</div><div class="x-us x-yes" data-xi18n="why.r2c">With a zero-knowledge proof</div></div>
+      <div class="x-row" role="row"><div role="rowheader" data-xi18n="why.r3">What the auditor can do with it</div><div data-xi18n="why.r3a">—</div><div class="x-no" data-xi18n="why.r3b">The secret also lets them spend</div><div class="x-us x-yes" data-xi18n="why.r3c">Verify, nothing more</div></div>
+    </div>
+    <p class="x-fine" data-xi18n="why.fine">General categories, not specific products. Latheon is a testnet prototype; the Status section lists what is not done yet.</p>
+  </div>
+</section>
+<section class="block" id="usecases" style="padding-top:0">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow" data-xi18n="uc.eyebrow">Designed for</div>
+      <h2 data-xi18n="uc.h2">Where selective disclosure fits</h2>
+      <p data-xi18n="uc.p">Use cases the design targets. These are not live integrations.</p>
+    </div>
+    <div class="x-cards">
+      <div class="x-card reveal"><svg viewBox="0 0 44 44" fill="none" stroke="#F6C55A" stroke-width="1.8"><polygon points="22,4 38,13 38,31 22,40 6,31 6,13"/><path d="M15 22h14M24 17l5 5-5 5"/></svg><h3 data-xi18n="uc.1t">Private payouts</h3><p data-xi18n="uc.1d">Pay many recipients from one pool without publishing a map of who paid whom.</p></div>
+      <div class="x-card reveal"><svg viewBox="0 0 44 44" fill="none" stroke="#7F77DD" stroke-width="1.8"><polygon points="22,4 38,13 38,31 22,40 6,31 6,13"/><rect x="14" y="17" width="16" height="11" rx="2"/><path d="M18 17v-2h8v2"/></svg><h3 data-xi18n="uc.2t">Business payments</h3><p data-xi18n="uc.2d">Keep supplier and treasury flows off the public map while settling on a public chain.</p></div>
+      <div class="x-card reveal"><svg viewBox="0 0 44 44" fill="none" stroke="#5DCAA5" stroke-width="1.8"><polygon points="22,4 38,13 38,31 22,40 6,31 6,13"/><circle cx="20" cy="21" r="5"/><path d="M24 25l5 5"/></svg><h3 data-xi18n="uc.3t">Audit on request</h3><p data-xi18n="uc.3d">Prove one specific payment to an auditor or counterparty, and nothing else.</p></div>
+    </div>
+  </div>
+</section>
+<div class="x-divider" aria-hidden="true"></div>
+<!-- x-end -->
 <!-- 2. HOW: the tree, one step at a time -->
 <section class="block" id="how">
   <div class="wrap">
@@ -322,6 +478,47 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
   </div>
 </section>
 
+<!-- x-begin -->
+<div class="x-divider" aria-hidden="true"></div>
+<section class="block x-verify" id="verify">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow" data-xi18n="vf.eyebrow">Verify it yourself</div>
+      <h2 data-xi18n="vf.h2">Don't trust the page. Check the chain.</h2>
+      <p data-xi18n="vf.p">Live numbers read directly from each network's pool contracts, plus the code and the status document.</p>
+    </div>
+    <div class="x-cards" id="xNets">
+      <div class="x-card x-net reveal" data-net="ethereum-sepolia"><b>Ethereum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
+      <div class="x-card x-net reveal" data-net="arbitrum-sepolia"><b>Arbitrum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
+      <div class="x-card x-net reveal" data-net="robinhood-testnet"><b>Robinhood Chain Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
+    </div>
+    <div class="x-links reveal">
+      <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener" data-xi18n="vf.code">Source code ↗</a>
+      <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon/blob/main/STATUS.md" target="_blank" rel="noopener" data-xi18n="vf.status">STATUS.md ↗</a>
+      <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon/blob/main/THREAT-MODEL.md" target="_blank" rel="noopener" data-xi18n="vf.threat">Threat model ↗</a>
+    </div>
+  </div>
+</section>
+<!-- x-end -->
+<!-- x-begin -->
+<section class="block" id="founder" style="padding-top:40px">
+  <div class="wrap">
+    <div class="head reveal" style="margin-bottom:40px">
+      <div class="eyebrow" data-xi18n="fd.eyebrow">Founder</div>
+      <h2 data-xi18n="fd.h2">Who builds Latheon</h2>
+    </div>
+    <div class="x-card x-founder reveal">
+      <div class="x-photo"><img src="/founder.jpg" alt="Vladimir Smirnov" width="400" height="400" loading="lazy" decoding="async"></div>
+      <div>
+        <h3 data-xi18n="fd.name">Vladimir Smirnov, founder of Latheon</h3>
+        <p data-xi18n="fd.p1">Crypto lacks privacy. When every transaction is public, people and organizations can be exposed, and their data can end up in the hands of scammers. I knew a way to reduce that risk, so I started building it.</p>
+        <p data-xi18n="fd.p2">Latheon is a privacy protocol on Ethereum, built and maintained by me alone. It is live on testnets only, and the long-term goal is a Layer 2 where privacy is the default. Before this I worked as a lead auditor in a control and audit department and studied public administration. That background shaped my approach: privacy should hold up under verification. The code and tests are open, the numbers are measured, and I say plainly what is not done yet, including that there is no independent audit.</p>
+        <a class="x-x" href="https://x.com/ExPlurUm" target="_blank" rel="noopener">X: @ExPlurUm ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- x-end -->
 <!-- 5. CTA -->
 <section class="final">
   <div class="wrap">
@@ -735,5 +932,132 @@ footer { border-top: 1px solid var(--border); padding: 32px 0; }
   } else document.querySelectorAll('.reveal').forEach(function (e) { e.classList.add('is-visible'); });
 })();
 </script>
+<!-- x-begin -->
+<script>
+/* Explore "showcase": own translations (data-xi18n), pointer sheen, magnetic buttons, first-step autoplay, live counters. */
+(function () {
+  'use strict';
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var X = {
+    en: {
+      'why.eyebrow': 'Why it matters', 'why.h2': 'Privacy and proof, at the same time',
+      'why.p': 'Public chains show everything to everyone. Privacy-only pools hide everything, so proving anything means giving up control. Latheon is built for the space in between.',
+      'why.c1': 'Public ledger', 'why.c2': 'Privacy-only pool',
+      'why.r1': 'Link between deposit and withdrawal', 'why.r1a': 'Visible to everyone', 'why.r1b': 'Hidden', 'why.r1c': 'Hidden',
+      'why.r2': 'Prove one deposit to one chosen auditor', 'why.r2a': 'Only because it is public to all', 'why.r2b': 'Only by sharing the secret', 'why.r2c': 'With a zero-knowledge proof',
+      'why.r3': 'What the auditor can do with it', 'why.r3a': '—', 'why.r3b': 'The secret also lets them spend', 'why.r3c': 'Verify, nothing more',
+      'why.fine': 'General categories, not specific products. Latheon is a testnet prototype; the Status section lists what is not done yet.',
+      'uc.eyebrow': 'Designed for', 'uc.h2': 'Where selective disclosure fits', 'uc.p': 'Use cases the design targets. These are not live integrations.',
+      'uc.1t': 'Private payouts', 'uc.1d': 'Pay many recipients from one pool without publishing a map of who paid whom.',
+      'uc.2t': 'Business payments', 'uc.2d': 'Keep supplier and treasury flows off the public map while settling on a public chain.',
+      'uc.3t': 'Audit on request', 'uc.3d': 'Prove one specific payment to an auditor or counterparty, and nothing else.',
+      'vf.eyebrow': 'Verify it yourself', 'vf.h2': 'Don\'t trust the page. Check the chain.',
+      'vf.p': 'Live numbers read directly from each network\'s pool contracts, plus the code and the status document.',
+      'fd.eyebrow': 'Founder', 'fd.h2': 'Who builds Latheon', 'fd.name': 'Vladimir Smirnov, founder of Latheon',
+      'fd.p1': 'Crypto lacks privacy. When every transaction is public, people and organizations can be exposed, and their data can end up in the hands of scammers. I knew a way to reduce that risk, so I started building it.',
+      'fd.p2': 'Latheon is a privacy protocol on Ethereum, built and maintained by me alone. It is live on testnets only, and the long-term goal is a Layer 2 where privacy is the default. Before this I worked as a lead auditor in a control and audit department and studied public administration. That background shaped my approach: privacy should hold up under verification. The code and tests are open, the numbers are measured, and I say plainly what is not done yet, including that there is no independent audit.',
+      'vf.deps': 'deposits in the V5 pools', 'vf.na': 'network not responding — open the explorer', 'vf.code': 'Source code ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Threat model ↗'
+    },
+    ru: {
+      'why.eyebrow': 'Зачем это нужно', 'why.h2': 'Приватность и доказательство одновременно',
+      'why.p': 'Публичные блокчейны показывают всё всем. Пулы «только приватность» скрывают всё, и чтобы что-то доказать, приходится отдавать контроль. Latheon сделан для пространства между ними.',
+      'why.c1': 'Публичный реестр', 'why.c2': 'Пул «только приватность»',
+      'why.r1': 'Связь депозита и вывода', 'why.r1a': 'Видна всем', 'why.r1b': 'Скрыта', 'why.r1c': 'Скрыта',
+      'why.r2': 'Доказать один депозит одному аудитору', 'why.r2a': 'Только потому, что всё публично', 'why.r2b': 'Только отдав секрет', 'why.r2c': 'Доказательством с нулевым разглашением',
+      'why.r3': 'Что аудитор может с этим сделать', 'why.r3a': '—', 'why.r3b': 'Секрет позволяет ему и потратить', 'why.r3c': 'Только проверить',
+      'why.fine': 'Это общие категории, а не конкретные продукты. Latheon — прототип в тестовых сетях; что ещё не сделано, перечислено в разделе «Статус».',
+      'uc.eyebrow': 'Для чего спроектировано', 'uc.h2': 'Где нужно избирательное раскрытие', 'uc.p': 'Сценарии, на которые рассчитан дизайн. Это не действующие интеграции.',
+      'uc.1t': 'Приватные выплаты', 'uc.1d': 'Платите многим получателям из одного пула, не публикуя карту «кто кому платил».',
+      'uc.2t': 'Платежи бизнеса', 'uc.2d': 'Потоки к поставщикам и казначейству не попадают на публичную карту, а расчёт идёт в публичном блокчейне.',
+      'uc.3t': 'Аудит по запросу', 'uc.3d': 'Докажите аудитору или контрагенту один конкретный платёж — и ничего больше.',
+      'vf.eyebrow': 'Проверьте сами', 'vf.h2': 'Не верьте странице. Проверьте блокчейн.',
+      'vf.p': 'Живые цифры прямо из контрактов пулов в каждой сети, а также код и документ о статусе.',
+      'fd.eyebrow': 'Основатель', 'fd.h2': 'Кто создаёт Latheon', 'fd.name': 'Владимир Смирнов, основатель Latheon',
+      'fd.p1': 'В крипто-индустрии не хватает приватности. Когда все операции открыты, люди и организации могут быть скомпрометированы, а их данные могут попасть к мошенникам. Я знал, как снизить этот риск, и решил это сделать.',
+      'fd.p2': 'Latheon — протокол приватности на Ethereum, который я создаю и поддерживаю один. Сейчас он работает только в тестовых сетях, а долгосрочная цель — L2 с приватностью по умолчанию. До этого я работал ведущим аудитором в контрольно-ревизионном отделе и учился на государственном управлении. Этот опыт определил мой подход: приватность должна выдерживать проверку. Код и тесты открыты, цифры измерены, а о том, что ещё не сделано, я говорю прямо, в том числе о том, что независимого аудита пока нет.',
+      'vf.deps': 'депозитов в пулах V5', 'vf.na': 'сеть не отвечает — откройте обозреватель', 'vf.code': 'Исходный код ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Модель угроз ↗'
+    },
+    zh: {
+      'why.eyebrow': '为什么重要', 'why.h2': '隐私与证明，兼而有之',
+      'why.p': '公链把一切展示给所有人。纯隐私资金池隐藏一切，想证明任何事都得交出控制权。Latheon 正是为两者之间的空间而设计。',
+      'why.c1': '公开账本', 'why.c2': '纯隐私资金池',
+      'why.r1': '存款与取款之间的关联', 'why.r1a': '所有人可见', 'why.r1b': '隐藏', 'why.r1c': '隐藏',
+      'why.r2': '向一位选定审计方证明一笔存款', 'why.r2a': '只因为一切都公开', 'why.r2b': '只能交出密钥', 'why.r2c': '用零知识证明',
+      'why.r3': '审计方能用它做什么', 'why.r3a': '—', 'why.r3b': '密钥也让对方能动用资金', 'why.r3c': '只能验证',
+      'why.fine': '这是通用类别，不指具体产品。Latheon 是测试网原型；尚未完成的事项见“状态”部分。',
+      'uc.eyebrow': '设计目标', 'uc.h2': '选择性披露的用武之地', 'uc.p': '设计所针对的使用场景，并非已上线的集成。',
+      'uc.1t': '隐私支付', 'uc.1d': '从一个资金池向多位收款人付款，而不公开“谁付给了谁”的图谱。',
+      'uc.2t': '企业支付', 'uc.2d': '让供应商和资金往来不出现在公开图谱上，同时在公链上结算。',
+      'uc.3t': '按需审计', 'uc.3d': '向审计方或交易对手证明某一笔特定付款，仅此而已。',
+      'vf.eyebrow': '亲自验证', 'vf.h2': '别只信页面，去查链上数据。',
+      'vf.p': '直接从各网络资金池合约实时读取的数据，以及代码和状态文档。',
+      'fd.eyebrow': '创始人', 'fd.h2': '谁在构建 Latheon', 'fd.name': 'Vladimir Smirnov，Latheon 创始人',
+      'fd.p1': '加密行业缺少隐私。当所有交易都公开时，个人和机构可能被暴露，他们的数据也可能落入诈骗者手中。我知道如何降低这种风险，所以决定动手去做。',
+      'fd.p2': 'Latheon 是一个构建在以太坊上的隐私协议，由我一人开发和维护。目前仅在测试网运行，长期目标是打造默认保护隐私的 Layer 2。此前我在监督审计部门担任高级审计员，并学习公共管理。这段经历塑造了我的做法：隐私应当经得起验证。代码和测试公开，数据均为实测，尚未完成的部分我会如实说明，包括目前还没有独立审计。',
+      'vf.deps': 'V5 资金池中的存款', 'vf.na': '网络暂无响应——请打开区块浏览器', 'vf.code': '源代码 ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': '威胁模型 ↗'
+    }
+  };
+  function lang() { var l = 'en'; try { l = localStorage.getItem('latheon-lang') || (navigator.language || 'en').slice(0, 2); } catch (e) {} return X[l] ? l : 'en'; }
+  function tx(k) { var L = X[lang()]; return L[k] !== undefined ? L[k] : X.en[k]; }
+  function apply() { document.querySelectorAll('[data-xi18n]').forEach(function (el) { el.textContent = tx(el.getAttribute('data-xi18n')); }); renderCounts(); }
+  var sel = document.getElementById('langSelect');
+  if (sel) sel.addEventListener('change', function () { setTimeout(apply, 0); });
+
+  /* pointer sheen */
+  document.addEventListener('pointermove', function (e) {
+    var c = e.target.closest && e.target.closest('.col, .x-card, .x-cmp');
+    if (!c) return; var r = c.getBoundingClientRect();
+    c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+
+  /* magnetic buttons */
+  if (!REDUCED && window.matchMedia('(pointer: fine)').matches) {
+    document.querySelectorAll('.btn-gold, .hero .btn, .final .btn').forEach(function (b) {
+      b.addEventListener('pointermove', function (e) { var r = b.getBoundingClientRect(); b.style.transform = 'translate(' + ((e.clientX - r.left - r.width / 2) * 0.15).toFixed(1) + 'px,' + ((e.clientY - r.top - r.height / 2) * 0.25).toFixed(1) + 'px)'; });
+      b.addEventListener('pointerleave', function () { b.style.transform = ''; });
+    });
+  }
+
+  /* play the first step of the tree once, when it scrolls into view */
+  if (!REDUCED && 'IntersectionObserver' in window) {
+    var stage = document.querySelector('.stage'), played = false;
+    if (stage) new IntersectionObserver(function (es, obs) {
+      es.forEach(function (en) { if (en.isIntersecting && !played) { played = true; obs.disconnect(); setTimeout(function () { var g = document.getElementById('go'); var first = document.querySelector('.step[data-s="0"]'); if (g && first && first.getAttribute('aria-current') === 'step' && !first.classList.contains('done')) g.click(); }, 700); } });
+    }, { threshold: 0.6 }).observe(stage);
+  }
+
+  /* live counters: deposits held by each network's V5 pools, read from the pool contracts themselves (nextIndex(), one
+     eth_call per pool through the network's RPC from demo/deployments.json). The explorer's "transactions" counter is
+     not used: deposits made through the router are internal calls and do not show up there, and Blockscout does not
+     index every chain completely. */
+  var counts = {}, failed = {};
+  function renderCounts() {
+    document.querySelectorAll('#xNets [data-net]').forEach(function (card) {
+      var n = card.getAttribute('data-net'), num = card.querySelector('.x-num'), sm = card.querySelector('small');
+      if (counts[n] != null) { num.textContent = counts[n].toLocaleString('en-US'); sm.textContent = tx('vf.deps'); }
+      else if (failed[n]) { num.textContent = '—'; sm.innerHTML = '<a href="' + failed[n] + '" target="_blank" rel="noopener">' + tx('vf.na') + '</a>'; }
+    });
+  }
+  function nextIndex(rpcUrl, address, tries) {
+    return fetch(rpcUrl, { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: address, data: '0xfc7e9c6f' }, 'latest'] }) })   /* nextIndex() */
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) { if (!j.result || j.result === '0x') throw new Error('no result'); return parseInt(j.result, 16); })
+      .catch(function (e) { if (tries > 1) return new Promise(function (ok) { setTimeout(ok, 800); }).then(function () { return nextIndex(rpcUrl, address, tries - 1); }); throw e; });
+  }
+  fetch('/demo/deployments.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (cfg) {
+    Object.keys(cfg.networks).forEach(function (n) {
+      var net = cfg.networks[n], pools = cfg.pools.filter(function (p) { return p.network === n && p.version === 'v5'; });
+      if (!net.rpcUrl || !pools.length) return;
+      Promise.all(pools.map(function (p) { return nextIndex(net.rpcUrl, p.address, 3); }))
+        .then(function (arr) { counts[n] = arr.reduce(function (a, b) { return a + b; }, 0); renderCounts(); })
+        .catch(function () { failed[n] = net.explorerUrl + '/address/' + pools[0].address; renderCounts(); });
+    });
+  }).catch(function () {});
+
+  apply();
+})();
+</script>
+<!-- x-end -->
 </body>
 </html>

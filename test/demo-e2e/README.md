@@ -25,10 +25,10 @@ It does not replace a test with a real wallet and live RPC endpoints.
 
 Covers the demo's network/token selectors and the two router modes (deposit of any amount, withdrawal by amount and master
 key). It deploys the real V5 pools and `LatheonDistributionPool` on three local chains, injects a mock wallet and uses real
-Groth16 proofs. 35 checks: pool list shown only in the fixed modes; exact and rounded deposits (160, 99 → 90, 12 USDG with
+Groth16 proofs. 36 checks: pool list shown only in the fixed modes; exact and rounded deposits (160, 99 → 90, 12 USDG with
 6 decimals, 999 = 23 notes, refusal above 32 notes); the master key format; amounts that cannot be paid (nearest sum shown,
 no transaction); wrong key, unknown router, malformed key; spent notes; partial withdrawals; separate notes withdrawn
-through the ordinary one-note flow; RU/ZH text; no JavaScript errors.
+through the ordinary one-note flow; a master key pasted where one note is expected gets a clear message; RU/ZH text; no JavaScript errors.
 
 ```
 cd test/distribution && npm install && cd ../demo-e2e
@@ -38,11 +38,20 @@ DEMO=/path/to/demo node router-e2e.js
 
 It is a local test, not a replacement for a run with a real wallet. That was also done: see `STATUS.md`.
 
-## RPC robustness: `rpc-robust.js`
+## Log scanning: `rpc-robust.js`
 
-Checks the block between `rpc-robust:begin` and `rpc-robust:end` in `demo/index.html` with a fake endpoint: transient
-errors such as "could not coalesce error" are retried with backoff, a block range the endpoint refuses is split in half
-until it fits, a contract error (`CALL_EXCEPTION`) is not retried, an endpoint that stays down ends with its original
-error instead of looping, at most 4 requests are in flight, every retry is written to the page log, and
-`sdk/demo-app-v5.html` carries a verbatim copy of the block. 9 checks, no
-network and no packages: `node rpc-robust.js`. It does not replace a run against live endpoints.
+Checks the block between `rpc-robust:begin` and `rpc-robust:end` in `demo/index.html` against fake endpoints modelled on
+the real ones measured on 2026-10-10: an endpoint that answers any range (`sepolia-rollup.arbitrum.io` returned 2.1M
+blocks in one request) must be read in exactly one request; a 50,000-block cap (publicnode) and a 10,000-block cap with
+HTTP 400 (drpc free plan) are split until they fit; "could not coalesce error", "Failed to fetch" (a 429 without CORS
+headers) and "pruned history unavailable" are retried; a contract error is not; an endpoint that is down stops after 40
+failed requests with its original error; at most 8 requests are in flight; the log stays short; and
+`sdk/demo-app-v5.html` carries a verbatim copy of the block. 13 checks, no network and no packages: `node rpc-robust.js`.
+The demo also checks every scan against the pool's `nextIndex()` before it builds a proof.
+
+## Website counters: `landing-e2e.js`
+
+Opens `site/index.html` in Chromium with mocked RPC answers and checks the "Verify it yourself" cards: each shows the sum
+of `nextIndex()` over that network's V5 pools, no explorer API is called, the label is translated (EN/RU/ZH), a network
+that does not answer shows a dash and a link to its explorer, and there are no JavaScript errors. 9 checks:
+`node landing-e2e.js` (Playwright with Chromium).

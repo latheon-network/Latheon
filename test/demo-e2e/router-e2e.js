@@ -1,5 +1,5 @@
 // Browser end-to-end test for the demo's router features (network/token choice, any-amount deposit, withdraw by amount
-// and master key). 35 checks, all passed on 2026-10-09. Needs: test/distribution/node_modules (npm install there),
+// and master key). 36 checks, all passed on 2026-10-11. Needs: test/distribution/node_modules (npm install there),
 // Playwright with Chromium, and the browser bundles from build-bundles.sh. See README.md.
 //   DEMO=/path/to/demo node router-e2e.js
 const fs = require('fs'), path = require('path');
@@ -108,7 +108,7 @@ const POOLX = ['function nextIndex() view returns (uint256)', 'function nullifie
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
       if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
-      const rk = Object.entries(cfg.networks).find(([k, n]) => url.startsWith(n.rpcUrl));
+      const rk = Object.entries(cfg.networks).find(([k, n]) => [n.rpcUrl, n.logsRpcUrl].filter(Boolean).some((u) => url.startsWith(u)));
       if (rk) {
         const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
         if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });
@@ -235,6 +235,11 @@ const POOLX = ['function nextIndex() view returns (uint256)', 'function nullifie
     const sepNotes = await page.$$eval('#waSep code', (els) => els.map((e) => e.textContent.trim()));
     rec('C8. "Show separate notes" lists 2 ordinary V5 notes for 20', sepNotes.length === 2 && sepNotes.every((n) => n.startsWith('latheon-v5:11155111:')), sepNotes.length + ' notes');
     await page.click('#wdMode-one');
+    await page.fill('#noteInput', d2.key); await page.fill('#recipientInput', R_(9));
+    await page.evaluate(() => { document.getElementById('withdrawStatus').textContent = ''; });
+    await page.click('#withdrawBtn'); await waitText('#withdrawStatus', /successful|Failed/);
+    const mkMsg = (await page.textContent('#withdrawStatus')).trim();
+    rec('C8b. A master key pasted where one note is expected: clear message pointing to "By amount and key", nothing sent', /master key, not a note/.test(mkMsg) && /By amount and key/.test(mkMsg), mkMsg.slice(0, 80));
     await page.fill('#noteInput', sepNotes[0]); await page.fill('#recipientInput', R_(9));
     await page.evaluate(() => { document.getElementById('withdrawStatus').textContent = ''; });
     await page.click('#withdrawBtn'); await waitText('#withdrawStatus', /successful|Failed/);
