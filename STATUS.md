@@ -95,7 +95,7 @@ This entire track is a solo-founder research prototype, not something we'd curre
 
 ## 4. In development (🟡 IN DEVELOPMENT)
 
-Nothing currently open on either track — see §5 for near-term targets.
+- **Native-coin variant of the V5 pool and the router (local tests only, not deployed).** `contracts/LatheonShieldedPoolV5Native.sol` and `contracts/LatheonDistributionPoolNative.sol`: the same circuit (`withdraw_v3`), verifier, tree, nullifiers and recipient binding as V5, but the pools take and pay the chain's native coin instead of an ERC-20. Meant for a chain whose gas token is the coin users hold: no wrapping, no approve, and a withdrawal to an empty address leaves it with coin it can pay gas with. `withdraw()` records the nullifier before it pays; a recipient that refuses the coin makes the withdrawal revert and the note stays spendable. `test/native`: 57 checks with real proofs on a local EVM, including refusing and re-entering recipients and coin forced in with `selfdestruct`. Measured there: `deposit()` 427,228 gas for 1 note and 9,415,048 for 32; `withdrawMany()` 304,120 gas for 1 note and 554,462 for 2 (empty recipient addresses). Not reviewed independently.
 
 ## 5. Near-term targets (🔵 TARGET)
 
@@ -137,7 +137,7 @@ This is a 12–18 month horizon, contingent on funding and team growth — see `
 
 ## 8. Verification
 
-Anyone can independently confirm the claims in §1–2 via the Etherscan links above, or by cloning this repository and reproducing the flow using `tools/zk-toolkit.html` and `circuits/withdraw.circom`. For the experimental track, see `circuits/withdraw_v2.circom`, `circuits/disclose.circom`, and `contracts/LatheonShieldedPoolV4.sol`. For V5, run `cd test/v5-integration && npm install && npm test`.
+Anyone can independently confirm the claims in §1–2 via the Etherscan links above, or by cloning this repository and reproducing the flow using `tools/zk-toolkit.html` and `circuits/withdraw.circom`. For the experimental track, see `circuits/withdraw_v2.circom`, `circuits/disclose.circom`, and `contracts/LatheonShieldedPoolV4.sol`. For V5, run `cd test/v5-integration && npm install && npm test`. For the router, `test/distribution`; for the native-coin variant, `test/native` (same commands).
 
 ---
 

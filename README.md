@@ -67,6 +67,7 @@ docs/        technical documentation, see docs/README.md
 
 - `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
 - `cd test/distribution && npm install && npm test`: the router with real proofs on a local EVM (48 checks, a few minutes); `node wallet.js` checks the wallet-side helpers (25 checks).
+- `cd test/native && npm install && npm test`: the native-coin variant of the V5 pool and the router (no ERC-20: the pools take and pay the chain's gas coin), with real proofs on a local EVM (57 checks, a few minutes). Not deployed anywhere yet.
 - `node test/demo-e2e/rpc-robust.js`: the demo's log scanning against fake endpoints modelled on real ones (whole range in one request, range caps, rate limits, pruned nodes, an endpoint that is down), and that the reference app carries the same code (13 checks, no network, no packages).
 - `node test/demo-e2e/landing-e2e.js`: the website's live deposit counters (9 checks, Playwright).
 - `test/demo-e2e`: browser tests of the demo on local chains (reference scripts; see its README).
