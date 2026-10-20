@@ -16,6 +16,8 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 - Contracts, circuit, and tooling published as open source.
 - **V5 pools** (recipient-bound proofs, pool size as a constructor parameter) deployed on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets, with integration tests using real proofs in `test/v5-integration`. See `docs/deployments-v5.md`.
 
+- **Latheon test chain** (Arbitrum Orbit on Arbitrum Sepolia, test LTH as gas) with public RPC, explorer and faucet; native-coin V5 pools and router confirmed with real proofs. See [`docs/testnet.md`](./docs/testnet.md).
+
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---

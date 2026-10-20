@@ -89,6 +89,9 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
 
     // ---- test deployments.json built from the real one
     const cfg = JSON.parse(rd(DEMO + '/deployments.json'));
+    // only the networks this test simulates (the native-coin test chain has its own test, native-e2e.js)
+    for (const k of Object.keys(cfg.networks)) if (!CHAINS[k]) delete cfg.networks[k];
+    cfg.pools = cfg.pools.filter((p) => CHAINS[p.network]); cfg.routers = (cfg.routers || []).filter((r) => CHAINS[r.network]);
     for (const [k, n] of Object.entries(cfg.networks)) {
       n.v5Verifier = dep[k].ver5.addr; n.discloseVerifier = dep[k].verD.addr;
       n.tokens.LTH.address = dep[k].lth.addr; n.tokens.LTH.faucet = dep[k].faucet.addr;

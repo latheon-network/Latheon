@@ -2,19 +2,21 @@
 
 > **Private by default. Verifiable on demand.**
 
-Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure. Today it is a set of shielded pools on Ethereum-compatible testnets; the long-term goal is an Ethereum L2 with privacy by default. The L2 is a direction, not a product: the framework is not chosen (see [`ROADMAP.md`](./ROADMAP.md)).
+Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure. Today it is a set of shielded pools on Ethereum-compatible testnets; the long-term goal is an Ethereum L2 with privacy by default. The framework is Arbitrum Orbit, and the first step is running: the Latheon test chain, with test LTH as its gas coin (see [`docs/testnet.md`](./docs/testnet.md) and [`ROADMAP.md`](./ROADMAP.md)). A production chain is not running and has no date.
 
-**Status: experimental public prototype, testnets only** (Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet). The Merkle commitment tree is fully on-chain, so no trusted operator is involved in the deposit-to-withdrawal flow. There is no formal audit yet, and the trusted-setup keys are development keys. See [`STATUS.md`](./STATUS.md) for exactly what is implemented versus planned.
+**Status: experimental public prototype, testnets only** (the Latheon test chain, Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet). The Merkle commitment tree is fully on-chain, so no trusted operator is involved in the deposit-to-withdrawal flow. There is no formal audit yet, and the trusted-setup keys are development keys. See [`STATUS.md`](./STATUS.md) for exactly what is implemented versus planned.
 
 ---
 
 ## Try it
 
+**Latheon test chain:** RPC `https://rpc.testnet.latheon.xyz`, chain ID 60531373273, explorer and faucet at <https://explorer.testnet.latheon.xyz>. On it you deposit LTH itself, with no approval step, and a withdrawal to an empty address leaves it with LTH for gas. Details and limits: [`docs/testnet.md`](./docs/testnet.md).
+
 **Live demo: <https://latheon.xyz/demo>**. Pick a network and a token, claim test tokens, then either use one fixed pool, or deposit **any amount** through the router (one master key for all notes) and withdraw by **amount and master key**. You can also withdraw to another address and generate a disclosure proof for an auditor. Test tokens only, no real value. A browser wallet such as MetaMask is required.
 
 ## Current generation: V5
 
-- **Pools:** fixed-size pools of 100 / 50 / 10 / 1 tokens on three testnets (16 pools: LTH on all three, plus USDG on Robinhood Chain). Addresses: [`docs/deployments-v5.md`](./docs/deployments-v5.md); machine-readable: [`sdk/deployments.json`](./sdk/deployments.json).
+- **Pools:** fixed-size pools of 100 / 50 / 10 / 1 tokens on four testnets (20 pools: LTH on all four, plus USDG on Robinhood Chain; on the Latheon test chain the pools take the chain's own coin). Addresses: [`docs/deployments-v5.md`](./docs/deployments-v5.md) and, for the Latheon test chain, [`docs/testnet.md`](./docs/testnet.md); machine-readable: [`sdk/deployments.json`](./sdk/deployments.json).
 - **Recipient-bound proofs:** a withdrawal proof is valid only for the address it was made for. The earlier V3/V4 pools lacked this, so a pending withdrawal could be redirected to another address. This was found internally, reproduced and fixed; see [`docs/withdraw-recipient-binding.md`](./docs/withdraw-recipient-binding.md).
 - **Capacity:** each pool's Merkle tree has depth 8, so a pool holds at most 256 deposits.
 - **Any amount, via a router:** `contracts/LatheonDistributionPool.sol` is a stateless contract (no owner, no fee) that splits an amount into notes of 100 / 50 / 10 / 1 and deposits them into the four pools in one transaction; `withdrawMany` pays several notes to one address in one transaction (up to 16). Deployed on four testnet token sets, not independently reviewed. Several notes withdrawn to one address in one transaction are visibly linked to each other. Details: [`docs/distribution-pool-architecture.md`](./docs/distribution-pool-architecture.md), [`docs/distribution-pool-deployments.md`](./docs/distribution-pool-deployments.md).

@@ -3,6 +3,7 @@
 **Start here**
 - [`../STATUS.md`](../STATUS.md): what is live versus planned, labeled honestly.
 - [`../THREAT-MODEL.md`](../THREAT-MODEL.md): what is protected, what is not, and the assumptions.
+- [`testnet.md`](./testnet.md): the Latheon test chain: how to connect, faucet, contract addresses, measured gas, limits.
 - [`deployments-v5.md`](./deployments-v5.md): current pool addresses on the three testnets (machine-readable: [`../sdk/deployments.json`](../sdk/deployments.json)).
 
 **Design**

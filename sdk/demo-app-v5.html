@@ -750,7 +750,8 @@ async function loadConfig() {
   const r = await fetch('deployments.json', { cache: 'no-cache' });
   if (!r.ok) throw new Error(t('err.config', { code: r.status }));
   CONFIG = await r.json();
-  POOLS = CONFIG.pools.map((p) => {
+  // This reference app handles ERC-20 pools only; native-coin pools ('v5-native') are supported by demo/index.html.
+  POOLS = CONFIG.pools.filter((p) => p.version !== 'v5-native').map((p) => {
     const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5';
     return Object.assign({}, p, {
       net, tok, decimals: tok.decimals,

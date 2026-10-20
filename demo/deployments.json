@@ -1,7 +1,35 @@
 {
   "schema": 1,
-  "generated": "2026-10-10",
+  "generated": "2026-10-20",
   "networks": {
+    "latheon-testnet": {
+      "name": "Latheon Testnet",
+      "chainId": 60531373273,
+      "chainIdHex": "0xe17f374d9",
+      "rpcUrl": "https://rpc.testnet.latheon.xyz",
+      "explorerUrl": "https://explorer.testnet.latheon.xyz",
+      "blockscoutApi": "https://explorer.testnet.latheon.xyz/api/v2",
+      "nativeCurrency": {
+        "name": "LTH (test)",
+        "symbol": "LTH",
+        "decimals": 18
+      },
+      "parentChain": "Arbitrum Sepolia (421614)",
+      "v5Verifier": "0x67451b65BD9F0d1486A736927f8ef29d6BE72062",
+      "discloseVerifier": "0xB86360CBDE78664bb1674c367391E9d79c37F294",
+      "poseidonDeployedThisRelease": [
+        "0x8caC8633D6399cDe24d58e1c42cfc55ab00830CF"
+      ],
+      "tokens": {
+        "LTH": {
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "native": true,
+          "faucetPage": "https://explorer.testnet.latheon.xyz/faucet",
+          "note": "The chain's gas coin. Pools and router take it as msg.value and pay it out directly: no wrapping, no approve."
+        }
+      }
+    },
     "ethereum-sepolia": {
       "name": "Ethereum Sepolia",
       "chainId": 11155111,
@@ -74,6 +102,42 @@
     }
   },
   "pools": [
+    {
+      "id": "latheon-testnet:LTH-100",
+      "network": "latheon-testnet",
+      "version": "v5-native",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0xf10AF1771450c528fee0c5435D3E4f4214073aFe",
+      "deployBlock": 18
+    },
+    {
+      "id": "latheon-testnet:LTH-50",
+      "network": "latheon-testnet",
+      "version": "v5-native",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0x4D9b9624418e2E91a38122D53e2A12eE028194b3",
+      "deployBlock": 19
+    },
+    {
+      "id": "latheon-testnet:LTH-10",
+      "network": "latheon-testnet",
+      "version": "v5-native",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618",
+      "deployBlock": 20
+    },
+    {
+      "id": "latheon-testnet:LTH-1",
+      "network": "latheon-testnet",
+      "version": "v5-native",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0xD01D19B9D296299619f681b842b3b61C79736F3a",
+      "deployBlock": 21
+    },
     {
       "id": "ethereum-sepolia:LTH-100",
       "network": "ethereum-sepolia",
@@ -264,6 +328,14 @@
     }
   ],
   "routers": [
+    {
+      "id": "latheon-testnet:LTH",
+      "network": "latheon-testnet",
+      "token": "LTH",
+      "native": true,
+      "address": "0x0C3475657D4Bd198efe068dDB064725B6514FB04",
+      "deployBlock": 22
+    },
     {
       "id": "ethereum-sepolia:LTH",
       "network": "ethereum-sepolia",

@@ -83,6 +83,10 @@ The router (`LatheonDistributionPool`) places ordinary V5 notes in the four fixe
 - **Gas payer.** The wallet that sends a withdrawal pays gas in public; using the depositor's wallet links the two.
 - **Trust.** The router holds no funds between calls and has no owner, fee or upgrade path, but it is new code with no independent review. A bug in it would not break the pools (it only calls their public functions), but could lose or strand a user's funds in transit.
 
+### 8.4 The Latheon test chain: operator trust (testnet)
+
+On the Latheon test chain (`docs/testnet.md`) the pools work as everywhere else, but the chain itself is run by us alone: one sequencer orders transactions and could delay or refuse them; one validator, also ours, asserts the chain's state on Arbitrum Sepolia and nobody else can challenge it yet, so withdrawals from the chain to Arbitrum Sepolia rely on it; the chain owner, the rollup's upgrade rights and the test LTH token are controlled by one development key. The sequencer also sees transactions before they are ordered (as on virtually every rollup today). None of this lets anyone spend a note without its `spendKey` or link a withdrawal to its deposit through the proof, but it does mean availability and the chain's rules depend on us. The pools there are new, so the anonymity set is tiny, and there is no relayer yet: the wallet that sends a withdrawal pays its gas in public. The staged plan for control of a production chain (multisig with a timelock, then a security council, then holder votes) is in `ROADMAP.md`.
+
 ## 9. Future work
 
 ### 9.1 Long-term cryptographic risk: post-quantum security (not urgent, but not zero)

@@ -459,13 +459,13 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   <div class="wrap pools-box">
     <div class="head reveal" style="margin-bottom:36px">
       <div class="eyebrow" data-i18n="pools.eyebrow">Deployed</div>
-      <h2 data-i18n="pools.h2">Live on three testnets</h2>
+      <h2 data-i18n="pools.h2">Live on four testnets, including our own test chain</h2>
     </div>
     <div class="big-row reveal">
-      <div class="big"><b>16</b><span data-i18n="pools.n1">V5 pools</span></div>
-      <div class="big"><b>3</b><span data-i18n="pools.n2">testnets</span></div>
+      <div class="big"><b>20</b><span data-i18n="pools.n1">V5 pools</span></div>
+      <div class="big"><b>4</b><span data-i18n="pools.n2">testnets</span></div>
       <div class="big"><b>2</b><span data-i18n="pools.n3">tokens: LTH, USDG</span></div>
-      <div class="big"><b>4</b><span data-i18n="pools.n4">distribution routers</span></div>
+      <div class="big"><b>5</b><span data-i18n="pools.n4">distribution routers</span></div>
     </div>
     <p class="honest reveal" data-i18n="pools.honest"><strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.</p>
     <p class="gas-note reveal" data-i18n="pools.gasNote">Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.</p>
@@ -488,6 +488,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <p data-xi18n="vf.p">Live numbers read directly from each network's pool contracts, plus the code and the status document.</p>
     </div>
     <div class="x-cards" id="xNets">
+      <div class="x-card x-net reveal" data-net="latheon-testnet"><b>Latheon Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
       <div class="x-card x-net reveal" data-net="ethereum-sepolia"><b>Ethereum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
       <div class="x-card x-net reveal" data-net="arbitrum-sepolia"><b>Arbitrum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
       <div class="x-card x-net reveal" data-net="robinhood-testnet"><b>Robinhood Chain Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
@@ -572,7 +573,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': 'yours', 'tag.auditor': 'auditor sees this one', 'tree.root': 'root',
       'status.eyebrow': 'Status', 'status.h2': 'What works, what we fixed, what\'s open', 'status.p': 'Click a line for details and the source.',
       'col.live': 'Works on testnets', 'col.fixed': 'Fixed', 'col.open': 'Still open',
-      'st.pools.t': '16 V5 pools on 3 testnets', 'st.pools.d': '4 on Ethereum Sepolia, 4 on Arbitrum Sepolia, 8 on Robinhood Chain Testnet (LTH and USDG).',
+      'st.pools.t': '20 V5 pools on 4 testnets', 'st.pools.d': '4 on the Latheon test chain (its own coin, test LTH), 4 on Ethereum Sepolia, 4 on Arbitrum Sepolia, 8 on Robinhood Chain Testnet (LTH and USDG).',
       'st.router.t': 'Distribution router: any amount, one transaction', 'st.router.d': 'Splits an amount into 100 / 50 / 10 / 1 notes and deposits them in one transaction; <code>withdrawMany</code> collects several notes in one. No owner, no fee, holds no funds. Checked by hand with real proofs on all four token sets, no independent review. It pays one address, so it is convenience, not privacy.',
       'st.bind.t': 'Recipient bound to the proof', 'st.bind.d': 'The receiving address is part of the withdraw proof and cannot be swapped in transit.',
       'st.tree.t': 'On-chain Merkle tree', 'st.tree.d': 'Updated by the contract on every deposit. 256 deposits per pool.',
@@ -583,7 +584,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': 'Small anonymity set', 'st.anon.d': 'Pools hold mostly our own test deposits.',
       'st.bridge.t': 'Bridge privacy', 'st.bridge.d': 'Moving funds between L1 and L2 is not private yet.',
       'st.meta.t': 'Public metadata', 'st.meta.d': 'Timing and gas of each transaction are visible.',
-      'pools.eyebrow': 'Deployed', 'pools.h2': 'Live on three testnets', 'pools.n1': 'V5 pools', 'pools.n2': 'testnets', 'pools.n3': 'tokens: LTH, USDG',
+      'pools.eyebrow': 'Deployed', 'pools.h2': 'Live on four testnets, including our own test chain', 'pools.n1': 'V5 pools', 'pools.n2': 'testnets', 'pools.n3': 'tokens: LTH, USDG',
       'pools.n4': 'distribution routers', 'pools.router': 'Router',
       'pools.honest': '<strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.',
       'pools.gasNote': 'Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.',
@@ -614,7 +615,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': 'ваш', 'tag.auditor': 'аудитор видит этот', 'tree.root': 'корень',
       'status.eyebrow': 'Статус', 'status.h2': 'Что работает, что исправили, что открыто', 'status.p': 'Нажмите на строку, чтобы увидеть подробности и источник.',
       'col.live': 'Работает в тестовых сетях', 'col.fixed': 'Исправлено', 'col.open': 'Пока открыто',
-      'st.pools.t': '16 пулов V5 в 3 тестовых сетях', 'st.pools.d': '4 в Ethereum Sepolia, 4 в Arbitrum Sepolia, 8 в Robinhood Chain Testnet (LTH и USDG).',
+      'st.pools.t': '20 пулов V5 в 4 тестовых сетях', 'st.pools.d': '4 в тестовой сети Latheon (на её родной монете, тестовом LTH), 4 в Ethereum Sepolia, 4 в Arbitrum Sepolia, 8 в Robinhood Chain Testnet (LTH и USDG).',
       'st.router.t': 'Роутер распределения: любая сумма, одна транзакция', 'st.router.d': 'Делит сумму на ноты 100 / 50 / 10 / 1 и вносит их одной транзакцией; <code>withdrawMany</code> выводит несколько нот одной. Без владельца и комиссии, средств не хранит. Проверен вручную с настоящими доказательствами на всех четырёх наборах токенов, независимой проверки нет. Платит на один адрес: это удобство, а не приватность.',
       'st.bind.t': 'Получатель привязан к доказательству', 'st.bind.d': 'Адрес получателя входит в доказательство вывода, и подменить его по дороге нельзя.',
       'st.tree.t': 'Дерево Меркла в блокчейне', 'st.tree.d': 'Контракт обновляет его при каждом депозите. 256 депозитов на пул.',
@@ -625,7 +626,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': 'Маленькое анонимное множество', 'st.anon.d': 'В пулах в основном наши собственные тестовые депозиты.',
       'st.bridge.t': 'Приватность моста', 'st.bridge.d': 'Перевод средств между L1 и L2 пока не приватен.',
       'st.meta.t': 'Публичные метаданные', 'st.meta.d': 'Время и газ каждой транзакции видны всем.',
-      'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в трёх тестовых сетях', 'pools.n1': 'пулов V5', 'pools.n2': 'тестовые сети', 'pools.n3': 'токена: LTH, USDG',
+      'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в четырёх тестовых сетях, включая нашу собственную', 'pools.n1': 'пулов V5', 'pools.n2': 'тестовые сети', 'pools.n3': 'токена: LTH, USDG',
       'pools.n4': 'роутера распределения', 'pools.router': 'Роутер',
       'pools.honest': '<strong>Честно:</strong> в пулах в основном наши собственные тестовые депозиты, поэтому толпа, в которой вы прячетесь, почти пуста. Механика работает и проверяется в блокчейне; для настоящей приватности нужны настоящие пользователи.',
       'pools.gasNote': 'Честно о газе: число единиц газа различается по сетям и меняется со временем. Наши последние одиночные выводы в блокчейне на V5: Ethereum Sepolia 419 919 · Arbitrum Sepolia 276 769 · Robinhood Chain 297 197 (LTH) и 306 346 (USDG). Цифру Ethereum мы пока не можем объяснить, поэтому не утверждаем, что L2 тратит больше или меньше единиц газа, чем L1; комиссия зависит от цены газа. Контролируемый перемер запланирован.',
@@ -656,7 +657,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': '您的', 'tag.auditor': '审计方看到的是这一笔', 'tree.root': '根',
       'status.eyebrow': '状态', 'status.h2': '哪些已可用，哪些已修复，哪些仍待解决', 'status.p': '点击任一行查看详情和来源。',
       'col.live': '已在测试网运行', 'col.fixed': '已修复', 'col.open': '仍待解决',
-      'st.pools.t': '3 个测试网上的 16 个 V5 资金池', 'st.pools.d': 'Ethereum Sepolia 上 4 个，Arbitrum Sepolia 上 4 个，Robinhood Chain Testnet 上 8 个（LTH 和 USDG）。',
+      'st.pools.t': '4 个测试网上的 20 个 V5 资金池', 'st.pools.d': 'Latheon 测试链上 4 个（使用其原生币，即测试 LTH），Ethereum Sepolia 上 4 个，Arbitrum Sepolia 上 4 个，Robinhood Chain Testnet 上 8 个（LTH 和 USDG）。',
       'st.router.t': '分配路由合约：任意金额，一笔交易', 'st.router.d': '把金额拆分为 100 / 50 / 10 / 1 的票据并在一笔交易中存入；<code>withdrawMany</code> 可在一笔交易中提取多张票据。无所有者、无手续费、不持有资金。已在四组代币上用真实证明手动验证，尚无独立审查。它付给同一个地址，因此方便但不隐私。',
       'st.bind.t': '接收地址与证明绑定', 'st.bind.d': '接收地址是取款证明的一部分，传输途中无法被替换。',
       'st.tree.t': '链上 Merkle 树', 'st.tree.d': '每次存款时由合约更新。每个资金池可容纳 256 笔存款。',
@@ -667,7 +668,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': '匿名集很小', 'st.anon.d': '资金池中主要是我们自己的测试存款。',
       'st.bridge.t': '跨链桥隐私', 'st.bridge.d': '在 L1 和 L2 之间转移资金目前还不具备隐私。',
       'st.meta.t': '元数据公开', 'st.meta.d': '每笔交易的时间和 Gas 对所有人可见。',
-      'pools.eyebrow': '已部署', 'pools.h2': '已在三个测试网上运行', 'pools.n1': 'V5 资金池', 'pools.n2': '测试网', 'pools.n3': '代币：LTH、USDG',
+      'pools.eyebrow': '已部署', 'pools.h2': '已在四个测试网上运行，包括我们自己的测试链', 'pools.n1': 'V5 资金池', 'pools.n2': '测试网', 'pools.n3': '代币：LTH、USDG',
       'pools.n4': '分配路由合约', 'pools.router': '路由',
       'pools.honest': '<strong>坦诚说明：</strong>资金池中主要是我们自己的测试存款，因此您所隐藏其中的人群几乎是空的。机制可用且可在链上验证；真正的隐私需要真实用户。',
       'pools.gasNote': '关于 Gas 的坦诚说明：各网络的 Gas 消耗量不同，且会随时间变化。我们在 V5 上最近一次链上取款的单次数据：Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197（LTH）和 306,346（USDG）。我们暂时无法解释 Ethereum 的数值，因此不声称 L2 的 Gas 消耗量高于或低于 L1；费用取决于 Gas 价格。计划进行受控重测。',
@@ -842,13 +843,18 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     }).join('');
   }
 
-  /* ---------- pools (from sdk/deployments.json, 2026-10-04) ---------- */
+  /* ---------- pools (from sdk/deployments.json, 2026-10-20) ---------- */
   var NETS = {
+    'latheon-testnet': ['Latheon Testnet', 'https://explorer.testnet.latheon.xyz'],
     'ethereum-sepolia': ['Ethereum Sepolia', 'https://sepolia.etherscan.io'],
     'arbitrum-sepolia': ['Arbitrum Sepolia', 'https://sepolia.arbiscan.io'],
     'robinhood-testnet': ['Robinhood Chain Testnet', 'https://explorer.testnet.chain.robinhood.com']
   };
   var POOLS = [
+    ['latheon-testnet','LTH',100,'0xf10AF1771450c528fee0c5435D3E4f4214073aFe'],
+    ['latheon-testnet','LTH',50,'0x4D9b9624418e2E91a38122D53e2A12eE028194b3'],
+    ['latheon-testnet','LTH',10,'0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618'],
+    ['latheon-testnet','LTH',1,'0xD01D19B9D296299619f681b842b3b61C79736F3a'],
     ['ethereum-sepolia','LTH',100,'0x851981f6a35EB0D91d927c0e854774f5d0ce6233'],
     ['ethereum-sepolia','LTH',50,'0x09d3D081195304FD83bb79e4b5B97344cE5e89b4'],
     ['ethereum-sepolia','LTH',10,'0x4402b051482B0304A118A4F8A8bb10095127499D'],
@@ -868,6 +874,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   ];
   /* distribution routers, one per token set (docs/distribution-pool-deployments.md) */
   var ROUTERS = [
+    ['latheon-testnet','LTH','0x0C3475657D4Bd198efe068dDB064725B6514FB04'],
     ['ethereum-sepolia','LTH','0xC12095a1e7fAc20E827a93933576469e1122eB61'],
     ['arbitrum-sepolia','LTH','0x284985291A32cf0cfE48F6CA128615983952350e'],
     ['robinhood-testnet','LTH','0x006da9E656581A7740856aA89c690b3Abd296c30'],
@@ -899,7 +906,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     var tb = $('poolTable'), open = !tb.classList.contains('open');
     tb.classList.toggle('open', open); this.setAttribute('aria-expanded', open);
     syncPoolsBtn();
-    if (open && !$('poolRows').children.length) renderNet('ethereum-sepolia');
+    if (open && !$('poolRows').children.length) renderNet('latheon-testnet');
   });
 
   /* ---------- language switching ---------- */
@@ -1047,7 +1054,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   }
   fetch('/demo/deployments.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (cfg) {
     Object.keys(cfg.networks).forEach(function (n) {
-      var net = cfg.networks[n], pools = cfg.pools.filter(function (p) { return p.network === n && p.version === 'v5'; });
+      var net = cfg.networks[n], pools = cfg.pools.filter(function (p) { return p.network === n && (p.version === 'v5' || p.version === 'v5-native'); });
       if (!net.rpcUrl || !pools.length) return;
       Promise.all(pools.map(function (p) { return nextIndex(net.rpcUrl, p.address, 3); }))
         .then(function (arr) { counts[n] = arr.reduce(function (a, b) { return a + b; }, 0); renderCounts(); })
