@@ -46,7 +46,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 **Developer ecosystem**
 - [x] ~~SDK release and example integrations~~ — done, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia).
-- [ ] Genesis Cohort onboarding: builders, integration partners. **The program is paused, not closed: no onboarding is happening and the sign-up form is off the website for now.** (The "validator operators" track is on hold pending clarity on what, if anything, node operation means for an L2 built on a framework not yet finalized — see `ROADMAP.md` VISION section).
+- [ ] Genesis Cohort onboarding: builders, integration partners. **The program is paused, not closed: no onboarding is happening and the sign-up form is off the website for now.** (The "validator operators" track is on hold pending clarity on what, if anything, node operation means for the chain — see the VISION section.)
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
 **Privacy work**
@@ -69,29 +69,29 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 ---
 
-## VISION — Ethereum L2, framework under evaluation (12–18+ months, funding-dependent)
+## VISION — Latheon's own chain on Arbitrum Orbit (12–18+ months to a production chain, funding-dependent)
 
-**This section changed twice, and is being kept deliberately open a bit longer before a third, public commitment.** Earlier versions described a sovereign Layer 1 — dropped, no precedent for small teams. Then: a general "Ethereum L2" direction. The framework itself is still being validated in practice, not just on paper, before we name a final choice publicly.
+**Decision (October 2026): the framework is Arbitrum Orbit.** Earlier versions of this section described a sovereign Layer 1 (dropped: no precedent for small teams), then a general "Ethereum L2, framework under evaluation". The evaluation was done in practice, not only on paper: the full V5 stack was run on Arbitrum Sepolia, on a local Arbitrum chain with a custom gas token, and on a test chain we created ourselves (below). Arbitrum Orbit was chosen as the path of least resistance for a small team: mature, audited rollup code; a chain can be created and run without special hardware; and a custom gas token is supported. Our own expertise — the privacy circuits and pools — stays the differentiator.
 
-Why L2, not L1: building an L1's consensus and validator security from zero is a multi-year, large-team undertaking with no real precedent among small teams. An L2 built on an existing, audited rollup framework inherits Ethereum's security instead of having to bootstrap its own. It also keeps our actual expertise (the privacy circuits) as the differentiator, rather than requiring us to also become a consensus-research team.
+**What exists today (testnet only, no audit):** the Latheon test chain, an Arbitrum Orbit chain settling to Arbitrum Sepolia (Rollup mode), with test LTH as its gas coin, a public RPC, a block explorer, a faucet, and the V5 pools and the distribution router built for the chain's native coin (deposits are made with the coin itself, no wrapping, no approval). Withdrawals with real proofs to empty addresses have been confirmed by transactions. It runs on one rented server with a single sequencer and a single validator, both operated by us; nobody else can challenge its assertions yet. Details, addresses and limits: `STATUS.md`.
 
-**Framework: actively being evaluated, not yet finalized.** A ZK-native framework with a dedicated compliance-oriented chain offering (matching our institutional/banking target segment) remains the leading candidate on paper. Rather than deciding from documentation alone, we're also gaining direct, hands-on experience within other ecosystems — including participating in Arbitrum's builder programs — before naming a final choice. A framework decided only from reading about it, without ever having built anything on the alternatives, isn't a decision we're comfortable publishing yet.
+**Design decisions taken:**
+- **Gas token: LTH**, not ETH or a stablecoin.
+- **Funds originate on the chain.** LTH and one stablecoin are meant to be available on the chain at launch, so users are not pushed to bridge from a linkable L1 address. A user-facing private bridge is not needed for launch; the first post-launch bridge feature is a one-way "bridge pool" (deposit into a pool on L1, withdraw on the chain with the same withdrawal proof).
+- **Gas-free withdrawals (planned, not built yet).** On the testnet, a relayer run by the chain will submit withdrawals, so an empty address can receive funds without first holding gas (proofs are already bound to the recipient, so the relayer cannot redirect them). A relayer fee inside the proof comes with the circuit revision before the public ceremony.
+- **Stealth addresses** (ERC-5564 / ERC-6538 style) are the first privacy feature planned after the testnet.
+- **Control of the chain, in stages:** a multisig with a timelock over every upgrade and chain-owner power at launch; then a security council with a majority of outside members; later, ordinary upgrades by LTH holders through a timelock, with the council keeping emergency powers. Today, on the test chain, these powers sit with a single development key — acceptable for a testnet only.
+- **Exit to L1:** the standard (slow) Arbitrum withdrawal always remains; a faster exit, served from part of the treasury held on L1 or by an existing fast bridge, is the intended direction, limited by available liquidity.
 
-**Deployment path considerations:** self-hosting rollup infrastructure requires serious dedicated hardware (prover nodes for some frameworks have been documented needing a 96-core CPU and 740 GB RAM) — well beyond what a solo-founder project can reasonably run itself. A managed Rollup-as-a-Service provider is the realistic path at our current stage, regardless of which framework we land on.
+**Still genuinely open, not yet decided:**
+- **Where the production chain settles** (an L3 on Arbitrum One or an L2 on Ethereum), **Rollup vs AnyTrust** data availability, and **self-hosting vs a Rollup-as-a-Service provider**. On the test chain more than 90% of the gas charged is the cost of publishing data to the parent chain, so this choice drives user fees more than anything else.
+- **The launch stablecoin:** a regulated, issuer-freezable stablecoin, or one that cannot be frozen (which most likely means one issued on the chain itself, with its own peg and liquidation risks). Measures against freezing depend on this choice.
+- **Bridge privacy** in general (see `docs/bridge-privacy-design.md`): the depositor's address is always public; privacy means a withdrawal cannot be linked to its deposit. Until the bridge design above is built, this is an explicit user-facing caveat, not something silently assumed away — see `THREAT-MODEL.md`.
+- **Optional compliance tooling** such as association sets (in the style of Privacy Pools): whether it is mandatory or voluntary, and who maintains the lists.
+- **Proving system.** Groth16 over BN254 is not post-quantum secure; PLONK/Halo, STARK-based proving and protocol-level proof aggregation on Ethereum (EIP-8288, a draft) are watched, see `THREAT-MODEL.md` §9.1.
+- **Timing.** No production launch date is set. A production chain comes after independent circuit review, a public trusted-setup ceremony and an audit. The current pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet keep working as they are.
 
-**Mode and DA layer:** whichever framework is chosen, the rollup-vs-validium choice is typically the first and most foundational decision — often requiring separate contracts and infrastructure per mode, with no standard supported way to migrate a live chain between them later. Cost currently matters more to us than maximal security guarantees at this stage, which will inform this choice once the framework itself is settled.
-
-**Gas token: LTH**, Latheon's own token, rather than ETH or a stablecoin — consistent with capturing value from chain activity directly rather than routing it through a third-party token. This holds regardless of framework.
-
-- Latheon's own contracts (the shielded pool, selective disclosure mechanism) become the appchain's core application, not a separate protocol layered on someone else's general-purpose chain.
-- Realistic near-term properties, true across the frameworks under consideration: fast "trusted" transaction confirmation in the range of a few seconds (not sub-second — see the corrected claim in `docs/gas-benchmark.en.md`), full L1-anchored finality on the order of minutes to hours depending on batch/proof timing, fees in the fractions-of-a-cent range, and — honestly — a centralized sequencer at launch, same as virtually every production rollup today. Full sequencer/prover decentralization remains an open, industry-wide problem, not something we'd solve alone.
-
-**Still genuinely open, not yet solved:**
-- **Bridge privacy leakage.** Funding an L2 wallet via a standard bridge from an L1 address can link an identity to that address before any shielded deposit happens on L2, undermining the exact guarantee Latheon exists to provide. Possible mitigations worth evaluating: (a) users acquire L2-native funds directly rather than bridging a linkable L1 address, (b) the pool's own liquidity moves between L1 and L2 as aggregate treasury transfers rather than per-user bridging, (c) a shielded/privacy-preserving bridge design (harder, more novel engineering, unproven at scale). Until resolved, this should be documented as an explicit user-facing caveat, not silently assumed away — see `THREAT-MODEL.md`.
-- **Exact timing of the L1→L2 transition.** The current V3/V4 prototypes on Ethereum L1 keep working as-is; nothing here changes them. When and how a production chain launch happens is a separate, later decision, realistically after independent circuit review.
-- PLONK/Halo as an alternative to Groth16 is still a reasonable question to revisit, independent of this decision.
-
-Native light clients, a permissionless validator set, and a dedicated consensus layer are dropped from the earlier plan — an L2 doesn't need or want its own validator set; it inherits Ethereum's.
+Realistic properties, as on virtually every production rollup today: confirmation by the sequencer within a few seconds, finality on the parent chain in minutes to hours, low fees, and a centralized sequencer at launch. Full sequencer decentralization remains an open, industry-wide problem, not something we would solve alone. Native light clients, a permissionless validator set and a dedicated consensus layer are dropped from the earlier plan: the chain inherits the security of the chain it settles to.
 
 This phase is deliberately last. It is the reward for getting NOW/NEXT/THEN right, not a substitute for them.
 
