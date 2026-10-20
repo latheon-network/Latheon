@@ -38,6 +38,22 @@ DEMO=/path/to/demo node router-e2e.js
 
 It is a local test, not a replacement for a run with a real wallet. That was also done: see `STATUS.md`.
 
+## Native-coin pools: `native-e2e.js`
+
+For a network whose gas coin is the pooled token (`LatheonShieldedPoolV5Native`, `LatheonDistributionPoolNative`; in
+`deployments.json` the token has `"native": true`, address zero, and the pools `"version": "v5-native"`). One local chain
+with the native pools and router next to an ordinary ERC-20 network, a mock wallet that does not know the native network
+yet, real Groth16 proofs. 15 checks: both networks listed; the wallet is asked to add the network with its own coin;
+deposit steps say "Check the pool" and "No approval needed"; a 10 LTH deposit sent as the coin itself; the note
+withdrawn to an empty address that then holds exactly 10; a router deposit of 161 as 1+1+1+1 notes with nothing left in
+the router; withdrawal by amount and master key to an empty address; the separate gas-coin row hidden on the native
+network and shown again on the ERC-20 one; the faucet-page link (`faucetPage`) and its Russian text; no raw i18n keys;
+no JavaScript errors. 15 of 15 passed on 2026-10-20.
+
+```
+DEMO=/path/to/demo node native-e2e.js
+```
+
 ## Log scanning: `rpc-robust.js`
 
 Checks the block between `rpc-robust:begin` and `rpc-robust:end` in `demo/index.html` against fake endpoints modelled on

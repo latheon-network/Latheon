@@ -254,10 +254,10 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
         <button id="connectBtn" data-i18n="btn.connect" disabled>Connect wallet</button>
         <button id="claimBtn" class="secondary" data-i18n="btn.claim" disabled>Claim test tokens</button>
       </div>
-      <div id="externalFaucetNote" class="muted small" style="display:none; margin-top:10px;"><span data-i18n="faucet.external">This token has its own official faucet, not ours:</span> <a id="externalFaucetLink" href="#" target="_blank" rel="noopener" data-i18n="faucet.open">open faucet ↗</a></div>
+      <div id="externalFaucetNote" class="muted small" style="display:none; margin-top:10px;"><span id="externalFaucetText" data-i18n="faucet.external">This token has its own official faucet, not ours:</span> <a id="externalFaucetLink" href="#" target="_blank" rel="noopener" data-i18n="faucet.open">open faucet ↗</a></div>
       <div id="faucetStatus" class="status info" style="display:none;"></div>
       <div class="row"><span class="label" data-i18n="wallet.address">Address</span><span class="value" id="addrOut">—</span></div>
-      <div class="row"><span class="label" data-i18n="wallet.eth">ETH balance</span><span class="value" id="ethOut">—</span></div>
+      <div class="row" id="gasRow"><span class="label" id="gasLabelOut" data-i18n="wallet.eth">ETH balance</span><span class="value" id="ethOut">—</span></div>
       <div class="row"><span class="label" id="tokenLabelOut">Token balance</span><span class="value" id="tokenOut">—</span></div>
     </div>
   </div>
@@ -429,19 +429,19 @@ const I18N = {
     'pool.loading': 'Loading deployments…', 'pool.info': '{net} · {label} · contract {addr}',
     'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Test tokens only — prefer the V5 pools.',
     'pool.legacyGroup': 'Legacy V4 (deprecated, recipient not bound)',
-    'wallet.notConnected': 'Not connected. Needed for faucet, deposit and withdraw.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.token': '{token} balance',
+    'wallet.notConnected': 'Not connected. Needed for faucet, deposit and withdraw.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.gas': '{coin} balance (gas)', 'wallet.token': '{token} balance',
     'wallet.noWallet': 'No wallet found — install MetaMask (desktop browser).', 'wallet.connected': 'Connected to {net}.', 'wallet.connFailed': 'Connection failed: ',
     'btn.connect': 'Connect wallet', 'btn.reconnect': 'Reconnect', 'btn.claim': 'Claim test tokens', 'btn.deposit': 'Deposit', 'btn.withdraw': 'Generate proof &amp; withdraw',
     'btn.check': 'Check note only', 'btn.disclose': 'Generate disclosure proof', 'btn.copy': 'Copy', 'btn.verify': 'Verify', 'btn.genCode': 'Generate code', 'btn.newCode': 'New code',
     'btn.download': 'Download .txt', 'btn.downloaded': 'Downloaded', 'btn.copyNote': 'Copy note', 'btn.copied': 'Copied',
-    'faucet.external': 'This token has its own official faucet, not ours:', 'faucet.open': 'open faucet ↗', 'faucet.externalStatus': '{token} uses an external faucet — see the link above.',
+    'faucet.external': 'This token has its own official faucet, not ours:', 'faucet.page': 'Test {token} for this network comes from its faucet page:', 'faucet.pageStatus': 'Get test {token} on the faucet page (link above).', 'faucet.open': 'open faucet ↗', 'faucet.externalStatus': '{token} uses an external faucet — see the link above.',
     'faucet.claiming': 'Claiming…', 'faucet.claimed': 'Claimed test {token}.', 'faucet.failed': 'Claim failed: ',
     'tab.deposit': 'Deposit', 'tab.withdraw': 'Withdraw', 'tab.disclose': 'Disclose', 'tab.auditor': "I'm an auditor",
     'dep.h3': 'Deposit', 'dep.lead1': 'Locks', 'dep.lead2': 'into the pool. A <code>spendKey</code> and a <code>viewKey</code> are generated in your browser; only their fingerprint (the commitment) goes on-chain.',
     'dep.hint': 'Confirm that you saved the note below before making another deposit.', 'dep.failed': 'Deposit failed: ',
-    'dep.s1': 'Check the token', 'dep.s2': 'Approve the pool to take the amount', 'dep.s3': 'Deposit', 'dep.s4': 'Save your note',
+    'dep.s1': 'Check the token', 'dep.s1n': 'Check the pool', 'dep.s2': 'Approve the pool to take the amount', 'dep.s2n': 'No approval needed (the network\'s own coin)', 'dep.s3': 'Deposit', 'dep.s4': 'Save your note',
     'x.confirm': 'confirm in wallet', 'x.block': 'waiting for block',
-    'dep.decimals': 'Token decimals mismatch: config says {cfg}, chain says {chain}. Aborting before approving anything.',
+    'dep.decimals': 'Token decimals mismatch: config says {cfg}, chain says {chain}. Aborting before approving anything.', 'dep.poolMismatch': 'The pool on-chain does not match the registry (coin or amount). Nothing was sent.',
     'note.title': 'Save this note. It is the only way to withdraw or disclose this deposit.',
     'note.sub': 'Anyone who has it can withdraw. It is not stored anywhere, not even in this browser.',
     'note.saved': 'I saved this note somewhere safe.', 'note.leaf': 'leaf #{n}', 'note.tx': 'deposit tx ↗',
@@ -522,7 +522,7 @@ const I18N = {
     'da.tip': 'Many small notes make a bigger transaction. A larger rounding step uses fewer notes.',
     'da.btn': 'Deposit via router',
     'da.s1': 'Check the router on-chain',
-    'da.s2': 'Approve the token',
+    'da.s2': 'Approve the token', 'da.s2n': 'No approval needed (the network\'s own coin)',
     'da.s3': 'Deposit all notes',
     'da.s4': 'Save your master key',
     'da.keyTitle': 'Your master key',
@@ -572,19 +572,19 @@ const I18N = {
     'pool.loading': 'Загружаю реестр…', 'pool.info': '{net} · {label} · контракт {addr}',
     'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Только тестовые токены — используйте пулы V5.',
     'pool.legacyGroup': 'Устаревшие V4 (получатель не привязан)',
-    'wallet.notConnected': 'Не подключён. Нужен для фаусета, депозита и вывода.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.token': 'Баланс {token}',
+    'wallet.notConnected': 'Не подключён. Нужен для фаусета, депозита и вывода.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.gas': 'Баланс {coin} (газ)', 'wallet.token': 'Баланс {token}',
     'wallet.noWallet': 'Кошелёк не найден — установите MetaMask (браузер на компьютере).', 'wallet.connected': 'Подключено к {net}.', 'wallet.connFailed': 'Не удалось подключиться: ',
     'btn.connect': 'Подключить кошелёк', 'btn.reconnect': 'Переподключить', 'btn.claim': 'Получить тестовые токены', 'btn.deposit': 'Внести депозит', 'btn.withdraw': 'Создать доказательство и вывести',
     'btn.check': 'Только проверить ноту', 'btn.disclose': 'Создать доказательство раскрытия', 'btn.copy': 'Копировать', 'btn.verify': 'Проверить', 'btn.genCode': 'Создать код', 'btn.newCode': 'Новый код',
     'btn.download': 'Скачать .txt', 'btn.downloaded': 'Скачано', 'btn.copyNote': 'Копировать ноту', 'btn.copied': 'Скопировано',
-    'faucet.external': 'У этого токена свой официальный фаусет, не наш:', 'faucet.open': 'открыть фаусет ↗', 'faucet.externalStatus': 'Для {token} нужен внешний фаусет — ссылка выше.',
+    'faucet.external': 'У этого токена свой официальный фаусет, не наш:', 'faucet.page': 'Тестовые {token} этой сети выдаёт страница фаусета:', 'faucet.pageStatus': 'Тестовые {token} можно получить на странице фаусета (ссылка выше).', 'faucet.open': 'открыть фаусет ↗', 'faucet.externalStatus': 'Для {token} нужен внешний фаусет — ссылка выше.',
     'faucet.claiming': 'Получаю…', 'faucet.claimed': 'Тестовые {token} получены.', 'faucet.failed': 'Не удалось получить: ',
     'tab.deposit': 'Депозит', 'tab.withdraw': 'Вывод', 'tab.disclose': 'Раскрытие', 'tab.auditor': 'Я аудитор',
     'dep.h3': 'Депозит', 'dep.lead1': 'Блокирует', 'dep.lead2': 'в пуле. Пара <code>spendKey</code> и <code>viewKey</code> создаётся в вашем браузере; в блокчейн попадает только их отпечаток (commitment).',
     'dep.hint': 'Подтвердите ниже, что сохранили ноту, прежде чем делать следующий депозит.', 'dep.failed': 'Депозит не удался: ',
-    'dep.s1': 'Проверить токен', 'dep.s2': 'Разрешить пулу списать сумму', 'dep.s3': 'Внести депозит', 'dep.s4': 'Сохранить ноту',
+    'dep.s1': 'Проверить токен', 'dep.s1n': 'Проверить пул', 'dep.s2': 'Разрешить пулу списать сумму', 'dep.s2n': 'Разрешение не нужно (родная монета сети)', 'dep.s3': 'Внести депозит', 'dep.s4': 'Сохранить ноту',
     'x.confirm': 'подтвердите в кошельке', 'x.block': 'жду блок',
-    'dep.decimals': 'Не совпадают знаки токена: в реестре {cfg}, в сети {chain}. Останавливаюсь, ничего не одобрив.',
+    'dep.decimals': 'Не совпадают знаки токена: в реестре {cfg}, в сети {chain}. Останавливаюсь, ничего не одобрив.', 'dep.poolMismatch': 'Пул в сети не совпадает с реестром (монета или сумма). Ничего не отправлено.',
     'note.title': 'Сохраните эту ноту. Только с ней можно вывести или раскрыть этот депозит.',
     'note.sub': 'Любой, у кого она есть, может вывести средства. Она нигде не хранится, даже в этом браузере.',
     'note.saved': 'Я сохранил ноту в надёжном месте.', 'note.leaf': 'лист #{n}', 'note.tx': 'транзакция депозита ↗',
@@ -665,7 +665,7 @@ const I18N = {
     'da.tip': 'Много мелких нот — больше транзакция. Крупный шаг округления даёт меньше нот.',
     'da.btn': 'Внести через роутер',
     'da.s1': 'Проверить роутер в сети',
-    'da.s2': 'Разрешить токен',
+    'da.s2': 'Разрешить токен', 'da.s2n': 'Разрешение не нужно (родная монета сети)',
     'da.s3': 'Внести все ноты',
     'da.s4': 'Сохранить мастер-ключ',
     'da.keyTitle': 'Ваш мастер-ключ',
@@ -715,19 +715,19 @@ const I18N = {
     'pool.loading': '正在加载部署信息…', 'pool.info': '{net} · {label} · 合约 {addr}',
     'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。仅限测试代币——请优先使用 V5 资金池。',
     'pool.legacyGroup': '旧版 V4（已弃用，未绑定接收地址）',
-    'wallet.notConnected': '未连接。领取测试币、存款和取款需要钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.token': '{token} 余额',
+    'wallet.notConnected': '未连接。领取测试币、存款和取款需要钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.gas': '{coin} 余额（Gas）', 'wallet.token': '{token} 余额',
     'wallet.noWallet': '未找到钱包——请安装 MetaMask（电脑浏览器）。', 'wallet.connected': '已连接到 {net}。', 'wallet.connFailed': '连接失败：',
     'btn.connect': '连接钱包', 'btn.reconnect': '重新连接', 'btn.claim': '领取测试代币', 'btn.deposit': '存款', 'btn.withdraw': '生成证明并取款',
     'btn.check': '仅检查凭证', 'btn.disclose': '生成披露证明', 'btn.copy': '复制', 'btn.verify': '验证', 'btn.genCode': '生成代码', 'btn.newCode': '新代码',
     'btn.download': '下载 .txt', 'btn.downloaded': '已下载', 'btn.copyNote': '复制凭证', 'btn.copied': '已复制',
-    'faucet.external': '该代币使用其官方水龙头，而非我们的：', 'faucet.open': '打开水龙头 ↗', 'faucet.externalStatus': '{token} 使用外部水龙头——见上方链接。',
+    'faucet.external': '该代币使用其官方水龙头，而非我们的：', 'faucet.page': '本网络的测试 {token} 由其水龙头页面发放：', 'faucet.pageStatus': '请在水龙头页面领取测试 {token}（见上方链接）。', 'faucet.open': '打开水龙头 ↗', 'faucet.externalStatus': '{token} 使用外部水龙头——见上方链接。',
     'faucet.claiming': '正在领取…', 'faucet.claimed': '已领取测试 {token}。', 'faucet.failed': '领取失败：',
     'tab.deposit': '存款', 'tab.withdraw': '取款', 'tab.disclose': '披露', 'tab.auditor': '我是审计方',
     'dep.h3': '存款', 'dep.lead1': '将', 'dep.lead2': '锁入资金池。<code>spendKey</code> 和 <code>viewKey</code> 在您的浏览器中生成；只有它们的指纹（commitment）上链。',
     'dep.hint': '请先在下方确认已保存凭证，再进行下一笔存款。', 'dep.failed': '存款失败：',
-    'dep.s1': '检查代币', 'dep.s2': '授权资金池扣取金额', 'dep.s3': '存款', 'dep.s4': '保存凭证',
+    'dep.s1': '检查代币', 'dep.s1n': '检查资金池', 'dep.s2': '授权资金池扣取金额', 'dep.s2n': '无需授权（网络原生币）', 'dep.s3': '存款', 'dep.s4': '保存凭证',
     'x.confirm': '请在钱包中确认', 'x.block': '等待出块',
-    'dep.decimals': '代币小数位不一致：配置为 {cfg}，链上为 {chain}。在授权任何操作前中止。',
+    'dep.decimals': '代币小数位不一致：配置为 {cfg}，链上为 {chain}。在授权任何操作前中止。', 'dep.poolMismatch': '链上的资金池与配置不符（币种或金额）。未发送任何交易。',
     'note.title': '请保存此凭证。这是取款或披露此笔存款的唯一方式。',
     'note.sub': '任何持有它的人都可以取款。它不会被存储在任何地方，包括此浏览器。',
     'note.saved': '我已将凭证保存在安全的地方。', 'note.leaf': '叶子 #{n}', 'note.tx': '存款交易 ↗',
@@ -808,7 +808,7 @@ const I18N = {
     'da.tip': '小额凭证越多，交易越大。更大的取整步长会减少凭证数量。',
     'da.btn': '通过路由器存入',
     'da.s1': '检查链上路由器',
-    'da.s2': '授权代币',
+    'da.s2': '授权代币', 'da.s2n': '无需授权（网络原生币）',
     'da.s3': '存入全部凭证',
     'da.s4': '保存主密钥',
     'da.keyTitle': '你的主密钥',
@@ -888,7 +888,7 @@ const ERC20_ABI = [
 const EVENT_ABI = ['event Deposit(uint256 indexed commitment, uint32 leafIndex, uint256 timestamp)'];
 const POOL_ABI = {
   // V5: the recipient is bound into the proof; root and nullifierHash are passed explicitly.
-  v5: ['function deposit(uint256 commitment)',
+  v5: ['function deposit(uint256 commitment) payable', 'function token() view returns (address)', 'function DENOMINATION() view returns (uint256)',
        'function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient)',
        'function isKnownRoot(uint256) view returns (bool)', 'function nullifierHashes(uint256) view returns (bool)'].concat(EVENT_ABI),
   // V4 (legacy): the recipient is NOT bound into the proof.
@@ -1131,9 +1131,10 @@ async function loadConfig() {
   if (!r.ok) throw new Error(t('err.config', { code: r.status }));
   CONFIG = await r.json();
   POOLS = CONFIG.pools.map((p) => {
-    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5';
+    // 'v5-native': the V5 pool for a network's own coin (deposit with msg.value, no approve); otherwise the same as V5
+    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native';
     return Object.assign({}, p, {
-      net, tok, decimals: tok.decimals,
+      net, tok, decimals: tok.decimals, version: v5 ? 'v5' : p.version, native: !!tok.native,
       denomination: BigInt(p.amount) * 10n ** BigInt(tok.decimals),
       verifierAddr: v5 ? net.v5Verifier : p.verifier,
       startBlock: v5 ? p.deployBlock : p.startBlock,
@@ -1181,6 +1182,8 @@ function updatePoolUI() {
   setStatus('poolInfo', t('pool.info', { net: p.net.name, label: p.label, addr: short(p.address) }), 'info');
   $('activePoolBadge').textContent = '· ' + p.net.name;
   $('tokenLabelOut').textContent = t('wallet.token', { token: p.token });
+  $('gasLabelOut').textContent = t('wallet.gas', { coin: gasCoin(p.net) });
+  $('gasRow').style.display = p.native ? 'none' : '';   // the token row already shows the network's own coin
   $('depositAmountOut').textContent = p.amount + ' ' + p.token;
   const banner = $('legacyBanner');
   if (p.legacy) { banner.textContent = t('pool.legacyBanner'); banner.style.display = 'block'; }
@@ -1193,8 +1196,9 @@ function updatePoolUI() {
   } else {
     $('claimBtn').style.display = 'none';
     $('externalFaucetNote').style.display = 'block';
-    if (p.tok.externalFaucet) $('externalFaucetLink').href = p.tok.externalFaucet;
-    setStatus('faucetStatus', t('faucet.externalStatus', { token: p.token }), 'info'); externalFaucetShown = true;
+    $('externalFaucetText').textContent = p.tok.faucetPage ? t('faucet.page', { token: p.token }) : t('faucet.external');
+    if (p.tok.faucetPage || p.tok.externalFaucet) $('externalFaucetLink').href = p.tok.faucetPage || p.tok.externalFaucet;
+    setStatus('faucetStatus', t(p.tok.faucetPage ? 'faucet.pageStatus' : 'faucet.externalStatus', { token: p.token }), 'info'); externalFaucetShown = true;
   }
 }
 
@@ -1315,7 +1319,7 @@ async function ensureCorrectNetwork(pool) {
       if (e && (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902))) {
         await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
           chainId: pool.net.chainIdHex, chainName: pool.net.name, rpcUrls: [pool.net.rpcUrl],
-          nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: [pool.net.explorerUrl] }] });
+          nativeCurrency: pool.net.nativeCurrency || { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: [pool.net.explorerUrl] }] });
       } else throw e;
     }
     provider = new ethers.BrowserProvider(window.ethereum);
@@ -1324,11 +1328,12 @@ async function ensureCorrectNetwork(pool) {
     if (net.chainId !== want) throw new Error('Wallet is still on chainId ' + net.chainId + '; expected ' + want + '.');
   }
 }
+const gasCoin = (net) => (net.nativeCurrency && net.nativeCurrency.symbol) || 'ETH';
 async function refreshBalances() {
   const p = currentPool();
   const eth = await provider.getBalance(userAddress);
-  $('ethOut').textContent = ethers.formatEther(eth) + ' ETH';
-  const bal = await new ethers.Contract(p.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
+  $('ethOut').textContent = ethers.formatEther(eth) + ' ' + gasCoin(p.net);
+  const bal = p.native ? eth : await new ethers.Contract(p.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
   $('tokenOut').textContent = ethers.formatUnits(bal, p.decimals) + ' ' + p.token;
 }
 
@@ -1578,24 +1583,34 @@ $('claimBtn').addEventListener('click', async () => {
 
 $('depositBtn').addEventListener('click', async () => {
   const btn = $('depositBtn'); btn.disabled = true;
-  const st = Steps('depSteps', ['dep.s1', 'dep.s2', 'dep.s3', 'dep.s4']);
+  const p0 = currentPool();
+  const st = Steps('depSteps', p0 && p0.native ? ['dep.s1n', 'dep.s2n', 'dep.s3', 'dep.s4'] : ['dep.s1', 'dep.s2', 'dep.s3', 'dep.s4']);
   $('depositResult').innerHTML = '';
   try {
     const p = currentPool(); await ensureCorrectNetwork(p);
     st.go(0);
-    const onchainDecimals = Number(await new ethers.Contract(p.tok.address, ERC20_ABI, provider).decimals());
-    if (onchainDecimals !== p.decimals) throw new Error(t('dep.decimals', { cfg: p.decimals, chain: onchainDecimals }));
+    if (p.native) {
+      // the pool must take the network's own coin and exactly this amount: that is what msg.value will carry
+      const pc = new ethers.Contract(p.address, POOL_ABI.v5, provider);
+      if ((await pc.token()) !== ethers.ZeroAddress || (await pc.DENOMINATION()) !== p.denomination) throw new Error(t('dep.poolMismatch'));
+    } else {
+      const onchainDecimals = Number(await new ethers.Contract(p.tok.address, ERC20_ABI, provider).decimals());
+      if (onchainDecimals !== p.decimals) throw new Error(t('dep.decimals', { cfg: p.decimals, chain: onchainDecimals }));
+    }
     const spendKey = randomFieldElement(), viewKey = randomFieldElement();
     const commitment = computeCommitment(spendKey, viewKey);
     const note = encodeNote(p, spendKey, viewKey);
     log('Generated keys. Commitment: ' + commitment.toString());
-    st.go(1, t('x.confirm'));
-    log(`Approving the pool to spend ${p.amount} ${p.token}…`);
-    await (await new ethers.Contract(p.tok.address, ERC20_ABI, signer).approve(p.address, p.denomination)).wait();
-    st.extra(1, '');
+    if (p.native) st.go(1, '');
+    else {
+      st.go(1, t('x.confirm'));
+      log(`Approving the pool to spend ${p.amount} ${p.token}…`);
+      await (await new ethers.Contract(p.tok.address, ERC20_ABI, signer).approve(p.address, p.denomination)).wait();
+      st.extra(1, '');
+    }
     st.go(2, t('x.confirm'));
     log('Depositing…');
-    const tx = await new ethers.Contract(p.address, POOL_ABI[p.version], signer).deposit(commitment);
+    const tx = await new ethers.Contract(p.address, POOL_ABI[p.version], signer).deposit(commitment, p.native ? { value: p.denomination } : {});
     log('Deposit tx: ' + tx.hash);
     st.extra(2, t('x.block'));
     const rc = await tx.wait();
@@ -1747,7 +1762,7 @@ $('withdrawBtn').addEventListener('click', async () => {
 
 // ---------- distribution router: any amount, one transaction ----------
 const ROUTER_ABI = [
-  'function deposit(uint256 amount, uint256[] commitments)',
+  'function deposit(uint256 amount, uint256[] commitments) payable',
   'function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash)[] items, address recipient)',
   'function split(uint256 amount) view returns (uint256[4] counts, uint256 total)',
   'function pools(uint256) view returns (address)', 'function denominations(uint256) view returns (uint256)',
@@ -1820,7 +1835,7 @@ document.querySelectorAll('input[name="daRound"]').forEach((r) => r.addEventList
 // -- deposit through the router
 $('daDepositBtn').addEventListener('click', async () => {
   const btn = $('daDepositBtn'); btn.disabled = true;
-  const st = Steps('depAnySteps', ['da.s1', 'da.s2', 'da.s3', 'da.s4']);
+  const st = Steps('depAnySteps', ['da.s1', daPlan && daPlan.router.tok.native ? 'da.s2n' : 'da.s2', 'da.s3', 'da.s4']);
   $('depAnyResult').innerHTML = '';
   try {
     if (!daPlan) throw new Error(t('da.errNum'));
@@ -1835,17 +1850,22 @@ $('daDepositBtn').addEventListener('click', async () => {
     }
     const onchain = await rd.split(plan.amount);
     if (onchain.total !== plan.total || onchain.counts.some((c, i) => c !== plan.counts[i])) throw new Error(t('da.mismatch'));
-    const bal = await new ethers.Contract(router.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
+    const native = !!router.tok.native;
+    const bal = native ? await provider.getBalance(userAddress) : await new ethers.Contract(router.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
     if (bal < plan.amount) throw new Error(t('da.lowBal', { token: router.token, have: fmt(bal, dec), need: fmt(plan.amount, dec) }));
     const master = randomFieldElement();
     const commitments = [];
     for (let i = 0; i < total; i++) { const k = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(computeCommitment(k.spendKey, k.viewKey)); }
     const keyText = formatMasterKey(router.net.chainId, router.address, master);
     log('Master key generated; ' + total + ' commitments derived.');
-    st.go(1, t('x.confirm'));
-    await (await new ethers.Contract(router.tok.address, ERC20_ABI, signer).approve(router.address, plan.amount)).wait();
-    st.extra(1, ''); st.go(2, t('x.confirm'));
-    const tx = await new ethers.Contract(router.address, ROUTER_ABI, signer).deposit(plan.amount, commitments);
+    if (native) st.go(1, '');
+    else {
+      st.go(1, t('x.confirm'));
+      await (await new ethers.Contract(router.tok.address, ERC20_ABI, signer).approve(router.address, plan.amount)).wait();
+      st.extra(1, '');
+    }
+    st.go(2, t('x.confirm'));
+    const tx = await new ethers.Contract(router.address, ROUTER_ABI, signer).deposit(plan.amount, commitments, native ? { value: plan.amount } : {});
     log('Router deposit tx: ' + tx.hash); st.extra(2, t('x.block'));
     const rc = await tx.wait(); st.extra(2, '');
     log('Router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
