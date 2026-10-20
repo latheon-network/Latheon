@@ -1331,6 +1331,8 @@ async function ensureCorrectNetwork(pool) {
 const gasCoin = (net) => (net.nativeCurrency && net.nativeCurrency.symbol) || 'ETH';
 async function refreshBalances() {
   const p = currentPool();
+  // the wallet may still be on another network while the user switches pools: read nothing until it is on this one
+  if (Number((await provider.getNetwork()).chainId) !== p.net.chainId) return;
   const eth = await provider.getBalance(userAddress);
   $('ethOut').textContent = ethers.formatEther(eth) + ' ' + gasCoin(p.net);
   const bal = p.native ? eth : await new ethers.Contract(p.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
