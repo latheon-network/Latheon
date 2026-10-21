@@ -26,7 +26,7 @@ The demo adds the network to your wallet when you connect. To add it by hand, us
 1. Open the faucet, paste your address, receive 100 LTH.
 2. Open the demo, pick **Latheon Testnet**, connect your wallet.
 3. Deposit into a fixed pool (100 / 50 / 10 / 1 LTH), or any whole amount through the router; save the note or the master key.
-4. Withdraw to a fresh, empty address. It receives the LTH and can use it for gas right away.
+4. Withdraw to a fresh, empty address, through the relayer (the default; no wallet needed). It receives the LTH and can use it for gas right away.
 5. Optional: create a disclosure proof for an auditor and check it in the auditor tab.
 
 ## Contracts
@@ -63,11 +63,12 @@ At the chain's minimum price of 0.1 gwei these cost about 0.001 and 0.003 LTH. F
 - The node is the only sequencer and the only validator. Its assertions on Arbitrum Sepolia are confirmed after the challenge period (30 minutes), so a withdrawal from the chain to Arbitrum Sepolia becomes executable about an hour after it is sent.
 - Public RPC and explorer API are rate-limited per IP (RPC 25 requests a second and 600 a minute; explorer API 40 a second); above that the answer is HTTP 429 with Retry-After. The node's debug methods are not exposed.
 - The endpoints are checked from outside every 15 minutes.
+- **Withdrawal relayer:** `https://explorer.testnet.latheon.xyz/relay/api` (`GET /status`, `POST /withdraw`, `POST /withdrawMany`). It sends withdrawals from its own address and pays the gas, so a fresh address can receive without holding anything and no wallet is needed to withdraw. It accepts only the pools and router listed above, simulates every request first and refuses what the chain would reject without spending gas, allows 10 relayed withdrawals per IP per hour and 500 a day in total, and charges no fee. It cannot redirect a withdrawal: the proof is bound to the recipient. If it refuses or is down, the same proof can be sent from any wallet.
 
 ## Limits
 
 - **Trust:** one sequencer and one validator, both run by us; nobody else can challenge the chain's assertions yet. The chain owner, the rollup owner (upgrades) and the owner of the test LTH token are one development key today. A multisig with a timelock is planned before any production chain (see `ROADMAP.md`).
-- **Privacy:** the pools on this chain are new, so the anonymity set is tiny. Your deposit address is public; privacy here means a withdrawal cannot be linked to its deposit, and only once enough other deposits exist. There is no relayer yet: the wallet you connect pays the gas for a withdrawal and is visible, so use a different wallet than the one you deposited from (the demo warns about this).
+- **Privacy:** the pools on this chain are new, so the anonymity set is tiny. Your deposit address is public; privacy here means a withdrawal cannot be linked to its deposit, and only once enough other deposits exist. By default the demo sends withdrawals through the chain's relayer (below), so your wallet does not appear in them; if you untick it, the wallet you connect sends and pays for the withdrawal in public, so use a different wallet than the one you deposited from (the demo warns about this). The relayer, like any server you talk to, sees the recipient and your IP address.
 - **Availability:** a single server; it can be down or reset. Test LTH and test notes may be lost if the chain has to be recreated.
 - **No audit, development keys:** the circuits use keys from a single-party setup (`docs/dev-ceremony-v3.md`); see `THREAT-MODEL.md` for what is and is not protected.
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-10-20",
+  "generated": "2026-10-21",
   "networks": {
     "latheon-testnet": {
       "name": "Latheon Testnet",
@@ -9,6 +9,7 @@
       "rpcUrl": "https://rpc.testnet.latheon.xyz",
       "explorerUrl": "https://explorer.testnet.latheon.xyz",
       "blockscoutApi": "https://explorer.testnet.latheon.xyz/api/v2",
+      "relayer": "https://explorer.testnet.latheon.xyz/relay/api",
       "nativeCurrency": {
         "name": "LTH (test)",
         "symbol": "LTH",
