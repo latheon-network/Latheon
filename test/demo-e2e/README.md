@@ -43,12 +43,12 @@ It is a local test, not a replacement for a run with a real wallet. That was als
 For a network whose gas coin is the pooled token (`LatheonShieldedPoolV5Native`, `LatheonDistributionPoolNative`; in
 `deployments.json` the token has `"native": true`, address zero, and the pools `"version": "v5-native"`). One local chain
 with the native pools and router next to an ordinary ERC-20 network, a mock wallet that does not know the native network
-yet, real Groth16 proofs. 15 checks: both networks listed; the wallet is asked to add the network with its own coin;
+yet, real Groth16 proofs. 16 checks: both networks listed; the wallet is asked to add the network with its own coin;
 deposit steps say "Check the pool" and "No approval needed"; a 10 LTH deposit sent as the coin itself; the note
 withdrawn to an empty address that then holds exactly 10; a router deposit of 161 as 1+1+1+1 notes with nothing left in
 the router; withdrawal by amount and master key to an empty address; the separate gas-coin row hidden on the native
 network and shown again on the ERC-20 one; the faucet-page link (`faucetPage`) and its Russian text; no raw i18n keys;
-no JavaScript errors. 15 of 15 passed on 2026-10-20.
+no JavaScript errors; and the network's relayer (`relayer` in `deployments.json`, simulated by the test): a withdrawal by amount and key sent by the relayer's account while the user pays nothing, and a visitor with no wallet at all withdrawing a note through it. 16 of 16 passed on 2026-10-21.
 
 ```
 DEMO=/path/to/demo node native-e2e.js

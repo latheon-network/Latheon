@@ -318,6 +318,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     <textarea id="noteInput" placeholder="latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off"></textarea>
     <label class="field-label" for="recipientInput" data-i18n="field.recipient">Recipient address</label>
     <input id="recipientInput" placeholder="0x…" spellcheck="false" autocomplete="off">
+    <div class="opt-row" id="relayRow" hidden><label class="check"><input type="checkbox" id="useRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label></div>
     <ul class="warns" id="withdrawWarnings" aria-live="polite"></ul>
     <div class="btn-row">
       <button id="withdrawBtn" data-i18n="btn.withdraw" disabled>Generate proof &amp; withdraw</button>
@@ -343,6 +344,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
       <input id="waAmount" inputmode="numeric" placeholder="160" autocomplete="off">
       <label class="field-label" for="waRecipient" data-i18n="field.recipient">Recipient address</label>
       <input id="waRecipient" placeholder="0x…" spellcheck="false" autocomplete="off">
+      <div class="opt-row" id="waRelayRow" hidden><label class="check"><input type="checkbox" id="waUseRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label></div>
       <ul class="warns" id="waWarnings" aria-live="polite"></ul>
       <div class="btn-row">
         <button id="waFindBtn" class="secondary" data-i18n="wa.find">Find my notes</button>
@@ -469,6 +471,7 @@ const I18N = {
     'err.nonce': 'Enter the auditor nonce.', 'err.config': 'Could not load deployments.json (HTTP {code}).', 'err.startup': 'Startup failed: ',
     'tree.title': "This pool's tree, read from the chain", 'tree.sub': '{net} · {label} · {used} of {cap} leaves used. Withdrawn deposits stay in the tree, and nobody can tell which ones they are.',
     'tree.yours': 'yours', 'tree.yoursLeaf': 'yours (leaf {n})', 'tree.others': 'other deposits', 'tree.empty': 'empty',
+    'relay.use': 'Send through the network\'s relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal', 'relay.note': 'The relayer sends the withdrawal and pays its gas; your wallet does not appear in it. The relayer sees the recipient and your IP address, like any server you talk to. It cannot change the recipient: the proof is bound to it.', 'relay.refused': 'The relayer refused: ', 'relay.down': 'The relayer did not answer. Untick the relayer box to send the withdrawal from your own wallet.', 'wd.s6r': 'Send through the relayer', 'wd.relaying': 'Sending through the relayer…',
     'warn.selfRecipient': 'The recipient is the wallet you are connected with. Anyone can see that this wallet pays itself, so the withdrawal is not private. Use a fresh address.',
     'warn.sameWallet': 'This wallet ({addr}) made a deposit in this session. The withdrawal transaction is sent and paid for by the connected wallet, and that is public, so the link is visible. Connect a different wallet with a little test ETH before withdrawing.',
     'warn.sender': 'The withdrawal is sent from {addr}, and the sender and gas payer are public. If this wallet also made the deposit, anyone can link them.',
@@ -612,6 +615,7 @@ const I18N = {
     'err.nonce': 'Введите код аудитора.', 'err.config': 'Не удалось загрузить deployments.json (HTTP {code}).', 'err.startup': 'Не удалось запуститься: ',
     'tree.title': 'Дерево этого пула, прочитанное из сети', 'tree.sub': '{net} · {label} · занято {used} из {cap} листьев. Выведенные депозиты остаются в дереве, и никто не может сказать, какие именно.',
     'tree.yours': 'ваш', 'tree.yoursLeaf': 'ваш (лист {n})', 'tree.others': 'другие депозиты', 'tree.empty': 'пусто',
+    'relay.use': 'Отправить через релейер сети: газ и кошелёк не нужны, и ваш кошелёк не появится в выводе', 'relay.note': 'Релейер отправляет вывод и платит за газ, ваш кошелёк в нём не появляется. Релейер видит адрес получателя и ваш IP-адрес, как любой сервер, к которому вы обращаетесь. Изменить получателя он не может: доказательство привязано к нему.', 'relay.refused': 'Релейер отказал: ', 'relay.down': 'Релейер не ответил. Снимите галочку релейера, чтобы отправить вывод со своего кошелька.', 'wd.s6r': 'Отправить через релейер', 'wd.relaying': 'Отправляю через релейер…',
     'warn.selfRecipient': 'Получатель совпадает с подключённым кошельком. Любой увидит, что кошелёк платит сам себе, поэтому вывод не приватен. Укажите новый адрес.',
     'warn.sameWallet': 'Этот кошелёк ({addr}) делал депозит в этой сессии. Транзакцию вывода отправляет и оплачивает подключённый кошелёк, и это публично, поэтому связь видна. Перед выводом подключите другой кошелёк с небольшим количеством тестового ETH.',
     'warn.sender': 'Вывод отправляется с {addr}; отправитель и плательщик газа публичны. Если этот же кошелёк делал депозит, их легко связать.',
@@ -755,6 +759,7 @@ const I18N = {
     'err.nonce': '请输入审计方代码。', 'err.config': '无法加载 deployments.json（HTTP {code}）。', 'err.startup': '启动失败：',
     'tree.title': '此资金池的树，读取自链上', 'tree.sub': '{net} · {label} · 已使用 {used}/{cap} 个叶子。已取款的存款仍留在树中，没有人能分辨是哪些。',
     'tree.yours': '您的', 'tree.yoursLeaf': '您的（叶子 {n}）', 'tree.others': '其他存款', 'tree.empty': '空',
+    'relay.use': '通过网络的中继器发送：无需 Gas，也无需钱包，您的钱包不会出现在取款中', 'relay.note': '中继器发送取款并支付 Gas，您的钱包不会出现在其中。中继器能看到接收地址和您的 IP 地址，就像您访问的任何服务器一样。它无法更改接收地址：证明已与其绑定。', 'relay.refused': '中继器拒绝：', 'relay.down': '中继器没有响应。取消勾选中继器，即可用您自己的钱包发送取款。', 'wd.s6r': '通过中继器发送', 'wd.relaying': '正在通过中继器发送…',
     'warn.selfRecipient': '接收地址就是当前连接的钱包。任何人都能看到该钱包向自己付款，因此这笔取款没有隐私。请使用新地址。',
     'warn.sameWallet': '此钱包（{addr}）在本次会话中进行过存款。取款交易由当前连接的钱包发送并支付 Gas，这是公开的，因此关联可见。取款前请连接另一个持有少量测试 ETH 的钱包。',
     'warn.sender': '取款将从 {addr} 发送，发送方和 Gas 支付方是公开的。如果存款也来自此钱包，任何人都能将两者关联。',
@@ -1189,6 +1194,7 @@ function updatePoolUI() {
   if (p.legacy) { banner.textContent = t('pool.legacyBanner'); banner.style.display = 'block'; }
   else banner.style.display = 'none';
   $('withdrawHelp').textContent = p.legacy ? t('wd.helpLegacy') : t('wd.help');
+  syncWithdrawBtn();
   if (typeof refreshDepositAny === 'function') refreshDepositAny();
   if (p.tok.faucet) {
     $('claimBtn').style.display = 'inline-block'; $('externalFaucetNote').style.display = 'none';
@@ -1304,6 +1310,24 @@ function scanHead(net) {
 async function feeOverrides(net) {
   try { const fd = await readProvider(net).getFeeData(); return fd.maxFeePerGas ? { maxFeePerGas: fd.maxFeePerGas, maxPriorityFeePerGas: fd.maxPriorityFeePerGas } : {}; }
   catch (e) { return {}; }
+}
+
+// ---------- relayer (networks that list one in deployments.json) ----------
+const relayFor = (net) => (net && net.relayer ? String(net.relayer).replace(/\/$/, '') : null);
+const relayOn = (net, boxId) => !!relayFor(net) && $(boxId).checked;
+async function relayPost(net, path, body) {
+  let r;
+  try { r = await fetch(relayFor(net) + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body, (k, v) => (typeof v === 'bigint' ? v.toString() : v)) }); }
+  catch (e) { throw new Error(t('relay.down')); }
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  if (!r.ok || !j.tx) throw new Error(t('relay.refused') + (j.error || ('HTTP ' + r.status)));
+  return j;
+}
+function syncWithdrawBtn() {
+  const p = currentPool(); if (!p) return;
+  const relay = !!relayFor(p.net) && !p.legacy;
+  $('relayRow').hidden = !relay;
+  $('withdrawBtn').disabled = !(signer || (relay && $('useRelay').checked));
 }
 
 // ---------- wallet ----------
@@ -1494,7 +1518,9 @@ function updateWarnings() {
   const recipientText = $('recipientInput').value.trim();
   let recipient = null; try { if (recipientText) recipient = ethers.getAddress(recipientText); } catch (e) {}
   if (recipient && userAddress && recipient.toLowerCase() === userAddress.toLowerCase()) out.push(['bad', t('warn.selfRecipient')]);
-  if (userAddress) {
+  const cp = currentPool();
+  if (cp && !cp.legacy && relayOn(cp.net, 'useRelay')) out.push(['note', t('relay.note')]);
+  else if (userAddress) {
     if (depositWallets.has(userAddress.toLowerCase())) out.push(['bad', t('warn.sameWallet', { addr: short(userAddress) })]);
     else out.push(['warn', t('warn.sender', { addr: short(userAddress) })]);
   }
@@ -1692,7 +1718,8 @@ $('checkNoteBtn').addEventListener('click', async () => {
 // ---------- withdraw ----------
 $('withdrawBtn').addEventListener('click', async () => {
   const btn = $('withdrawBtn'); btn.disabled = true;
-  const st = Steps('wdSteps', ['wd.s1', 'wd.s2', 'wd.s3', 'wd.s4', 'wd.s5', 'wd.s6']);
+  const cp0 = currentPool();
+  const st = Steps('wdSteps', ['wd.s1', 'wd.s2', 'wd.s3', 'wd.s4', 'wd.s5', cp0 && !cp0.legacy && relayOn(cp0.net, 'useRelay') ? 'wd.s6r' : 'wd.s6']);
   try {
     const note = decodeNote($('noteInput').value);
     let pool;
@@ -1705,7 +1732,8 @@ $('withdrawBtn').addEventListener('click', async () => {
       if (!pool.legacy) throw new Error(t('err.oldNote'));
     }
     const recipient = ethers.getAddress($('recipientInput').value.trim());
-    await ensureCorrectNetwork(pool); await refreshBalances();
+    const viaRelay = pool.version === 'v5' && !pool.legacy && relayOn(pool.net, 'useRelay');   // no wallet needed
+    if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork(pool); await refreshBalances(); }
     st.go(0);
     setStatus('withdrawStatus', t('wd.loading'), 'info');
     const circ = await loadCircuit(pool.circuit);
@@ -1742,10 +1770,19 @@ $('withdrawBtn').addEventListener('click', async () => {
 
     st.go(4);
     setStatus('withdrawStatus', t('wd.checking'), 'info');
-    const isValid = await new ethers.Contract(pool.verifierAddr, VERIFIER_ABI[pool.version], provider).verifyProof(pA, pB, pC, pub);
+    const isValid = await new ethers.Contract(pool.verifierAddr, VERIFIER_ABI[pool.version], readProvider(pool.net)).verifyProof(pA, pB, pC, pub);
     log('On-chain verification: ' + (isValid ? 'TRUE' : 'FALSE'));
     if (!isValid) throw new Error(t('err.invalid'));
 
+    if (viaRelay) {
+      st.go(5, t('x.block'));
+      setStatus('withdrawStatus', t('wd.relaying'), 'info');
+      const r = await relayPost(pool.net, '/withdraw', { pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient });
+      log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+      st.extra(5, ''); st.done();
+      setStatus('withdrawStatus', t('wd.success', { tx: r.tx }), 'ok'); if (signer) await refreshBalances();
+      return;
+    }
     st.go(5, t('x.confirm'));
     setStatus('withdrawStatus', t('wd.submitting'), 'info');
     const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
@@ -1758,7 +1795,16 @@ $('withdrawBtn').addEventListener('click', async () => {
     st.extra(5, ''); st.done();
     setStatus('withdrawStatus', t('wd.success', { tx: tx.hash }), 'ok'); await refreshBalances();
   } catch (e) { st.fail(); setStatus('withdrawStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
-  finally { btn.disabled = false; }
+  finally { syncWithdrawBtn(); if (signer) btn.disabled = false; }
+});
+$('useRelay').addEventListener('change', () => { syncWithdrawBtn(); updateWarnings(); });
+// a pasted V5 note names its network and pool: select them, so the relayer option (and the button) match the note
+$('noteInput').addEventListener('input', () => {
+  try {
+    const n = decodeNote($('noteInput').value); if (n.kind !== 'v5') return;
+    const p = findPool(n.chainId, n.address);
+    if (p && p.id !== currentPoolId) { selectPool(p.id); log(`The note belongs to ${p.net.name} · ${p.label}; selected it.`); }
+  } catch (e) { /* not a complete note yet */ }
 });
 
 
@@ -1903,15 +1949,27 @@ function waWarnings() {
   const out = [];
   let rec = null; try { const v = $('waRecipient').value.trim(); if (v) rec = ethers.getAddress(v); } catch (e) {}
   if (rec && userAddress && rec.toLowerCase() === userAddress.toLowerCase()) out.push(['bad', t('warn.selfRecipient')]);
-  if (userAddress) out.push(depositWallets.has(userAddress.toLowerCase()) ? ['bad', t('warn.sameWallet', { addr: short(userAddress) })] : ['warn', t('warn.sender', { addr: short(userAddress) })]);
+  const wr = waRouterGuess();
+  $('waRelayRow').hidden = !(wr && relayFor(wr.net));
+  if (wr && relayOn(wr.net, 'waUseRelay')) out.push(['note', t('relay.note')]);
+  else if (userAddress) out.push(depositWallets.has(userAddress.toLowerCase()) ? ['bad', t('warn.sameWallet', { addr: short(userAddress) })] : ['warn', t('warn.sender', { addr: short(userAddress) })]);
   out.push(['warn', t('wa.linked')]);
   $('waWarnings').innerHTML = out.map(([c, x]) => '<li class="' + c + '">' + esc(x) + '</li>').join('');
 }
 $('waRecipient').addEventListener('input', waWarnings);
+// the router a pasted master key names (or the current pool's), to know whether its network has a relayer
+function waRouterGuess() {
+  if (waFound && waFound.router) return waFound.router;
+  try { const mk = parseMasterKey($('waKey').value); return ROUTERS.find((r) => r.net.chainId === mk.chainId && r.address.toLowerCase() === mk.router.toLowerCase()) || null; }
+  catch (e) { return routerFor(currentPool()); }
+}
 function syncWaButtons() {
   const ok = !!(waFound && waFound.plan && waFound.plan.chosen);
-  $('waGoBtn').disabled = !(ok && signer); $('waSepBtn').disabled = !ok;
+  const relay = !!(waFound && waFound.router && relayOn(waFound.router.net, 'waUseRelay'));
+  $('waGoBtn').disabled = !(ok && (signer || relay)); $('waSepBtn').disabled = !ok;
 }
+$('waUseRelay').addEventListener('change', () => { syncWaButtons(); waWarnings(); });
+$('waKey').addEventListener('input', () => waWarnings());
 async function waScan(st) {
   const mk = parseMasterKey($('waKey').value);
   const router = ROUTERS.find((r) => r.net.chainId === mk.chainId && r.address.toLowerCase() === mk.router.toLowerCase());
@@ -1987,7 +2045,8 @@ $('waGoBtn').addEventListener('click', async () => {
     const plan = waRenderPlan(sc, target);
     if (!plan || !plan.chosen) throw new Error(t('wa.noplanShort'));
     const { router, rp, deps } = sc, tok = router.token, circ = await loadCircuit('v3');
-    await ensureCorrectNetwork({ net: router.net });
+    const viaRelay = relayOn(router.net, 'waUseRelay');   // no wallet needed
+    if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
     const zeros = computeZeroCascade(), levelsByPool = {}, rootChecked = {};
     const chosen = plan.chosen.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);
     const items = [];
@@ -2012,19 +2071,24 @@ $('waGoBtn').addEventListener('click', async () => {
     st.go(4);
     const max = Number(await withRetry(() => new ethers.Contract(router.address, ROUTER_ABI, rp).MAX_WITHDRAWALS(), 'reading the batch limit'));
     const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
-    const rw = new ethers.Contract(router.address, ROUTER_ABI, signer);
-    for (const b of batches) await rw.withdrawMany.staticCall(b, recipient);   // refuses early, before any gas is spent
-    st.go(5, t('x.confirm'));
+    const rr = new ethers.Contract(router.address, ROUTER_ABI, rp);
+    for (const b of batches) await rr.withdrawMany.staticCall(b, recipient);   // refuses early, before any gas is spent (the sender does not matter)
+    st.go(5, viaRelay ? t('x.block') : t('x.confirm'));
     let lastTx = null;
     for (let i = 0; i < batches.length; i++) {
       if (batches.length > 1) st.extra(5, t('wa.batch', { i: i + 1, n: batches.length }));
-      const tx = await rw.withdrawMany(batches[i], recipient, await feeOverrides(router.net)); lastTx = tx.hash;
+      if (viaRelay) {
+        const r = await relayPost(router.net, '/withdrawMany', { router: router.address, items: batches[i], recipient }); lastTx = r.tx;
+        log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+        continue;
+      }
+      const tx = await new ethers.Contract(router.address, ROUTER_ABI, signer).withdrawMany(batches[i], recipient, await feeOverrides(router.net)); lastTx = tx.hash;
       log('withdrawMany tx: ' + tx.hash);
       const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
     }
     st.extra(5, ''); st.done();
     setStatus('waStatus', t('wa.success', { amt: target, token: tok, to: short(recipient), tx: lastTx }), 'ok');
-    waFound = null; $('waPlan').innerHTML = ''; await refreshBalances();
+    waFound = null; $('waPlan').innerHTML = ''; if (signer) await refreshBalances();
   } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { syncWaButtons(); }
 });

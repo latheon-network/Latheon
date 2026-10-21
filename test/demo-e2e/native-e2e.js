@@ -39,6 +39,9 @@ const CHAINS = { 'ethereum-sepolia': { id: 11155111, hex: '0xaa36a7' }, 'latheon
 const E18 = 10n ** 18n;
 const ERC20 = ['function balanceOf(address) view returns (uint256)'];
 const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
+const RELAY = 'https://relay.test/relay/api';
+const RELAY_POOL = ['function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient)'];
+const RELAY_ROUTER = ['function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash)[] items, address recipient)'];
 
 (async () => {
   const results = []; const rec = (n, ok, note) => { results.push([n, ok]); say((ok ? 'PASS ' : 'FAIL ') + n + (note ? '   [' + note + ']' : '')); };
@@ -75,7 +78,7 @@ const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
       networks: {
         'ethereum-sepolia': net('ethereum-sepolia', { tokens: { LTH: { address: dep['ethereum-sepolia'].lth.addr, decimals: 18 } } }),
         'latheon-testnet': net('latheon-testnet', {
-          nativeCurrency: { name: 'LTH (test)', symbol: 'LTH', decimals: 18 },
+          nativeCurrency: { name: 'LTH (test)', symbol: 'LTH', decimals: 18 }, relayer: RELAY,
           tokens: { LTH: { address: ethers.ZeroAddress, decimals: 18, native: true, faucetPage: FAUCET_PAGE } },
         }),
       },
@@ -86,6 +89,20 @@ const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
       cfg.routers.push({ id: k + ':LTH', network: k, token: 'LTH', native: k === 'latheon-testnet' || undefined, address: dep[k].router.addr, deployBlock: dep[k].router.block });
     }
     const cfgJson = JSON.stringify(cfg);
+    // a stand-in for the network's relayer: sends what it is given from its own account (index 3)
+    const relayed = [];
+    const relaySigner = await eth['latheon-testnet'].getSigner(3), relayAddr = await relaySigner.getAddress();
+    async function relayRoute(route) {
+      const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
+      if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });
+      const url = route.request().url(), b = JSON.parse(route.request().postData() || '{}');
+      try {
+        const tx = url.endsWith('/withdrawMany') ? await new ethers.Contract(b.router, RELAY_ROUTER, relaySigner).withdrawMany(b.items, b.recipient)
+          : await new ethers.Contract(b.pool, RELAY_POOL, relaySigner).withdraw(b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient);
+        const rc = await tx.wait(); relayed.push(tx.hash);
+        return route.fulfill({ status: 200, contentType: 'application/json', headers: h, body: JSON.stringify({ tx: tx.hash, gasUsed: rc.gasUsed.toString() }) });
+      } catch (e) { return route.fulfill({ status: 400, contentType: 'application/json', headers: h, body: JSON.stringify({ error: (e.shortMessage || e.message).slice(0, 120) }) }); }
+    }
 
     browser = await chromium.launch();
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
@@ -117,12 +134,13 @@ const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
     };
     const BUNDLES = { 'https://esm.run/ethers': 'ethers', 'https://esm.run/poseidon-lite': 'poseidon', 'https://esm.run/snarkjs': 'snarkjs' };
     const cors = { 'access-control-allow-origin': '*' };
-    await page.route('**/*', async (route) => {
+    const routeAll = async (route) => {
       const url = route.request().url();
       if (url === 'https://latheon.test/demo/') return route.fulfill({ status: 200, contentType: 'text/html', body: rd(DEMO + '/index.html') });
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
       if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
+      if (url.startsWith(RELAY + '/')) return relayRoute(route);
       const rk = Object.entries(cfg.networks).find(([, n]) => url.startsWith(n.rpcUrl));
       if (rk) {
         const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
@@ -133,7 +151,8 @@ const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
         return route.fulfill({ status: 200, contentType: 'application/json', headers: h, body: JSON.stringify(outp) });
       }
       return route.abort();
-    });
+    };
+    await page.route('**/*', routeAll);
 
     const N = 'latheon-testnet';
     const waitText = (sel, re, ms = 240000) => page.waitForFunction(([s, r]) => new RegExp(r).test((document.querySelector(s) || {}).textContent || ''), [sel, re.source], { timeout: ms });
@@ -170,9 +189,13 @@ const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
     const r1 = fresh(1);
     await page.click('#tab-withdraw'); await page.click('#wdMode-one');
     await page.evaluate(() => { document.getElementById('withdrawStatus').textContent = ''; });
+    const relayShown = await page.isVisible('#relayRow') && await page.isChecked('#useRelay');
+    await page.uncheck('#useRelay');   // this one from the connected wallet; the relayer is tested below
     await page.fill('#noteInput', note); await page.fill('#recipientInput', r1); await page.click('#withdrawBtn');
     await waitText('#withdrawStatus', /Withdrawal successful|Failed/);
-    rec('N7. The note withdrawn to an empty address: it now holds exactly 10 LTH, the pool 0', (await coin(r1)) === 10n * E18 && (await poolCoin(10)) === 0n, (await page.textContent('#withdrawStatus')).trim().slice(0, 70));
+    rec('N7. The note withdrawn to an empty address from the wallet (relayer box unticked): it now holds exactly 10 LTH, the pool 0',
+      relayShown && (await coin(r1)) === 10n * E18 && (await poolCoin(10)) === 0n && relayed.length === 0, (await page.textContent('#withdrawStatus')).trim().slice(0, 70));
+    await page.check('#useRelay');
 
     // ---- router: any amount in one transaction with msg.value, then withdraw by amount and master key
     await page.click('#tab-deposit');
@@ -194,9 +217,35 @@ const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
     await page.click('#tab-withdraw'); await page.click('#wdMode-any');
     await page.fill('#waKey', key); await page.fill('#waAmount', '161'); await page.fill('#waRecipient', r2);
     await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
+    const userBefore10 = await coin(accounts[0]);
     await page.click('#waGoBtn'); await waitText('#waStatus', /Withdrawn|Failed/);
     const ws = (await page.textContent('#waStatus')).trim();
-    rec('N10. Withdraw 161 by amount and key to an empty address: it holds exactly 161 LTH', /Withdrawn 161 LTH/.test(ws) && (await coin(r2)) === 161n * E18, ws.slice(0, 70));
+    const tx10 = relayed.length ? await eth[N].getTransaction(relayed[relayed.length - 1]) : null;
+    rec('N10. Withdraw 161 by amount and key through the relayer: the empty address holds exactly 161 LTH, the transaction comes from the relayer, the user paid nothing',
+      /Withdrawn 161 LTH/.test(ws) && (await coin(r2)) === 161n * E18 && tx10 && tx10.from === relayAddr && (await coin(accounts[0])) === userBefore10, ws.slice(0, 70));
+
+    // ---- a visitor with NO wallet at all withdraws a note through the relayer
+    await page.click('#tab-deposit'); await page.click('#depMode-any');
+    if (await page.locator('#keySavedChk').count() && !(await page.isChecked('#keySavedChk'))) await page.check('#keySavedChk');   // the demo waits until the master key is saved
+    await page.click('#depMode-fixed');
+    if (await page.locator('#noteSavedChk').count() && !(await page.isChecked('#noteSavedChk'))) await page.check('#noteSavedChk');
+    await page.selectOption('#poolSelect', N + ':LTH-1'); await page.waitForTimeout(400);
+    const oldNote = (await page.textContent('#noteText')).trim();
+    await page.click('#depositBtn');
+    await page.waitForFunction((o) => { const e = document.getElementById('noteText'); return e && e.textContent.trim() && e.textContent.trim() !== o; }, oldNote, { timeout: 240000 });
+    const note2 = (await page.textContent('#noteText')).trim();
+    const page2 = await ctx.newPage(); const errs2 = []; page2.on('pageerror', (e) => errs2.push(e.message));
+    await page2.route('**/*', routeAll);   // same files and endpoints, and no wallet injected at all
+    await page2.goto('https://latheon.test/demo/'); await page2.waitForFunction(() => /contract 0x/.test(document.getElementById('poolInfo').textContent), null, { timeout: 60000 });
+    await page2.click('#tab-withdraw'); await page2.click('#wdMode-one');
+    const r3 = fresh(3);
+    await page2.fill('#noteInput', note2); await page2.fill('#recipientInput', r3);
+    const enabledNoWallet = !(await page2.isDisabled('#withdrawBtn'));
+    await page2.click('#withdrawBtn'); await page2.waitForFunction(() => /Withdrawal successful|Failed/.test(document.getElementById('withdrawStatus').textContent), null, { timeout: 240000 });
+    const st2 = (await page2.textContent('#withdrawStatus')).trim(); const steps2 = await page2.$$eval('#wdSteps li span:first-child', (e) => e.map((x) => x.textContent.trim()));
+    rec('N15. Without any wallet: the withdraw button works, the step says "Send through the relayer", the empty address gets exactly 1 LTH',
+      enabledNoWallet && /Withdrawal successful/.test(st2) && steps2[5] === 'Send through the relayer' && (await coin(r3)) === 1n * E18 && !errs2.length, st2.slice(0, 60) + (errs2.length ? ' | ' + errs2[0] : ''));
+    await page2.close();
 
     // ---- back to the ERC-20 network: approval step and gas row are back
     await pickNT('ethereum-sepolia', 'LTH');
