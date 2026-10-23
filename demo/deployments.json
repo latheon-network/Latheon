@@ -29,6 +29,18 @@
           "faucetPage": "https://explorer.testnet.latheon.xyz/faucet",
           "note": "The chain's gas coin. Pools and router take it as msg.value and pay it out directly: no wrapping, no approve."
         }
+      },
+      "bridge": {
+        "parentName": "Arbitrum Sepolia",
+        "parentChainId": 421614,
+        "parentRpcUrl": "https://sepolia-rollup.arbitrum.io/rpc",
+        "parentExplorerUrl": "https://sepolia.arbiscan.io",
+        "token": "0xcB44A83A9AD6dE27af7936A4fEbBEDb25c58db02",
+        "inbox": "0x3F306353543EB48F419C8F8a19BfAd9fcB86aB17",
+        "rollup": "0xdDcA9a000d2DE69D6C11050B9e8fe90B5e02Bd89",
+        "bridge": "0x4D1FdE71BAd635148727694FEa04f24CAf881990",
+        "page": "https://latheon.xyz/bridge/",
+        "note": "Deposit: ERC20Inbox.depositERC20 on the parent chain (after approve). Withdrawal: ArbSys.withdrawEth on this chain, then Outbox.executeTransaction on the parent once confirmed (outbox address read from rollup.outbox())."
       }
     },
     "ethereum-sepolia": {

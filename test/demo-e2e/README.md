@@ -71,3 +71,23 @@ Opens `site/index.html` in Chromium with mocked RPC answers and checks the "Veri
 of `nextIndex()` over that network's V5 pools, no explorer API is called, the label is translated (EN/RU/ZH), a network
 that does not answer shows a dash and a link to its explorer, and there are no JavaScript errors. 9 checks:
 `node landing-e2e.js` (Playwright with Chromium).
+
+## Bridge page: `bridge-e2e.js`
+
+Covers `bridge/index.html` on two local chains: a parent (chainId 421614) with the real `LatheonToken` and stand-ins for the
+Orbit inbox, rollup and outbox, and a child (the Latheon chain id) with stand-ins for `ArbSys` and `NodeInterface` placed at
+their fixed addresses (`fixtures/BridgeMocks.sol`). The test plays the chain's part: it credits deposits on the child and
+confirms withdrawals on the parent. 16 checks: loading the bridge entry from `deployments.json`; balances on both chains;
+refusals before any transaction (amount above the balance, malformed amount, bad address); a deposit with an approval for
+exactly the amount, seen arriving; a withdrawal through `withdrawEth` (the wallet adds the chain with LTH as its coin);
+waiting until a state covering it is confirmed, then the claim through `executeTransaction` with the right fields; finding a
+withdrawal by its hash in another browser; RU/ZH; phone width; no JavaScript errors.
+
+```
+cd test/distribution && npm install && cd ../demo-e2e
+sh build-bundles.sh
+node bridge-e2e.js            # or BRIDGE=/path/to/folder/with/index.html
+```
+
+The stand-ins do not check Merkle proofs and do not reproduce the delay of the real chain. A run against the live test chain
+is still needed and is recorded in `STATUS.md` once done.

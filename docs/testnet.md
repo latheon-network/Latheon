@@ -15,6 +15,7 @@ Latheon's own test chain: an Arbitrum Orbit chain that settles to Arbitrum Sepol
 | Block explorer | https://explorer.testnet.latheon.xyz |
 | Faucet | https://explorer.testnet.latheon.xyz/faucet |
 | Demo | https://latheon.xyz/demo (network "Latheon Testnet", listed first) |
+| Bridge | https://latheon.xyz/bridge (test LTH between Arbitrum Sepolia and this chain) |
 | Settles to | Arbitrum Sepolia (421614), Rollup mode |
 
 The demo adds the network to your wallet when you connect. To add it by hand, use the values above.
@@ -28,6 +29,16 @@ The demo adds the network to your wallet when you connect. To add it by hand, us
 3. Deposit into a fixed pool (100 / 50 / 10 / 1 LTH), or any whole amount through the router; save the note or the master key.
 4. Withdraw to a fresh, empty address, through the relayer (the default; no wallet needed). It receives the LTH and can use it for gas right away.
 5. Optional: create a disclosure proof for an auditor and check it in the auditor tab.
+
+## Bridge
+
+The page https://latheon.xyz/bridge moves test LTH between Arbitrum Sepolia, where it is the ERC-20 token below, and this chain, where it is the gas coin. It calls the chain's own bridge contracts from your wallet; no server of ours is involved.
+
+- **Deposit** (Arbitrum Sepolia → this chain): `approve` for exactly the amount, then `depositERC20` on the inbox. The LTH arrives at the same address here once the chain has read that Arbitrum Sepolia block; when we moved 50,000,000 LTH this way it took a few minutes. Use an ordinary wallet: a smart-contract wallet's deposit is credited to an aliased address.
+- **Withdrawal** (this chain → Arbitrum Sepolia): `ArbSys.withdrawEth` here, then, once the validator's assertion that includes it is confirmed on Arbitrum Sepolia (about an hour, see *How it is run*), `Outbox.executeTransaction` there releases the token. The page lists your withdrawals, shows when one can be claimed and sends the claim; a withdrawal can also be found by its transaction hash. Both steps need gas: LTH here, a little ETH on Arbitrum Sepolia for the claim.
+- **Bridging is public.** It links your Arbitrum Sepolia address to the same address here. Privacy comes from the pools (deposit, then withdraw to a new address), not from the bridge; private funding of the chain is an open question (`docs/bridge-privacy-design.md`).
+
+Machine-readable: the `bridge` entry of this network in [`sdk/deployments.json`](../sdk/deployments.json).
 
 ## Contracts
 

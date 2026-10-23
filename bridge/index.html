@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Latheon — Bridge (testnet)</title>
+<meta name="description" content="Move test LTH between Arbitrum Sepolia and the Latheon test chain. Testnet only, no audit.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root {
+  --ink: #14121C; --ink-elevated: #1C1927; --ink-card: #221E30; --ink-deep: #0E0D14;
+  --violet: #7F77DD; --violet-deep: #534AB7; --teal: #5DCAA5; --teal-deep: #0F6E56;
+  --gold: #F6C55A; --gold-deep: #DB9A2C; --red: #E06C75;
+  --text-primary: #F2EFE9; --text-muted: #9793A8;
+  --border: rgba(242,239,233,0.10); --border-strong: rgba(242,239,233,0.22);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--ink); color: var(--text-primary); font-family: 'IBM Plex Sans', Arial, sans-serif; line-height: 1.55; overflow-x: hidden; }
+a { color: var(--teal); }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.mono, code { font-family: 'IBM Plex Mono', monospace; }
+.wrap { max-width: 900px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+@media (max-width: 480px) { .wrap { padding-left: 16px; padding-right: 16px; } }
+.nav { border-bottom: 1px solid var(--border); background: rgba(20,18,28,.9); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(8px); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text-primary); text-decoration: none; }
+.brand svg { width: 32px; height: auto; }
+.brand span { font-family: 'Cinzel', Georgia, serif; font-size: 19px; font-weight: 600; }
+.brand em { font-style: normal; font: 11px 'IBM Plex Mono', monospace; color: var(--teal); border: 1px solid rgba(93,202,165,.4); border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
+.nav-links { display: flex; gap: 18px; align-items: center; }
+.nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13.5px; }
+.nav-links a:hover { color: var(--text-primary); }
+.lang-select { width: auto; margin: 0; background: var(--ink-elevated); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font: 12px 'IBM Plex Mono', monospace; cursor: pointer; }
+@media (max-width: 560px) { .nav-links .hide-m { display: none; } }
+.intro { padding: 40px 0 24px; }
+.intro h1 { font-family: 'Cinzel', Georgia, serif; font-size: clamp(26px, 4vw, 36px); font-weight: 600; line-height: 1.2; margin-bottom: 8px; }
+.intro p { color: var(--text-muted); font-size: 15px; max-width: 62ch; }
+.pill { display: inline-flex; gap: 8px; align-items: center; margin-top: 14px; font: 12px 'IBM Plex Mono', monospace; color: var(--gold); background: rgba(246,197,90,.08); border: 1px solid rgba(246,197,90,.3); border-radius: 999px; padding: 5px 12px; }
+.card { background: var(--ink-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.card h2 { font-size: 13px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; font-weight: 500; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; margin-top: 8px; }
+.label { color: var(--text-muted); }
+.value { font: 12px 'IBM Plex Mono', monospace; word-break: break-all; text-align: right; }
+.muted { color: var(--text-muted); font-size: 13.5px; }
+.small { font-size: 12.5px; }
+input { width: 100%; background: var(--ink-deep); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px 12px; color: var(--text-primary); font: 13px 'IBM Plex Mono', monospace; margin-bottom: 12px; }
+input:focus { outline: 2px solid var(--teal); outline-offset: 0; border-color: transparent; }
+.field-label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 5px; }
+button { font: 600 14px 'IBM Plex Sans', sans-serif; border-radius: 7px; padding: 10px 18px; cursor: pointer; border: 1px solid transparent; background: var(--gold); color: var(--ink); transition: transform .15s, background .15s; }
+button:hover:not(:disabled) { transform: translateY(-1px); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button.secondary { background: transparent; color: var(--text-primary); border-color: var(--border-strong); font-weight: 500; }
+button.secondary:hover:not(:disabled) { background: var(--ink-card); }
+button.small { padding: 6px 12px; font-size: 12.5px; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.status { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin: 10px 0; line-height: 1.45; word-break: break-word; }
+.status:empty { display: none; }
+.status.ok { background: rgba(93,202,165,.12); color: var(--teal); }
+.status.err { background: rgba(224,108,117,.12); color: var(--red); }
+.status.info { background: rgba(127,119,221,.12); color: #C3BEF3; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+.tab { background: none; color: var(--text-muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 14px; font-weight: 500; white-space: nowrap; }
+.tab:hover:not(:disabled) { transform: none; color: var(--text-primary); }
+.tab[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--gold); }
+.route { display: flex; align-items: center; gap: 10px; font: 13px 'IBM Plex Mono', monospace; color: var(--text-muted); margin-bottom: 14px; flex-wrap: wrap; }
+.route b { color: var(--text-primary); font-weight: 500; }
+.notes { list-style: none; font-size: 13px; color: var(--text-muted); }
+.notes li { padding-left: 16px; position: relative; margin-top: 6px; }
+.notes li::before { content: '·'; position: absolute; left: 4px; color: var(--gold); }
+.wd-list { list-style: none; }
+.wd { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 10px; font-size: 13px; }
+.wd-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.wd-amt { font: 500 14px 'IBM Plex Mono', monospace; }
+.badge { font: 11.5px 'IBM Plex Mono', monospace; border-radius: 999px; padding: 2px 10px; border: 1px solid var(--border-strong); color: var(--text-muted); }
+.badge.waiting { color: var(--gold); border-color: rgba(246,197,90,.4); }
+.badge.ready { color: var(--teal); border-color: rgba(93,202,165,.5); }
+.badge.claimed { color: var(--violet); border-color: rgba(127,119,221,.5); }
+.wd-meta { color: var(--text-muted); font-size: 12px; margin-top: 6px; word-break: break-all; }
+.wd .btn-row { margin-top: 10px; }
+.lookup { display: flex; gap: 10px; margin-top: 14px; }
+.lookup input { margin: 0; }
+footer { border-top: 1px solid var(--border); margin-top: 40px; padding: 24px 0 40px; color: var(--text-muted); font-size: 12.5px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/" aria-label="Back to latheon.xyz">
+      <svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="bridgeMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#bridgeMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg>
+      <span>Latheon</span><em data-i18n="nav.tag">bridge</em>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="hide-m">← latheon.xyz</a>
+      <a href="/demo/" class="hide-m" data-i18n="nav.demo">Demo</a>
+      <select id="langSelect" class="lang-select" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="ru">RU</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="intro">
+    <h1 data-i18n="intro.h1">Bridge test LTH</h1>
+    <p data-i18n="intro.p">Move test LTH between Arbitrum Sepolia, where it is an ERC-20 token, and the Latheon test chain, where it is the coin you pay gas with. This page talks to the chain's own bridge contracts; nothing passes through our servers.</p>
+    <div class="pill" data-i18n="intro.pill">● Testnet only · test LTH has no value · no audit</div>
+  </header>
+
+  <section class="card" aria-labelledby="walletH">
+    <h2 id="walletH" data-i18n="wallet.h">Wallet</h2>
+    <div class="btn-row">
+      <button id="connectBtn" data-i18n="wallet.connect">Connect wallet</button>
+      <span id="walletStatus" class="muted small" data-i18n="wallet.none">Not connected.</span>
+    </div>
+    <div class="grid2" id="balances" hidden style="margin-top:14px">
+      <div>
+        <div class="label small" id="parentNameOut">Arbitrum Sepolia</div>
+        <div class="row"><span class="label" data-i18n="bal.token">LTH token</span><span class="value" id="parentLthOut">—</span></div>
+        <div class="row"><span class="label" data-i18n="bal.eth">ETH (gas)</span><span class="value" id="parentEthOut">—</span></div>
+      </div>
+      <div>
+        <div class="label small" id="childNameOut">Latheon Testnet</div>
+        <div class="row"><span class="label" data-i18n="bal.native">LTH (gas coin)</span><span class="value" id="childLthOut">—</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-deposit" aria-selected="true" data-i18n="tab.deposit">Deposit to Latheon</button>
+    <button class="tab" role="tab" id="tab-withdraw" aria-selected="false" data-i18n="tab.withdraw">Withdraw to Arbitrum Sepolia</button>
+  </div>
+
+  <section class="card" id="panel-deposit" role="tabpanel">
+    <div class="route"><b id="depFrom">Arbitrum Sepolia</b> → <b id="depTo">Latheon Testnet</b></div>
+    <label class="field-label" for="depAmount" data-i18n="dep.amount">Amount of LTH</label>
+    <input id="depAmount" inputmode="decimal" autocomplete="off" placeholder="100">
+    <div class="btn-row"><button id="depositBtn" disabled data-i18n="dep.btn">Deposit</button></div>
+    <div id="depStatus" class="status" role="status" aria-live="polite"></div>
+    <ul class="notes">
+      <li data-i18n="dep.n1">Two transactions on Arbitrum Sepolia: an approval for exactly this amount, then the deposit. Both need a little ETH there for gas.</li>
+      <li data-i18n="dep.n2">The LTH arrives at the same address on the Latheon test chain, usually within a few minutes.</li>
+      <li data-i18n="dep.n3">Use an ordinary wallet. A smart-contract wallet's deposit lands at a different (aliased) address.</li>
+      <li data-i18n="dep.n4">Bridging is public: it links your Arbitrum Sepolia address to the same address on the Latheon chain. Privacy starts when you deposit into a pool and withdraw to a new address.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="panel-withdraw" role="tabpanel" hidden>
+    <div class="route"><b id="wdFrom">Latheon Testnet</b> → <b id="wdTo">Arbitrum Sepolia</b></div>
+    <label class="field-label" for="wdAmount" data-i18n="wd.amount">Amount of LTH</label>
+    <input id="wdAmount" inputmode="decimal" autocomplete="off" placeholder="10">
+    <label class="field-label" for="wdDest" data-i18n="wd.dest">Receive on Arbitrum Sepolia at (your connected address if empty)</label>
+    <input id="wdDest" autocomplete="off" spellcheck="false" placeholder="0x…">
+    <div class="btn-row"><button id="withdrawBtn" disabled data-i18n="wd.btn">Start withdrawal</button></div>
+    <div id="wdStatus" class="status" role="status" aria-live="polite"></div>
+    <ul class="notes">
+      <li data-i18n="wd.n1">A withdrawal has two steps. First, a transaction on the Latheon chain (gas paid in LTH). Then, once the chain's validator has posted the state that includes it and that state is confirmed on Arbitrum Sepolia, a claim there releases the LTH token. Measured so far: about an hour between the two.</li>
+      <li data-i18n="wd.n2">The claim is a transaction on Arbitrum Sepolia and needs a little ETH for gas. Anyone may send it; the LTH always goes to the address chosen in step one.</li>
+      <li data-i18n="wd.n3">This page remembers your withdrawals in this browser. On another device, find one by its transaction hash below.</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="listH">
+    <h2 id="listH" data-i18n="list.h">Your withdrawals</h2>
+    <div class="btn-row"><button id="refreshBtn" class="secondary small" data-i18n="list.refresh">Check status</button><span id="listInfo" class="muted small"></span></div>
+    <ul class="wd-list" id="wdList"></ul>
+    <p id="wdEmpty" class="muted small" style="margin-top:10px" data-i18n="list.empty">No withdrawals in this browser yet.</p>
+    <div class="lookup">
+      <input id="lookupInput" autocomplete="off" spellcheck="false" placeholder="0x… (transaction hash on the Latheon chain)" aria-label="Withdrawal transaction hash">
+      <button id="lookupBtn" class="secondary" data-i18n="list.find">Find</button>
+    </div>
+    <div id="lookupStatus" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card" aria-labelledby="addrH">
+    <h2 id="addrH" data-i18n="addr.h">Contracts</h2>
+    <div id="addrOut" class="small"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap" data-i18n="foot">Latheon is a privacy protocol in development. Testnets only; no audit; development keys. The chain is run by one operator (one sequencer, one validator); see docs/testnet.md on GitHub.</div>
+</footer>
+
+<script type="module">
+import { ethers } from 'https://esm.run/ethers';
+
+const I18N = {
+  en: {
+    'nav.tag': 'bridge', 'nav.demo': 'Demo',
+    'intro.h1': 'Bridge test LTH',
+    'intro.p': 'Move test LTH between Arbitrum Sepolia, where it is an ERC-20 token, and the Latheon test chain, where it is the coin you pay gas with. This page talks to the chain\'s own bridge contracts; nothing passes through our servers.',
+    'intro.pill': '● Testnet only · test LTH has no value · no audit',
+    'wallet.h': 'Wallet', 'wallet.connect': 'Connect wallet', 'wallet.none': 'Not connected.', 'wallet.connected': 'Connected: {a}', 'wallet.missing': 'No wallet found. Install MetaMask or another browser wallet.',
+    'bal.token': 'LTH token', 'bal.eth': 'ETH (gas)', 'bal.native': 'LTH (gas coin)',
+    'tab.deposit': 'Deposit to Latheon', 'tab.withdraw': 'Withdraw to Arbitrum Sepolia',
+    'dep.amount': 'Amount of LTH', 'dep.btn': 'Deposit',
+    'dep.n1': 'Two transactions on Arbitrum Sepolia: an approval for exactly this amount, then the deposit. Both need a little ETH there for gas.',
+    'dep.n2': 'The LTH arrives at the same address on the Latheon test chain, usually within a few minutes.',
+    'dep.n3': 'Use an ordinary wallet. A smart-contract wallet\'s deposit lands at a different (aliased) address.',
+    'dep.n4': 'Bridging is public: it links your Arbitrum Sepolia address to the same address on the Latheon chain. Privacy starts when you deposit into a pool and withdraw to a new address.',
+    'wd.amount': 'Amount of LTH', 'wd.dest': 'Receive on Arbitrum Sepolia at (your connected address if empty)', 'wd.btn': 'Start withdrawal',
+    'wd.n1': 'A withdrawal has two steps. First, a transaction on the Latheon chain (gas paid in LTH). Then, once the chain\'s validator has posted the state that includes it and that state is confirmed on Arbitrum Sepolia, a claim there releases the LTH token. Measured so far: about an hour between the two.',
+    'wd.n2': 'The claim is a transaction on Arbitrum Sepolia and needs a little ETH for gas. Anyone may send it; the LTH always goes to the address chosen in step one.',
+    'wd.n3': 'This page remembers your withdrawals in this browser. On another device, find one by its transaction hash below.',
+    'list.h': 'Your withdrawals', 'list.refresh': 'Check status', 'list.empty': 'No withdrawals in this browser yet.', 'list.find': 'Find',
+    'list.checked': 'Checked {t}.', 'list.checking': 'Checking…',
+    'addr.h': 'Contracts',
+    'foot': 'Latheon is a privacy protocol in development. Testnets only; no audit; development keys. The chain is run by one operator (one sequencer, one validator); see docs/testnet.md on GitHub.',
+    'st.waiting': 'waiting for confirmation', 'st.ready': 'ready to claim', 'st.claimed': 'claimed', 'st.unknown': 'not checked yet',
+    'wdi.to': 'to {a}', 'wdi.sent': 'sent {t}', 'wdi.elapsed': '{m} min ago', 'wdi.claim': 'Claim on Arbitrum Sepolia', 'wdi.l3tx': 'Latheon tx', 'wdi.l2tx': 'claim tx',
+    'msg.badAmount': 'Enter an amount greater than zero, with at most 18 decimals.',
+    'msg.badAddr': 'That is not a valid address.',
+    'msg.noToken': 'You hold {have} LTH on Arbitrum Sepolia; {need} needed.',
+    'msg.noEth': 'You have no ETH on Arbitrum Sepolia to pay gas. Get some from an Arbitrum Sepolia faucet first.',
+    'msg.noNative': 'You hold {have} LTH on the Latheon chain; {need} plus a little for gas needed.',
+    'msg.switch': 'Switching the wallet to {n}…',
+    'msg.approve': 'Step 1 of 2: approve the bridge to take {x} LTH (confirm in your wallet)…',
+    'msg.approved': 'Approved. Step 2 of 2: deposit (confirm in your wallet)…',
+    'msg.allowanceOk': 'The bridge may already take this amount. Deposit (confirm in your wallet)…',
+    'msg.depSent': 'Deposit sent on Arbitrum Sepolia: {tx}. Waiting for it to arrive on the Latheon chain ({m} min so far; usually a few minutes)…',
+    'msg.depArrived': 'Arrived: your LTH on the Latheon chain grew by {x} after {m} min. Deposit tx {tx}.',
+    'msg.depSlow': 'Not arrived after {m} min. It is not lost: the chain takes deposits from Arbitrum Sepolia once that block is final. Reload later and check your balance.',
+    'msg.wdSending': 'Withdrawal transaction on the Latheon chain (confirm in your wallet)…',
+    'msg.wdSent': 'Step 1 done: {x} LTH left the Latheon chain in {tx}. It appears in the list below; claim it there once it is confirmed (about an hour).',
+    'msg.claiming': 'Claiming on Arbitrum Sepolia (confirm in your wallet)…',
+    'msg.claimed': 'Claimed: {x} LTH released to {a} on Arbitrum Sepolia in {tx}.',
+    'msg.notWd': 'That transaction has no withdrawal to Arbitrum Sepolia in it.',
+    'msg.notFound': 'No such transaction on the Latheon chain.',
+    'msg.added': 'Added to the list.',
+    'msg.notReady': 'Not confirmed yet. Try again later.',
+    'msg.cfg': 'Could not load the network list: {e}',
+    'msg.rejected': 'Cancelled in the wallet.',
+  },
+  ru: {
+    'nav.tag': 'мост', 'nav.demo': 'Демо',
+    'intro.h1': 'Мост тестового LTH',
+    'intro.p': 'Переводите тестовый LTH между Arbitrum Sepolia, где это токен ERC-20, и тестовой сетью Latheon, где это монета для оплаты газа. Страница работает напрямую с контрактами моста сети, через наши серверы ничего не проходит.',
+    'intro.pill': '● Только тестовая сеть · тестовый LTH ничего не стоит · аудита нет',
+    'wallet.h': 'Кошелёк', 'wallet.connect': 'Подключить кошелёк', 'wallet.none': 'Не подключён.', 'wallet.connected': 'Подключён: {a}', 'wallet.missing': 'Кошелёк не найден. Установите MetaMask или другой браузерный кошелёк.',
+    'bal.token': 'Токен LTH', 'bal.eth': 'ETH (газ)', 'bal.native': 'LTH (монета сети)',
+    'tab.deposit': 'Депозит в Latheon', 'tab.withdraw': 'Вывод в Arbitrum Sepolia',
+    'dep.amount': 'Сколько LTH', 'dep.btn': 'Внести',
+    'dep.n1': 'Две транзакции в Arbitrum Sepolia: разрешение ровно на эту сумму, затем депозит. Для обеих нужно немного ETH там на газ.',
+    'dep.n2': 'LTH приходит на тот же адрес в тестовой сети Latheon, обычно за несколько минут.',
+    'dep.n3': 'Используйте обычный кошелёк. Депозит со смарт-контрактного кошелька придёт на другой (псевдоним) адрес.',
+    'dep.n4': 'Мост публичен: он связывает ваш адрес в Arbitrum Sepolia с тем же адресом в сети Latheon. Приватность начинается, когда вы вносите в пул и выводите на новый адрес.',
+    'wd.amount': 'Сколько LTH', 'wd.dest': 'Получить в Arbitrum Sepolia на адрес (если пусто — подключённый)', 'wd.btn': 'Начать вывод',
+    'wd.n1': 'Вывод состоит из двух шагов. Сначала транзакция в сети Latheon (газ в LTH). Потом, когда валидатор сети опубликует состояние с этой транзакцией и оно будет подтверждено в Arbitrum Sepolia, получение там выпускает токен LTH. По измерениям: около часа между шагами.',
+    'wd.n2': 'Получение — это транзакция в Arbitrum Sepolia, нужно немного ETH на газ. Отправить её может кто угодно; LTH всегда уходит на адрес, выбранный на первом шаге.',
+    'wd.n3': 'Страница запоминает ваши выводы в этом браузере. На другом устройстве найдите вывод по хэшу транзакции ниже.',
+    'list.h': 'Ваши выводы', 'list.refresh': 'Проверить статус', 'list.empty': 'В этом браузере выводов пока нет.', 'list.find': 'Найти',
+    'list.checked': 'Проверено в {t}.', 'list.checking': 'Проверяю…',
+    'addr.h': 'Контракты',
+    'foot': 'Latheon — протокол приватности в разработке. Только тестовые сети, аудита нет, ключи разработки. Сеть ведёт один оператор (один секвенсер, один валидатор); см. docs/testnet.md на GitHub.',
+    'st.waiting': 'ждёт подтверждения', 'st.ready': 'можно получить', 'st.claimed': 'получено', 'st.unknown': 'ещё не проверен',
+    'wdi.to': 'на {a}', 'wdi.sent': 'отправлен {t}', 'wdi.elapsed': '{m} мин назад', 'wdi.claim': 'Получить в Arbitrum Sepolia', 'wdi.l3tx': 'транзакция в Latheon', 'wdi.l2tx': 'транзакция получения',
+    'msg.badAmount': 'Введите сумму больше нуля, не больше 18 знаков после точки.',
+    'msg.badAddr': 'Это не адрес.',
+    'msg.noToken': 'У вас {have} LTH в Arbitrum Sepolia; нужно {need}.',
+    'msg.noEth': 'У вас нет ETH в Arbitrum Sepolia для оплаты газа. Сначала возьмите его в кране Arbitrum Sepolia.',
+    'msg.noNative': 'У вас {have} LTH в сети Latheon; нужно {need} и немного на газ.',
+    'msg.switch': 'Переключаю кошелёк на {n}…',
+    'msg.approve': 'Шаг 1 из 2: разрешите мосту взять {x} LTH (подтвердите в кошельке)…',
+    'msg.approved': 'Разрешено. Шаг 2 из 2: депозит (подтвердите в кошельке)…',
+    'msg.allowanceOk': 'Мосту уже разрешено взять эту сумму. Депозит (подтвердите в кошельке)…',
+    'msg.depSent': 'Депозит отправлен в Arbitrum Sepolia: {tx}. Жду поступления в сети Latheon ({m} мин; обычно несколько минут)…',
+    'msg.depArrived': 'Пришло: ваш LTH в сети Latheon вырос на {x} через {m} мин. Транзакция депозита {tx}.',
+    'msg.depSlow': 'За {m} мин не пришло. Средства не потеряны: сеть принимает депозиты из Arbitrum Sepolia, когда тот блок становится окончательным. Обновите страницу позже и проверьте баланс.',
+    'msg.wdSending': 'Транзакция вывода в сети Latheon (подтвердите в кошельке)…',
+    'msg.wdSent': 'Шаг 1 выполнен: {x} LTH ушли из сети Latheon в {tx}. Вывод появился в списке ниже; получите его там после подтверждения (около часа).',
+    'msg.claiming': 'Получение в Arbitrum Sepolia (подтвердите в кошельке)…',
+    'msg.claimed': 'Получено: {x} LTH выпущено на {a} в Arbitrum Sepolia, транзакция {tx}.',
+    'msg.notWd': 'В этой транзакции нет вывода в Arbitrum Sepolia.',
+    'msg.notFound': 'Такой транзакции в сети Latheon нет.',
+    'msg.added': 'Добавлено в список.',
+    'msg.notReady': 'Ещё не подтверждено. Попробуйте позже.',
+    'msg.cfg': 'Не удалось загрузить список сетей: {e}',
+    'msg.rejected': 'Отменено в кошельке.',
+  },
+  zh: {
+    'nav.tag': '跨链桥', 'nav.demo': '演示',
+    'intro.h1': '测试 LTH 跨链桥',
+    'intro.p': '在 Arbitrum Sepolia（LTH 为 ERC-20 代币）与 Latheon 测试链（LTH 为支付 gas 的原生币）之间转移测试 LTH。本页面直接调用该链自身的桥合约，不经过我们的服务器。',
+    'intro.pill': '● 仅测试网 · 测试 LTH 无价值 · 未经审计',
+    'wallet.h': '钱包', 'wallet.connect': '连接钱包', 'wallet.none': '未连接。', 'wallet.connected': '已连接：{a}', 'wallet.missing': '未找到钱包。请安装 MetaMask 或其他浏览器钱包。',
+    'bal.token': 'LTH 代币', 'bal.eth': 'ETH（gas）', 'bal.native': 'LTH（原生币）',
+    'tab.deposit': '存入 Latheon', 'tab.withdraw': '提回 Arbitrum Sepolia',
+    'dep.amount': 'LTH 数量', 'dep.btn': '存入',
+    'dep.n1': '在 Arbitrum Sepolia 上需要两笔交易：先授权恰好该数量，再存入。两笔都需要少量 ETH 支付 gas。',
+    'dep.n2': 'LTH 会到达 Latheon 测试链上的同一地址，通常几分钟内。',
+    'dep.n3': '请使用普通钱包。智能合约钱包的存款会到达另一个（别名）地址。',
+    'dep.n4': '跨链是公开的：它会把你在 Arbitrum Sepolia 的地址与 Latheon 链上的同一地址关联起来。隐私从你存入资金池并提取到新地址时开始。',
+    'wd.amount': 'LTH 数量', 'wd.dest': '在 Arbitrum Sepolia 的接收地址（留空则为已连接地址）', 'wd.btn': '开始提取',
+    'wd.n1': '提取分两步。第一步是在 Latheon 链上的交易（用 LTH 支付 gas）。之后，当链的验证者发布了包含该交易的状态，并在 Arbitrum Sepolia 上确认后，在那里领取即可释放 LTH 代币。目前实测两步之间约一小时。',
+    'wd.n2': '领取是 Arbitrum Sepolia 上的交易，需要少量 ETH 支付 gas。任何人都可以发送；LTH 总是转到第一步选定的地址。',
+    'wd.n3': '本页面会在此浏览器中记住你的提取。在其他设备上，可在下方通过交易哈希查找。',
+    'list.h': '你的提取', 'list.refresh': '检查状态', 'list.empty': '此浏览器中还没有提取记录。', 'list.find': '查找',
+    'list.checked': '已于 {t} 检查。', 'list.checking': '检查中…',
+    'addr.h': '合约',
+    'foot': 'Latheon 是一个开发中的隐私协议。仅测试网；未经审计；开发密钥。该链由一个运营者运行（一个排序器、一个验证者）；见 GitHub 上的 docs/testnet.md。',
+    'st.waiting': '等待确认', 'st.ready': '可以领取', 'st.claimed': '已领取', 'st.unknown': '尚未检查',
+    'wdi.to': '至 {a}', 'wdi.sent': '发送于 {t}', 'wdi.elapsed': '{m} 分钟前', 'wdi.claim': '在 Arbitrum Sepolia 领取', 'wdi.l3tx': 'Latheon 交易', 'wdi.l2tx': '领取交易',
+    'msg.badAmount': '请输入大于零的数量，最多 18 位小数。',
+    'msg.badAddr': '这不是有效地址。',
+    'msg.noToken': '你在 Arbitrum Sepolia 持有 {have} LTH；需要 {need}。',
+    'msg.noEth': '你在 Arbitrum Sepolia 上没有 ETH 支付 gas。请先从 Arbitrum Sepolia 水龙头获取。',
+    'msg.noNative': '你在 Latheon 链上持有 {have} LTH；需要 {need} 外加少量 gas。',
+    'msg.switch': '正在将钱包切换到 {n}…',
+    'msg.approve': '第 1 步（共 2 步）：授权桥合约取用 {x} LTH（请在钱包中确认）…',
+    'msg.approved': '已授权。第 2 步（共 2 步）：存入（请在钱包中确认）…',
+    'msg.allowanceOk': '桥合约已获授权取用该数量。存入（请在钱包中确认）…',
+    'msg.depSent': '存款已在 Arbitrum Sepolia 发送：{tx}。正在等待到达 Latheon 链（已 {m} 分钟；通常几分钟）…',
+    'msg.depArrived': '已到账：你在 Latheon 链上的 LTH 在 {m} 分钟后增加了 {x}。存款交易 {tx}。',
+    'msg.depSlow': '{m} 分钟后仍未到账。资金没有丢失：该链在 Arbitrum Sepolia 区块最终确定后才接收存款。请稍后刷新并检查余额。',
+    'msg.wdSending': '在 Latheon 链上发送提取交易（请在钱包中确认）…',
+    'msg.wdSent': '第 1 步完成：{x} LTH 已在 {tx} 中离开 Latheon 链。它显示在下方列表中；确认后（约一小时）在那里领取。',
+    'msg.claiming': '正在 Arbitrum Sepolia 领取（请在钱包中确认）…',
+    'msg.claimed': '已领取：{x} LTH 已在 Arbitrum Sepolia 释放到 {a}，交易 {tx}。',
+    'msg.notWd': '该交易中没有到 Arbitrum Sepolia 的提取。',
+    'msg.notFound': 'Latheon 链上没有这笔交易。',
+    'msg.added': '已加入列表。',
+    'msg.notReady': '尚未确认。请稍后再试。',
+    'msg.cfg': '无法加载网络列表：{e}',
+    'msg.rejected': '已在钱包中取消。',
+  },
+};
+let LANG = 'en';
+function t(k, v) { let s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) for (const [a, b] of Object.entries(v)) s = s.split('{' + a + '}').join(String(b)); return s; }
+function applyLang() {
+  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : LANG;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  $('langSelect').value = LANG;
+  if (!userAddress) $('walletStatus').textContent = t('wallet.none'); else $('walletStatus').textContent = t('wallet.connected', { a: short(userAddress) });
+  renderList();
+}
+
+const $ = (id) => document.getElementById(id);
+const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const ARBSYS = '0x0000000000000000000000000000000000000064';
+const NODE_INTERFACE = '0x00000000000000000000000000000000000000C8';
+const ERC20 = ['function balanceOf(address) view returns (uint256)', 'function allowance(address,address) view returns (uint256)', 'function approve(address,uint256) returns (bool)'];
+const INBOX = ['function depositERC20(uint256 amount) returns (uint256)'];
+const ROLLUP = ['function outbox() view returns (address)'];
+const OUTBOX = [
+  'function isSpent(uint256 index) view returns (bool)',
+  'function executeTransaction(bytes32[] proof, uint256 index, address l2Sender, address to, uint256 l2Block, uint256 l1Block, uint256 l2Timestamp, uint256 value, bytes data)',
+  'event SendRootUpdated(bytes32 indexed outputRoot, bytes32 indexed l2BlockHash)',
+];
+const ARBSYS_ABI = [
+  'function withdrawEth(address destination) payable returns (uint256)',
+  'event L2ToL1Tx(address caller, address indexed destination, uint256 indexed hash, uint256 indexed position, uint256 arbBlockNum, uint256 ethBlockNum, uint256 timestamp, uint256 callvalue, bytes data)',
+];
+const NODE_ABI = ['function constructOutboxProof(uint64 size, uint64 leaf) view returns (bytes32 send, bytes32 root, bytes32[] proof)'];
+const arbSysIface = new ethers.Interface(ARBSYS_ABI);
+const outboxIface = new ethers.Interface(OUTBOX);
+
+let child, parent, B, cfgChild;             // network entries and read-only providers
+let provider, signer, userAddress = null;
+let outboxAddr = null;
+let confirmedCache = null;                  // { sendCount, at } from the latest SendRootUpdated
+const STORE = 'latheon-bridge-withdrawals';
+
+function setStatus(id, kind, html) { const el = $(id); el.className = 'status ' + (kind || ''); el.innerHTML = html; }
+const txLink = (net, h) => `<a class="mono" href="${esc(net.explorerUrl)}/tx/${esc(h)}" target="_blank" rel="noopener">${esc(h.slice(0, 10))}…${esc(h.slice(-6))}</a>`;
+function errText(e) {
+  if (e && (e.code === 4001 || e.code === 'ACTION_REJECTED' || (e.info && e.info.error && e.info.error.code === 4001))) return t('msg.rejected');
+  return esc((e && (e.shortMessage || e.reason || e.message)) || String(e)).slice(0, 300);
+}
+function parseAmount(s) {
+  s = String(s || '').trim().replace(',', '.');
+  if (!/^\d+(\.\d{1,18})?$/.test(s)) return null;
+  const v = ethers.parseUnits(s, 18); return v > 0n ? v : null;
+}
+const fmt = (v) => { const s = ethers.formatUnits(v, 18); return s.endsWith('.0') ? s.slice(0, -2) : s; };
+// balances: at most 6 decimals, rounded down, so a balance is never shown higher than it is
+const fmtBal = (v) => { const s = fmt(v); const i = s.indexOf('.'); return i < 0 ? s : s.slice(0, i + 7).replace(/\.?0+$/, ''); };
+
+// ---------- config ----------
+async function loadConfig() {
+  const r = await fetch('../demo/deployments.json', { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  const entry = Object.entries(d.networks).find(([, n]) => n.bridge);
+  if (!entry) throw new Error('no network with a bridge');
+  cfgChild = entry[1]; B = cfgChild.bridge;
+  child = { name: cfgChild.name, chainId: cfgChild.chainId, chainIdHex: cfgChild.chainIdHex, rpcUrl: cfgChild.rpcUrl, explorerUrl: cfgChild.explorerUrl,
+    nativeCurrency: cfgChild.nativeCurrency || { name: 'LTH (test)', symbol: 'LTH', decimals: 18 } };
+  parent = { name: B.parentName, chainId: B.parentChainId, chainIdHex: '0x' + BigInt(B.parentChainId).toString(16), rpcUrl: B.parentRpcUrl, explorerUrl: B.parentExplorerUrl,
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 } };
+  child.rp = new ethers.JsonRpcProvider(child.rpcUrl, child.chainId, { staticNetwork: true });
+  parent.rp = new ethers.JsonRpcProvider(parent.rpcUrl, parent.chainId, { staticNetwork: true });
+  for (const id of ['parentNameOut', 'depFrom', 'wdTo']) $(id).textContent = parent.name;
+  for (const id of ['childNameOut', 'depTo', 'wdFrom']) $(id).textContent = child.name;
+  const a = (net, x) => `<a class="mono" href="${esc(net.explorerUrl)}/address/${esc(x)}" target="_blank" rel="noopener">${esc(x)}</a>`;
+  $('addrOut').innerHTML = [
+    ['LTH (ERC-20), ' + parent.name, a(parent, B.token)], ['Inbox, ' + parent.name, a(parent, B.inbox)], ['Rollup, ' + parent.name, a(parent, B.rollup)],
+    ['Bridge, ' + parent.name, a(parent, B.bridge)], ['ArbSys, ' + child.name, a(child, ARBSYS)],
+  ].map(([k, v]) => `<div class="row"><span class="label">${esc(k)}</span><span class="value">${v}</span></div>`).join('');
+}
+async function getOutbox() {
+  if (!outboxAddr) outboxAddr = await new ethers.Contract(B.rollup, ROLLUP, parent.rp).outbox();
+  return outboxAddr;
+}
+
+// ---------- wallet ----------
+async function connect() {
+  if (!window.ethereum) { $('walletStatus').textContent = t('wallet.missing'); return; }
+  provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send('eth_requestAccounts', []);
+  signer = await provider.getSigner(); userAddress = await signer.getAddress();
+  $('walletStatus').textContent = t('wallet.connected', { a: short(userAddress) });
+  $('balances').hidden = false; $('connectBtn').hidden = true; $('depositBtn').disabled = false; $('withdrawBtn').disabled = false;
+  if (window.ethereum.on) window.ethereum.on('accountsChanged', () => location.reload());
+  await refreshBalances(); renderList(); checkAll();
+}
+async function ensureChain(net) {
+  let cur = (await provider.getNetwork()).chainId;
+  if (cur === BigInt(net.chainId)) return;
+  try {
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: net.chainIdHex }] });
+  } catch (e) {
+    if (e && (e.code === 4902 || (e.data && e.data.originalError && e.data.originalError.code === 4902))) {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: net.chainIdHex, chainName: net.name, rpcUrls: [net.rpcUrl], nativeCurrency: net.nativeCurrency, blockExplorerUrls: [net.explorerUrl] }] });
+    } else throw e;
+  }
+  provider = new ethers.BrowserProvider(window.ethereum); signer = await provider.getSigner();
+  cur = (await provider.getNetwork()).chainId;
+  if (cur !== BigInt(net.chainId)) throw new Error('The wallet is still on chainId ' + cur + '.');
+}
+async function balances() {
+  const tok = new ethers.Contract(B.token, ERC20, parent.rp);
+  const [pl, pe, cl] = await Promise.all([tok.balanceOf(userAddress), parent.rp.getBalance(userAddress), child.rp.getBalance(userAddress)]);
+  return { pl, pe, cl };
+}
+async function refreshBalances() {
+  if (!userAddress) return;
+  try {
+    const b = await balances();
+    $('parentLthOut').textContent = fmtBal(b.pl) + ' LTH'; $('parentEthOut').textContent = fmtBal(b.pe) + ' ETH';
+    $('childLthOut').textContent = fmtBal(b.cl) + ' LTH';
+    return b;
+  } catch (e) { return null; }
+}
+
+// ---------- deposit ----------
+async function deposit() {
+  const amt = parseAmount($('depAmount').value);
+  if (!amt) return setStatus('depStatus', 'err', t('msg.badAmount'));
+  const btn = $('depositBtn'); btn.disabled = true;
+  try {
+    const b = await balances();
+    if (b.pl < amt) return setStatus('depStatus', 'err', t('msg.noToken', { have: fmt(b.pl), need: fmt(amt) }));
+    if (b.pe === 0n) return setStatus('depStatus', 'err', t('msg.noEth'));
+    setStatus('depStatus', 'info', t('msg.switch', { n: esc(parent.name) }));
+    await ensureChain(parent);
+    const tok = new ethers.Contract(B.token, ERC20, signer);
+    const allowance = await new ethers.Contract(B.token, ERC20, parent.rp).allowance(userAddress, B.inbox);
+    if (allowance < amt) {
+      setStatus('depStatus', 'info', t('msg.approve', { x: fmt(amt) }));
+      const ta = await tok.approve(B.inbox, amt); await ta.wait();
+      setStatus('depStatus', 'info', t('msg.approved'));
+    } else setStatus('depStatus', 'info', t('msg.allowanceOk'));
+    const before = b.cl;
+    const tx = await new ethers.Contract(B.inbox, INBOX, signer).depositERC20(amt);
+    const rc = await tx.wait();
+    if (rc.status !== 1) throw new Error('deposit reverted');
+    const t0 = Date.now(), mins = () => Math.max(0, Math.round((Date.now() - t0) / 60000));
+    setStatus('depStatus', 'info', t('msg.depSent', { tx: txLink(parent, tx.hash), m: 0 }));
+    refreshBalances();
+    for (;;) {
+      await sleep(B.pollMs || 10000);
+      const now = await child.rp.getBalance(userAddress).catch(() => null);
+      if (now !== null && now >= before + amt) { setStatus('depStatus', 'ok', t('msg.depArrived', { x: fmt(amt), m: mins(), tx: txLink(parent, tx.hash) })); break; }
+      if (Date.now() - t0 > (B.depositWaitMin || 45) * 60000) { setStatus('depStatus', 'err', t('msg.depSlow', { m: mins() })); break; }
+      setStatus('depStatus', 'info', t('msg.depSent', { tx: txLink(parent, tx.hash), m: mins() }));
+    }
+    refreshBalances();
+  } catch (e) { setStatus('depStatus', 'err', errText(e)); }
+  finally { btn.disabled = false; }
+}
+
+// ---------- withdrawals: storage ----------
+function loadList() { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) { return []; } }
+function saveList(l) { try { localStorage.setItem(STORE, JSON.stringify(l)); } catch (e) {} }
+let LIST = loadList();
+function upsert(w) {
+  const i = LIST.findIndex((x) => x.l3Tx === w.l3Tx);
+  if (i >= 0) LIST[i] = Object.assign(LIST[i], w); else LIST.unshift(w);
+  saveList(LIST); renderList();
+}
+function renderList() {
+  const ul = $('wdList'); if (!ul) return;
+  $('wdEmpty').hidden = LIST.length > 0;
+  ul.innerHTML = LIST.map((w) => {
+    const st = w.status || 'unknown';
+    const ago = w.at ? t('wdi.elapsed', { m: Math.max(0, Math.round((Date.now() - w.at) / 60000)) }) : '';
+    const claim = st === 'ready' ? `<div class="btn-row"><button class="small" data-claim="${esc(w.l3Tx)}">${esc(t('wdi.claim'))}</button></div>` : '';
+    const links = [child ? t('wdi.l3tx') + ' ' + txLink(child, w.l3Tx) : '', w.l2Tx && parent ? t('wdi.l2tx') + ' ' + txLink(parent, w.l2Tx) : ''].filter(Boolean).join(' · ');
+    return `<li class="wd" data-tx="${esc(w.l3Tx)}"><div class="wd-head"><span class="wd-amt">${esc(fmt(BigInt(w.value)))} LTH</span><span class="badge ${esc(st)}">${esc(t('st.' + st))}</span></div>
+      <div class="wd-meta">${esc(t('wdi.to', { a: w.dest }))} · ${esc(ago)}</div><div class="wd-meta">${links}</div>${claim}</li>`;
+  }).join('');
+}
+
+// ---------- withdrawals: chain reads ----------
+async function readWithdrawal(l3Tx) {
+  const rc = await child.rp.getTransactionReceipt(l3Tx);
+  if (!rc) return { error: 'notFound' };
+  const log = rc.logs.find((l) => l.address.toLowerCase() === ARBSYS.toLowerCase() && l.topics[0] === arbSysIface.getEvent('L2ToL1Tx').topicHash);
+  if (!log) return { error: 'notWd' };
+  const ev = arbSysIface.parseLog(log).args;
+  const blk = await child.rp.getBlock(rc.blockNumber).catch(() => null);
+  return { w: {
+    l3Tx, caller: ev.caller, dest: ev.destination, position: ev.position.toString(), arbBlockNum: ev.arbBlockNum.toString(), ethBlockNum: ev.ethBlockNum.toString(),
+    timestamp: ev.timestamp.toString(), value: ev.callvalue.toString(), data: ev.data, at: blk ? Number(blk.timestamp) * 1000 : Date.now(),
+  } };
+}
+// The latest send count the parent chain has accepted: the newest SendRootUpdated event of the outbox names a block of
+// the Latheon chain; that block's sendCount says how many withdrawals are covered. Logs are read backwards in windows.
+async function latestConfirmedSendCount(fromBlockHint) {
+  if (confirmedCache && Date.now() - confirmedCache.at < 30000) return confirmedCache.sendCount;
+  const outbox = await getOutbox();
+  const latest = await parent.rp.getBlockNumber();
+  const floor = Math.max(0, latest - (B.maxLookbackBlocks || 3000000), Number(fromBlockHint || 0) > latest ? 0 : Number(fromBlockHint || 0));
+  const topic = outboxIface.getEvent('SendRootUpdated').topicHash;
+  let to = latest, win = B.logWindow || 500000, found = null;
+  while (to >= floor && !found) {
+    const from = Math.max(floor, to - win + 1);
+    let logs;
+    try { logs = await parent.rp.getLogs({ address: outbox, topics: [topic], fromBlock: from, toBlock: to }); }
+    catch (e) { if (win > 2000) { win = Math.floor(win / 4); continue; } throw e; }
+    if (logs.length) found = logs[logs.length - 1];
+    to = from - 1;
+  }
+  let sendCount = -1n;
+  if (found) {
+    const blk = await child.rp.send('eth_getBlockByHash', [found.topics[2], false]);
+    if (blk && blk.sendCount != null) sendCount = BigInt(blk.sendCount);
+  }
+  confirmedCache = { sendCount, at: Date.now() };
+  return sendCount;
+}
+async function statusOf(w) {
+  const outbox = new ethers.Contract(await getOutbox(), OUTBOX, parent.rp);
+  if (await outbox.isSpent(BigInt(w.position))) return 'claimed';
+  const sc = await latestConfirmedSendCount(w.ethBlockNum);
+  return sc > BigInt(w.position) ? 'ready' : 'waiting';
+}
+let checking = false;
+async function checkAll() {
+  if (checking || !LIST.length) return; checking = true;
+  $('listInfo').textContent = t('list.checking'); confirmedCache = null;
+  try {
+    for (const w of LIST) { if (w.status === 'claimed') continue; try { w.status = await statusOf(w); } catch (e) { /* keep the old status */ } }
+    saveList(LIST); renderList();
+    $('listInfo').textContent = t('list.checked', { t: new Date().toLocaleTimeString() });
+  } finally { checking = false; }
+}
+
+// ---------- withdrawals: actions ----------
+async function withdraw() {
+  const amt = parseAmount($('wdAmount').value);
+  if (!amt) return setStatus('wdStatus', 'err', t('msg.badAmount'));
+  let dest = $('wdDest').value.trim() || userAddress;
+  if (!ethers.isAddress(dest)) return setStatus('wdStatus', 'err', t('msg.badAddr'));
+  dest = ethers.getAddress(dest.toLowerCase());
+  const btn = $('withdrawBtn'); btn.disabled = true;
+  try {
+    const b = await balances();
+    if (b.cl <= amt) return setStatus('wdStatus', 'err', t('msg.noNative', { have: fmtBal(b.cl), need: fmt(amt) }));
+    setStatus('wdStatus', 'info', t('msg.switch', { n: esc(child.name) }));
+    await ensureChain(child);
+    setStatus('wdStatus', 'info', t('msg.wdSending'));
+    const tx = await new ethers.Contract(ARBSYS, ARBSYS_ABI, signer).withdrawEth(dest, { value: amt });
+    const rc = await tx.wait();
+    if (rc.status !== 1) throw new Error('withdrawal reverted');
+    const r = await readWithdrawal(tx.hash);
+    if (r.error) throw new Error(t('msg.' + r.error));
+    r.w.status = 'waiting'; r.w.at = Date.now(); upsert(r.w);
+    setStatus('wdStatus', 'ok', t('msg.wdSent', { x: fmt(amt), tx: txLink(child, tx.hash) }));
+    refreshBalances();
+  } catch (e) { setStatus('wdStatus', 'err', errText(e)); }
+  finally { btn.disabled = false; }
+}
+async function claim(l3Tx, btn) {
+  const w = LIST.find((x) => x.l3Tx === l3Tx); if (!w) return;
+  if (btn) btn.disabled = true;
+  try {
+    if (!userAddress) await connect();
+    confirmedCache = null;
+    const st = await statusOf(w);
+    if (st !== 'ready') { w.status = st; saveList(LIST); renderList(); if (st === 'waiting') setStatus('lookupStatus', 'info', t('msg.notReady')); return; }
+    const size = await latestConfirmedSendCount(w.ethBlockNum);
+    const node = new ethers.Contract(NODE_INTERFACE, NODE_ABI, child.rp);
+    const pr = await node.constructOutboxProof(size, BigInt(w.position));
+    setStatus('lookupStatus', 'info', t('msg.claiming'));
+    await ensureChain(parent);
+    const outbox = new ethers.Contract(await getOutbox(), OUTBOX, signer);
+    const tx = await outbox.executeTransaction([...pr.proof], BigInt(w.position), w.caller, w.dest, BigInt(w.arbBlockNum), BigInt(w.ethBlockNum), BigInt(w.timestamp), BigInt(w.value), w.data);
+    const rc = await tx.wait();
+    if (rc.status !== 1) throw new Error('claim reverted');
+    w.status = 'claimed'; w.l2Tx = tx.hash; saveList(LIST); renderList();
+    setStatus('lookupStatus', 'ok', t('msg.claimed', { x: fmt(BigInt(w.value)), a: esc(w.dest), tx: txLink(parent, tx.hash) }));
+    refreshBalances();
+  } catch (e) { setStatus('lookupStatus', 'err', errText(e)); if (btn) btn.disabled = false; }
+}
+async function lookup() {
+  const h = $('lookupInput').value.trim();
+  if (!/^0x[0-9a-fA-F]{64}$/.test(h)) return setStatus('lookupStatus', 'err', t('msg.notFound'));
+  try {
+    const r = await readWithdrawal(h);
+    if (r.error) return setStatus('lookupStatus', 'err', t('msg.' + r.error));
+    r.w.status = await statusOf(r.w).catch(() => 'unknown');
+    upsert(r.w); setStatus('lookupStatus', 'ok', t('msg.added')); $('lookupInput').value = '';
+  } catch (e) { setStatus('lookupStatus', 'err', errText(e)); }
+}
+
+// ---------- wiring ----------
+function showTab(which) {
+  for (const k of ['deposit', 'withdraw']) { $('tab-' + k).setAttribute('aria-selected', String(k === which)); $('panel-' + k).hidden = k !== which; }
+}
+$('tab-deposit').onclick = () => showTab('deposit');
+$('tab-withdraw').onclick = () => showTab('withdraw');
+$('connectBtn').onclick = () => connect().catch((e) => { $('walletStatus').textContent = errText(e); });
+$('depositBtn').onclick = deposit;
+$('withdrawBtn').onclick = withdraw;
+$('refreshBtn').onclick = () => checkAll();
+$('lookupBtn').onclick = lookup;
+$('wdList').addEventListener('click', (e) => { const b = e.target.closest('button[data-claim]'); if (b) claim(b.dataset.claim, b); });
+$('langSelect').onchange = () => { LANG = $('langSelect').value; try { localStorage.setItem('latheon-lang', LANG); } catch (e) {} applyLang(); };
+try { const s = localStorage.getItem('latheon-lang'); if (s && I18N[s]) LANG = s; } catch (e) {}
+if (location.hash === '#withdraw') showTab('withdraw');
+applyLang();
+loadConfig().then(() => { renderList(); checkAll(); setInterval(() => { refreshBalances(); checkAll(); }, 60000); })
+  .catch((e) => { setStatus('depStatus', 'err', t('msg.cfg', { e: errText(e) })); });
+</script>
+</body>
+</html>
