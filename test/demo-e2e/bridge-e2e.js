@@ -87,6 +87,7 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
       return page;
     };
     let current = 'ethereum-sepolia';
+    let failNextSend = false; const sentGas = [];
     const known = new Set(['parent']); const added = [];
     const ctxs = [];
     const newCtx = async () => {
@@ -103,10 +104,11 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
             current = k; return JSON.stringify({ result: null });
           }
           if (current === 'ethereum-sepolia') return JSON.stringify({ error: { code: -32000, message: 'wallet on a chain this test does not run' } });
+          if (method === 'eth_sendTransaction') { sentGas.push(params[0].gas); if (failNextSend) { failNextSend = false; return JSON.stringify({ error: { code: -32603, message: 'Internal JSON-RPC error.', data: { code: -32000, message: 'header not found' } } }); } }
           return JSON.stringify({ result: await prov[current].request({ method, params }) });
         } catch (e) { return JSON.stringify({ error: { code: e.code || -32000, message: e.message || String(e) } }); }
       });
-      await ctx.addInitScript(() => { window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { const r = JSON.parse(await window.__rpc(method, JSON.stringify(params || []))); if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; throw e; } return r.result; }, on() {}, removeListener() {} }; });
+      await ctx.addInitScript(() => { window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { const r = JSON.parse(await window.__rpc(method, JSON.stringify(params || []))); if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; if (r.error.data) e.data = r.error.data; throw e; } return r.result; }, on() {}, removeListener() {} }; });
       await ctx.route('**/*', async (route) => {
         const url = route.request().url();
         if (url === 'https://latheon.test/bridge/') return route.fulfill({ status: 200, contentType: 'text/html', body: rd(BRIDGE + '/index.html') });
@@ -154,6 +156,11 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
     await waitText(page, '#depStatus', /greater than zero/);
     rec('B3. Malformed amount gets a clear message', true);
 
+    failNextSend = true;
+    await page.fill('#depAmount', '25.5'); await page.click('#depositBtn');
+    await waitText(page, '#depStatus', /Approval failed/);
+    const ferr = await page.textContent('#depStatus');
+    rec('B3a. A wallet RPC error on the approval is named by step, shows the inner message and nothing is spent', /Approval failed — .*header not found/.test(ferr) && /Nothing was spent/.test(ferr) && (await token.allowance(user, await inbox.getAddress())) === 0n, ferr.slice(0, 110));
     const childBefore = await childBal(user);
     await page.fill('#depAmount', '25.5'); await page.click('#depositBtn');
     await waitText(page, '#depStatus', /Arrived/, 90000);
@@ -161,6 +168,7 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
     rec('B4. Deposit 25.5 LTH: approve exactly the amount, depositERC20, the wallet switched to the parent chain, the page saw it arrive',
       (await tokenBal(await inbox.getAddress())) === 255n * E18 / 10n && allow === 0n && (await childBal(user)) - childBefore === 255n * E18 / 10n && current === 'parent' && credited.length === 1,
       (await page.textContent('#depStatus')).slice(0, 90));
+    rec('B4a. Every wallet transaction carried a gas limit estimated by the page (the wallet need not estimate)', sentGas.length >= 3 && sentGas.every((g) => g && BigInt(g) > 21000n), sentGas.join(','));
 
     await page.click('#tab-withdraw');
     await page.fill('#wdAmount', '40'); await page.click('#withdrawBtn');

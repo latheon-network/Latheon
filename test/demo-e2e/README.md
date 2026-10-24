@@ -77,8 +77,8 @@ that does not answer shows a dash and a link to its explorer, and there are no J
 Covers `bridge/index.html` on two local chains: a parent (chainId 421614) with the real `LatheonToken` and stand-ins for the
 Orbit inbox, rollup and outbox, and a child (the Latheon chain id) with stand-ins for `ArbSys` and `NodeInterface` placed at
 their fixed addresses (`fixtures/BridgeMocks.sol`). The test plays the chain's part: it credits deposits on the child and
-confirms withdrawals on the parent. 16 checks: loading the bridge entry from `deployments.json`; balances on both chains;
-refusals before any transaction (amount above the balance, malformed amount, bad address); a deposit with an approval for
+confirms withdrawals on the parent. 18 checks: loading the bridge entry from `deployments.json`; balances on both chains;
+refusals before any transaction (amount above the balance, malformed amount, bad address); a wallet RPC error named by step with its inner message; gas limits estimated by the page; a deposit with an approval for
 exactly the amount, seen arriving; a withdrawal through `withdrawEth` (the wallet adds the chain with LTH as its coin);
 waiting until a state covering it is confirmed, then the claim through `executeTransaction` with the right fields; finding a
 withdrawal by its hash in another browser; RU/ZH; phone width; no JavaScript errors.

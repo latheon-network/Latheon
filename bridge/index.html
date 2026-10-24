@@ -258,6 +258,8 @@ const I18N = {
     'msg.notReady': 'Not confirmed yet. Try again later.',
     'msg.cfg': 'Could not load the network list: {e}',
     'msg.rejected': 'Cancelled in the wallet.',
+    'stage.read': 'Reading the chain failed', 'stage.switch': 'Switching the wallet\'s network failed', 'stage.approve': 'Approval failed', 'stage.deposit': 'Deposit failed', 'stage.withdraw': 'Withdrawal failed', 'stage.claim': 'Claim failed',
+    'msg.retryHint': 'Nothing was spent if no transaction link is shown. Try again; if it repeats, set your wallet\'s RPC for this network to the one listed under Contracts.',
   },
   ru: {
     'nav.tag': 'мост', 'nav.demo': 'Демо',
@@ -304,6 +306,8 @@ const I18N = {
     'msg.notReady': 'Ещё не подтверждено. Попробуйте позже.',
     'msg.cfg': 'Не удалось загрузить список сетей: {e}',
     'msg.rejected': 'Отменено в кошельке.',
+    'stage.read': 'Не удалось прочитать данные сети', 'stage.switch': 'Не удалось переключить сеть в кошельке', 'stage.approve': 'Разрешение не прошло', 'stage.deposit': 'Депозит не прошёл', 'stage.withdraw': 'Вывод не прошёл', 'stage.claim': 'Получение не прошло',
+    'msg.retryHint': 'Если ссылки на транзакцию нет, ничего не потрачено. Попробуйте ещё раз; если повторяется, укажите в кошельке для этой сети RPC из раздела «Контракты».',
   },
   zh: {
     'nav.tag': '跨链桥', 'nav.demo': '演示',
@@ -350,6 +354,8 @@ const I18N = {
     'msg.notReady': '尚未确认。请稍后再试。',
     'msg.cfg': '无法加载网络列表：{e}',
     'msg.rejected': '已在钱包中取消。',
+    'stage.read': '读取链上数据失败', 'stage.switch': '切换钱包网络失败', 'stage.approve': '授权失败', 'stage.deposit': '存入失败', 'stage.withdraw': '提取失败', 'stage.claim': '领取失败',
+    'msg.retryHint': '如果没有显示交易链接，则未花费任何资金。请重试；如果反复出现，请在钱包中将该网络的 RPC 设置为“合约”部分列出的地址。',
   },
 };
 let LANG = 'en';
@@ -392,9 +398,23 @@ const STORE = 'latheon-bridge-withdrawals';
 
 function setStatus(id, kind, html) { const el = $(id); el.className = 'status ' + (kind || ''); el.innerHTML = html; }
 const txLink = (net, h) => `<a class="mono" href="${esc(net.explorerUrl)}/tx/${esc(h)}" target="_blank" rel="noopener">${esc(h.slice(0, 10))}…${esc(h.slice(-6))}</a>`;
-function errText(e) {
+function errText(e, stage) {
   if (e && (e.code === 4001 || e.code === 'ACTION_REJECTED' || (e.info && e.info.error && e.info.error.code === 4001))) return t('msg.rejected');
-  return esc((e && (e.shortMessage || e.reason || e.message)) || String(e)).slice(0, 300);
+  // ethers wraps wallet and RPC errors; show the innermost message too ("could not coalesce error" alone says nothing)
+  const ie = e && ((e.info && e.info.error) || e.error);
+  const inner = [ie && ie.message, ie && ie.data && ie.data.message, e && e.data && e.data.message].filter(Boolean);
+  let msg = (e && (e.shortMessage || e.reason || e.message)) || String(e);
+  for (const m of inner) if (!msg.includes(m)) msg += ': ' + m;
+  return (stage ? '<b>' + esc(t('stage.' + stage)) + '</b> — ' : '') + esc(msg).slice(0, 400) + (stage && stage !== 'read' ? ' ' + esc(t('msg.retryHint')) : '');
+}
+// Read calls go to the public RPC; a transient failure there is retried a few times before it is shown.
+async function retry(fn, n = 3) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= n - 1 || (e && e.code === 'CALL_EXCEPTION')) throw e; await sleep(1500 * (i + 1)); } } }
+// Sends through the wallet with a gas limit estimated on the public RPC (plus 30%), so the wallet does not have to
+// estimate through its own RPC endpoint, which is where flaky errors usually come from.
+async function sendTx(addr, abi, method, args, readProvider, overrides = {}) {
+  const ro = new ethers.Contract(addr, abi, readProvider);
+  const gas = await retry(() => ro[method].estimateGas(...args, Object.assign({ from: userAddress }, overrides)));
+  return new ethers.Contract(addr, abi, signer)[method](...args, Object.assign({ gasLimit: gas * 13n / 10n }, overrides));
 }
 function parseAmount(s) {
   s = String(s || '').trim().replace(',', '.');
@@ -425,6 +445,7 @@ async function loadConfig() {
   $('addrOut').innerHTML = [
     ['LTH (ERC-20), ' + parent.name, a(parent, B.token)], ['Inbox, ' + parent.name, a(parent, B.inbox)], ['Rollup, ' + parent.name, a(parent, B.rollup)],
     ['Bridge, ' + parent.name, a(parent, B.bridge)], ['ArbSys, ' + child.name, a(child, ARBSYS)],
+    ['RPC, ' + parent.name, '<span class="mono">' + esc(parent.rpcUrl) + '</span>'], ['RPC, ' + child.name, '<span class="mono">' + esc(child.rpcUrl) + '</span>'],
   ].map(([k, v]) => `<div class="row"><span class="label">${esc(k)}</span><span class="value">${v}</span></div>`).join('');
 }
 async function getOutbox() {
@@ -477,23 +498,27 @@ async function deposit() {
   const amt = parseAmount($('depAmount').value);
   if (!amt) return setStatus('depStatus', 'err', t('msg.badAmount'));
   const btn = $('depositBtn'); btn.disabled = true;
+  let stage = 'read';
   try {
-    const b = await balances();
+    const b = await retry(balances);
     if (b.pl < amt) return setStatus('depStatus', 'err', t('msg.noToken', { have: fmt(b.pl), need: fmt(amt) }));
     if (b.pe === 0n) return setStatus('depStatus', 'err', t('msg.noEth'));
-    setStatus('depStatus', 'info', t('msg.switch', { n: esc(parent.name) }));
+    stage = 'switch'; setStatus('depStatus', 'info', t('msg.switch', { n: esc(parent.name) }));
     await ensureChain(parent);
-    const tok = new ethers.Contract(B.token, ERC20, signer);
-    const allowance = await new ethers.Contract(B.token, ERC20, parent.rp).allowance(userAddress, B.inbox);
+    stage = 'read';
+    const allowance = await retry(() => new ethers.Contract(B.token, ERC20, parent.rp).allowance(userAddress, B.inbox));
     if (allowance < amt) {
-      setStatus('depStatus', 'info', t('msg.approve', { x: fmt(amt) }));
-      const ta = await tok.approve(B.inbox, amt); await ta.wait();
+      stage = 'approve'; setStatus('depStatus', 'info', t('msg.approve', { x: fmt(amt) }));
+      const ta = await sendTx(B.token, ERC20, 'approve', [B.inbox, amt], parent.rp);
+      const ra = await ta.wait(); if (ra.status !== 1) throw new Error('approve reverted');
       setStatus('depStatus', 'info', t('msg.approved'));
     } else setStatus('depStatus', 'info', t('msg.allowanceOk'));
     const before = b.cl;
-    const tx = await new ethers.Contract(B.inbox, INBOX, signer).depositERC20(amt);
+    stage = 'deposit';
+    const tx = await sendTx(B.inbox, INBOX, 'depositERC20', [amt], parent.rp);
     const rc = await tx.wait();
     if (rc.status !== 1) throw new Error('deposit reverted');
+    stage = null;
     const t0 = Date.now(), mins = () => Math.max(0, Math.round((Date.now() - t0) / 60000));
     setStatus('depStatus', 'info', t('msg.depSent', { tx: txLink(parent, tx.hash), m: 0 }));
     refreshBalances();
@@ -505,7 +530,7 @@ async function deposit() {
       setStatus('depStatus', 'info', t('msg.depSent', { tx: txLink(parent, tx.hash), m: mins() }));
     }
     refreshBalances();
-  } catch (e) { setStatus('depStatus', 'err', errText(e)); }
+  } catch (e) { setStatus('depStatus', 'err', errText(e, stage)); }
   finally { btn.disabled = false; }
 }
 
@@ -594,13 +619,14 @@ async function withdraw() {
   if (!ethers.isAddress(dest)) return setStatus('wdStatus', 'err', t('msg.badAddr'));
   dest = ethers.getAddress(dest.toLowerCase());
   const btn = $('withdrawBtn'); btn.disabled = true;
+  let stage = 'read';
   try {
-    const b = await balances();
+    const b = await retry(balances);
     if (b.cl <= amt) return setStatus('wdStatus', 'err', t('msg.noNative', { have: fmtBal(b.cl), need: fmt(amt) }));
-    setStatus('wdStatus', 'info', t('msg.switch', { n: esc(child.name) }));
+    stage = 'switch'; setStatus('wdStatus', 'info', t('msg.switch', { n: esc(child.name) }));
     await ensureChain(child);
-    setStatus('wdStatus', 'info', t('msg.wdSending'));
-    const tx = await new ethers.Contract(ARBSYS, ARBSYS_ABI, signer).withdrawEth(dest, { value: amt });
+    stage = 'withdraw'; setStatus('wdStatus', 'info', t('msg.wdSending'));
+    const tx = await sendTx(ARBSYS, ARBSYS_ABI, 'withdrawEth', [dest], child.rp, { value: amt });
     const rc = await tx.wait();
     if (rc.status !== 1) throw new Error('withdrawal reverted');
     const r = await readWithdrawal(tx.hash);
@@ -608,12 +634,13 @@ async function withdraw() {
     r.w.status = 'waiting'; r.w.at = Date.now(); upsert(r.w);
     setStatus('wdStatus', 'ok', t('msg.wdSent', { x: fmt(amt), tx: txLink(child, tx.hash) }));
     refreshBalances();
-  } catch (e) { setStatus('wdStatus', 'err', errText(e)); }
+  } catch (e) { setStatus('wdStatus', 'err', errText(e, stage)); }
   finally { btn.disabled = false; }
 }
 async function claim(l3Tx, btn) {
   const w = LIST.find((x) => x.l3Tx === l3Tx); if (!w) return;
   if (btn) btn.disabled = true;
+  let stage = 'read';
   try {
     if (!userAddress) await connect();
     confirmedCache = null;
@@ -623,15 +650,15 @@ async function claim(l3Tx, btn) {
     const node = new ethers.Contract(NODE_INTERFACE, NODE_ABI, child.rp);
     const pr = await node.constructOutboxProof(size, BigInt(w.position));
     setStatus('lookupStatus', 'info', t('msg.claiming'));
-    await ensureChain(parent);
-    const outbox = new ethers.Contract(await getOutbox(), OUTBOX, signer);
-    const tx = await outbox.executeTransaction([...pr.proof], BigInt(w.position), w.caller, w.dest, BigInt(w.arbBlockNum), BigInt(w.ethBlockNum), BigInt(w.timestamp), BigInt(w.value), w.data);
+    stage = 'switch'; await ensureChain(parent);
+    stage = 'claim';
+    const tx = await sendTx(await getOutbox(), OUTBOX, 'executeTransaction', [[...pr.proof], BigInt(w.position), w.caller, w.dest, BigInt(w.arbBlockNum), BigInt(w.ethBlockNum), BigInt(w.timestamp), BigInt(w.value), w.data], parent.rp);
     const rc = await tx.wait();
     if (rc.status !== 1) throw new Error('claim reverted');
     w.status = 'claimed'; w.l2Tx = tx.hash; saveList(LIST); renderList();
     setStatus('lookupStatus', 'ok', t('msg.claimed', { x: fmt(BigInt(w.value)), a: esc(w.dest), tx: txLink(parent, tx.hash) }));
     refreshBalances();
-  } catch (e) { setStatus('lookupStatus', 'err', errText(e)); if (btn) btn.disabled = false; }
+  } catch (e) { setStatus('lookupStatus', 'err', errText(e, stage)); if (btn) btn.disabled = false; }
 }
 async function lookup() {
   const h = $('lookupInput').value.trim();
