@@ -34,8 +34,8 @@ The demo adds the network to your wallet when you connect. To add it by hand, us
 
 The page https://latheon.xyz/bridge moves test LTH between Arbitrum Sepolia, where it is the ERC-20 token below, and this chain, where it is the gas coin. It calls the chain's own bridge contracts from your wallet; no server of ours is involved.
 
-- **Deposit** (Arbitrum Sepolia → this chain): `approve` for exactly the amount, then `depositERC20` on the inbox. The LTH arrives at the same address here once the chain has read that Arbitrum Sepolia block; when we moved 50,000,000 LTH this way it took a few minutes. Use an ordinary wallet: a smart-contract wallet's deposit is credited to an aliased address.
-- **Withdrawal** (this chain → Arbitrum Sepolia): `ArbSys.withdrawEth` here, then, once the validator's assertion that includes it is confirmed on Arbitrum Sepolia (about an hour, see *How it is run*), `Outbox.executeTransaction` there releases the token. The page lists your withdrawals, shows when one can be claimed and sends the claim; a withdrawal can also be found by its transaction hash. Both steps need gas: LTH here, a little ETH on Arbitrum Sepolia for the claim.
+- **Deposit** (Arbitrum Sepolia → this chain): `approve` for exactly the amount, then `depositERC20` on the inbox. The LTH arrives at the same address here once the chain has read that Arbitrum Sepolia block; when we moved 50,000,000 LTH this way it took a few minutes, and the 10 and 100 LTH deposits made through the page on 24 October arrived in under a minute. Use an ordinary wallet: a smart-contract wallet's deposit is credited to an aliased address.
+- **Withdrawal** (this chain → Arbitrum Sepolia): `ArbSys.withdrawEth` here, then, once the validator's assertion that includes it is confirmed on Arbitrum Sepolia (about two hours at today's low traffic, see *How it is run*), `Outbox.executeTransaction` there releases the token. The page lists your withdrawals, shows when one can be claimed and sends the claim; a withdrawal can also be found by its transaction hash. Both steps need gas: LTH here, a little ETH on Arbitrum Sepolia for the claim.
 - **Bridging is public.** It links your Arbitrum Sepolia address to the same address here. Privacy comes from the pools (deposit, then withdraw to a new address), not from the bridge; private funding of the chain is an open question (`docs/bridge-privacy-design.md`).
 
 Machine-readable: the `bridge` entry of this network in [`sdk/deployments.json`](../sdk/deployments.json).
@@ -55,7 +55,7 @@ Built from Latheon commit `180b4b8` (solc 0.8.37, optimizer 200 runs, EVM versio
 | Disclosure verifier | `0xB86360CBDE78664bb1674c367391E9d79c37F294` |
 | PoseidonT3 library | `0x8caC8633D6399cDe24d58e1c42cfc55ab00830CF` |
 
-Chain contracts on Arbitrum Sepolia: rollup `0xdDcA9a000d2DE69D6C11050B9e8fe90B5e02Bd89`, inbox `0x3F306353543EB48F419C8F8a19BfAd9fcB86aB17`, bridge `0x4D1FdE71BAd635148727694FEa04f24CAf881990`, sequencer inbox `0x3b7f5F7fF9b38DFb848d9a4724dD45da7647Bea2`, test LTH token `0xcB44A83A9AD6dE27af7936A4fEbBEDb25c58db02`.
+Chain contracts on Arbitrum Sepolia: rollup `0xdDcA9a000d2DE69D6C11050B9e8fe90B5e02Bd89`, inbox `0x3F306353543EB48F419C8F8a19BfAd9fcB86aB17`, bridge `0x4D1FdE71BAd635148727694FEa04f24CAf881990`, outbox `0x61615B1b8493df67846C6BF17ab2EC4Fcb1775f7`, sequencer inbox `0x3b7f5F7fF9b38DFb848d9a4724dD45da7647Bea2`, test LTH token `0xcB44A83A9AD6dE27af7936A4fEbBEDb25c58db02`.
 
 ## Measured gas
 
@@ -71,7 +71,7 @@ At the chain's minimum price of 0.1 gwei these cost about 0.001 and 0.003 LTH. F
 ## How it is run
 
 - One rented server runs the node (Arbitrum Nitro), the explorer (Blockscout), the faucet and an HTTPS proxy. Setup, scripts and the CI rehearsals: [latheon-network/l2-eval-ci](https://github.com/latheon-network/l2-eval-ci), folder `testnet/`.
-- The node is the only sequencer and the only validator. Its assertions on Arbitrum Sepolia are confirmed after the challenge period (30 minutes), so a withdrawal from the chain to Arbitrum Sepolia becomes executable about an hour after it is sent.
+- The node is the only sequencer and the only validator. Its assertions on Arbitrum Sepolia are confirmed after the challenge period (30 minutes), so a withdrawal from the chain to Arbitrum Sepolia becomes executable after three waits in a row: the batch poster posts the batch that contains it (at low traffic it waits up to about an hour to fill a batch), the validator posts an assertion covering that batch (it checks every 15 minutes), and the assertion is confirmed after the challenge period. Measured on 24 October 2026: a withdrawal sent at 13:33 UTC was in a batch at 14:20, in an assertion at 14:43, confirmable at about 15:29, and claimed at 15:38, about two hours in total.
 - Public RPC and explorer API are rate-limited per IP (RPC 25 requests a second and 600 a minute; explorer API 40 a second); above that the answer is HTTP 429 with Retry-After. The node's debug methods are not exposed.
 - The endpoints are checked from outside every 15 minutes.
 - **Withdrawal relayer:** `https://explorer.testnet.latheon.xyz/relay/api` (`GET /status`, `POST /withdraw`, `POST /withdrawMany`). It sends withdrawals from its own address and pays the gas, so a fresh address can receive without holding anything and no wallet is needed to withdraw. It accepts only the pools and router listed above, simulates every request first and refuses what the chain would reject without spending gas, allows 10 relayed withdrawals per IP per hour and 500 a day in total, and charges no fee. It cannot redirect a withdrawal: the proof is bound to the recipient. If it refuses or is down, the same proof can be sent from any wallet.

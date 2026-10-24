@@ -39,8 +39,9 @@
         "inbox": "0x3F306353543EB48F419C8F8a19BfAd9fcB86aB17",
         "rollup": "0xdDcA9a000d2DE69D6C11050B9e8fe90B5e02Bd89",
         "bridge": "0x4D1FdE71BAd635148727694FEa04f24CAf881990",
+        "outbox": "0x61615B1b8493df67846C6BF17ab2EC4Fcb1775f7",
         "page": "https://latheon.xyz/bridge/",
-        "note": "Deposit: ERC20Inbox.depositERC20 on the parent chain (after approve). Withdrawal: ArbSys.withdrawEth on this chain, then Outbox.executeTransaction on the parent once confirmed (outbox address read from rollup.outbox())."
+        "note": "Deposit: ERC20Inbox.depositERC20 on the parent chain (after approve). Withdrawal: ArbSys.withdrawEth on this chain, then Outbox.executeTransaction on the parent once confirmed (about two hours at low traffic; the page reads the outbox from rollup.outbox())."
       }
     },
     "ethereum-sepolia": {

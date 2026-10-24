@@ -181,7 +181,7 @@ footer { border-top: 1px solid var(--border); margin-top: 40px; padding: 24px 0 
     <div class="btn-row"><button id="withdrawBtn" disabled data-i18n="wd.btn">Start withdrawal</button></div>
     <div id="wdStatus" class="status" role="status" aria-live="polite"></div>
     <ul class="notes">
-      <li data-i18n="wd.n1">A withdrawal has two steps. First, a transaction on the Latheon chain (gas paid in LTH). Then, once the chain's validator has posted the state that includes it and that state is confirmed on Arbitrum Sepolia, a claim there releases the LTH token. Measured so far: about an hour between the two.</li>
+      <li data-i18n="wd.n1">A withdrawal has two steps. First, a transaction on the Latheon chain (gas paid in LTH). Then, once the chain's validator has posted the state that includes it and that state is confirmed on Arbitrum Sepolia, a claim there releases the LTH token. Measured on 24 October 2026: about two hours between the two, most of it waiting for the chain to post its next batch while traffic is low.</li>
       <li data-i18n="wd.n2">The claim is a transaction on Arbitrum Sepolia and needs a little ETH for gas. Anyone may send it; the LTH always goes to the address chosen in step one.</li>
       <li data-i18n="wd.n3">This page remembers your withdrawals in this browser. On another device, find one by its transaction hash below.</li>
     </ul>
@@ -227,7 +227,7 @@ const I18N = {
     'dep.n3': 'Use an ordinary wallet. A smart-contract wallet\'s deposit lands at a different (aliased) address.',
     'dep.n4': 'Bridging is public: it links your Arbitrum Sepolia address to the same address on the Latheon chain. Privacy starts when you deposit into a pool and withdraw to a new address.',
     'wd.amount': 'Amount of LTH', 'wd.dest': 'Receive on Arbitrum Sepolia at (your connected address if empty)', 'wd.btn': 'Start withdrawal',
-    'wd.n1': 'A withdrawal has two steps. First, a transaction on the Latheon chain (gas paid in LTH). Then, once the chain\'s validator has posted the state that includes it and that state is confirmed on Arbitrum Sepolia, a claim there releases the LTH token. Measured so far: about an hour between the two.',
+    'wd.n1': 'A withdrawal has two steps. First, a transaction on the Latheon chain (gas paid in LTH). Then, once the chain\'s validator has posted the state that includes it and that state is confirmed on Arbitrum Sepolia, a claim there releases the LTH token. Measured on 24 October 2026: about two hours between the two, most of it waiting for the chain to post its next batch while traffic is low.',
     'wd.n2': 'The claim is a transaction on Arbitrum Sepolia and needs a little ETH for gas. Anyone may send it; the LTH always goes to the address chosen in step one.',
     'wd.n3': 'This page remembers your withdrawals in this browser. On another device, find one by its transaction hash below.',
     'list.h': 'Your withdrawals', 'list.refresh': 'Check status', 'list.empty': 'No withdrawals in this browser yet.', 'list.find': 'Find',
@@ -249,7 +249,7 @@ const I18N = {
     'msg.depArrived': 'Arrived: your LTH on the Latheon chain grew by {x} after {m} min. Deposit tx {tx}.',
     'msg.depSlow': 'Not arrived after {m} min. It is not lost: the chain takes deposits from Arbitrum Sepolia once that block is final. Reload later and check your balance.',
     'msg.wdSending': 'Withdrawal transaction on the Latheon chain (confirm in your wallet)…',
-    'msg.wdSent': 'Step 1 done: {x} LTH left the Latheon chain in {tx}. It appears in the list below; claim it there once it is confirmed (about an hour).',
+    'msg.wdSent': 'Step 1 done: {x} LTH left the Latheon chain in {tx}. It appears in the list below; claim it there once it is confirmed (about two hours).',
     'msg.claiming': 'Claiming on Arbitrum Sepolia (confirm in your wallet)…',
     'msg.claimed': 'Claimed: {x} LTH released to {a} on Arbitrum Sepolia in {tx}.',
     'msg.notWd': 'That transaction has no withdrawal to Arbitrum Sepolia in it.',
@@ -275,7 +275,7 @@ const I18N = {
     'dep.n3': 'Используйте обычный кошелёк. Депозит со смарт-контрактного кошелька придёт на другой (псевдоним) адрес.',
     'dep.n4': 'Мост публичен: он связывает ваш адрес в Arbitrum Sepolia с тем же адресом в сети Latheon. Приватность начинается, когда вы вносите в пул и выводите на новый адрес.',
     'wd.amount': 'Сколько LTH', 'wd.dest': 'Получить в Arbitrum Sepolia на адрес (если пусто — подключённый)', 'wd.btn': 'Начать вывод',
-    'wd.n1': 'Вывод состоит из двух шагов. Сначала транзакция в сети Latheon (газ в LTH). Потом, когда валидатор сети опубликует состояние с этой транзакцией и оно будет подтверждено в Arbitrum Sepolia, получение там выпускает токен LTH. По измерениям: около часа между шагами.',
+    'wd.n1': 'Вывод состоит из двух шагов. Сначала транзакция в сети Latheon (газ в LTH). Потом, когда валидатор сети опубликует состояние с этой транзакцией и оно будет подтверждено в Arbitrum Sepolia, получение там выпускает токен LTH. Измерено 24 октября 2026: около двух часов между шагами, бо́льшая часть — ожидание, пока сеть опубликует следующий пакет при малой активности.',
     'wd.n2': 'Получение — это транзакция в Arbitrum Sepolia, нужно немного ETH на газ. Отправить её может кто угодно; LTH всегда уходит на адрес, выбранный на первом шаге.',
     'wd.n3': 'Страница запоминает ваши выводы в этом браузере. На другом устройстве найдите вывод по хэшу транзакции ниже.',
     'list.h': 'Ваши выводы', 'list.refresh': 'Проверить статус', 'list.empty': 'В этом браузере выводов пока нет.', 'list.find': 'Найти',
@@ -297,7 +297,7 @@ const I18N = {
     'msg.depArrived': 'Пришло: ваш LTH в сети Latheon вырос на {x} через {m} мин. Транзакция депозита {tx}.',
     'msg.depSlow': 'За {m} мин не пришло. Средства не потеряны: сеть принимает депозиты из Arbitrum Sepolia, когда тот блок становится окончательным. Обновите страницу позже и проверьте баланс.',
     'msg.wdSending': 'Транзакция вывода в сети Latheon (подтвердите в кошельке)…',
-    'msg.wdSent': 'Шаг 1 выполнен: {x} LTH ушли из сети Latheon в {tx}. Вывод появился в списке ниже; получите его там после подтверждения (около часа).',
+    'msg.wdSent': 'Шаг 1 выполнен: {x} LTH ушли из сети Latheon в {tx}. Вывод появился в списке ниже; получите его там после подтверждения (около двух часов).',
     'msg.claiming': 'Получение в Arbitrum Sepolia (подтвердите в кошельке)…',
     'msg.claimed': 'Получено: {x} LTH выпущено на {a} в Arbitrum Sepolia, транзакция {tx}.',
     'msg.notWd': 'В этой транзакции нет вывода в Arbitrum Sepolia.',
@@ -323,7 +323,7 @@ const I18N = {
     'dep.n3': '请使用普通钱包。智能合约钱包的存款会到达另一个（别名）地址。',
     'dep.n4': '跨链是公开的：它会把你在 Arbitrum Sepolia 的地址与 Latheon 链上的同一地址关联起来。隐私从你存入资金池并提取到新地址时开始。',
     'wd.amount': 'LTH 数量', 'wd.dest': '在 Arbitrum Sepolia 的接收地址（留空则为已连接地址）', 'wd.btn': '开始提取',
-    'wd.n1': '提取分两步。第一步是在 Latheon 链上的交易（用 LTH 支付 gas）。之后，当链的验证者发布了包含该交易的状态，并在 Arbitrum Sepolia 上确认后，在那里领取即可释放 LTH 代币。目前实测两步之间约一小时。',
+    'wd.n1': '提取分两步。第一步是在 Latheon 链上的交易（用 LTH 支付 gas）。之后，当链的验证者发布了包含该交易的状态，并在 Arbitrum Sepolia 上确认后，在那里领取即可释放 LTH 代币。2026 年 10 月 24 日实测：两步之间约两小时，大部分时间是在交易量低时等待链发布下一个批次。',
     'wd.n2': '领取是 Arbitrum Sepolia 上的交易，需要少量 ETH 支付 gas。任何人都可以发送；LTH 总是转到第一步选定的地址。',
     'wd.n3': '本页面会在此浏览器中记住你的提取。在其他设备上，可在下方通过交易哈希查找。',
     'list.h': '你的提取', 'list.refresh': '检查状态', 'list.empty': '此浏览器中还没有提取记录。', 'list.find': '查找',
@@ -345,7 +345,7 @@ const I18N = {
     'msg.depArrived': '已到账：你在 Latheon 链上的 LTH 在 {m} 分钟后增加了 {x}。存款交易 {tx}。',
     'msg.depSlow': '{m} 分钟后仍未到账。资金没有丢失：该链在 Arbitrum Sepolia 区块最终确定后才接收存款。请稍后刷新并检查余额。',
     'msg.wdSending': '在 Latheon 链上发送提取交易（请在钱包中确认）…',
-    'msg.wdSent': '第 1 步完成：{x} LTH 已在 {tx} 中离开 Latheon 链。它显示在下方列表中；确认后（约一小时）在那里领取。',
+    'msg.wdSent': '第 1 步完成：{x} LTH 已在 {tx} 中离开 Latheon 链。它显示在下方列表中；确认后（约两小时）在那里领取。',
     'msg.claiming': '正在 Arbitrum Sepolia 领取（请在钱包中确认）…',
     'msg.claimed': '已领取：{x} LTH 已在 Arbitrum Sepolia 释放到 {a}，交易 {tx}。',
     'msg.notWd': '该交易中没有到 Arbitrum Sepolia 的提取。',
