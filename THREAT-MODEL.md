@@ -24,7 +24,7 @@ Depending on deployment and usage, an observer of the public chain can see:
 - That a withdrawal transaction occurred, its block, timestamp, and recipient address.
 - Gas usage and other standard transaction metadata.
 - The size of the current anonymity set (how many unspent deposits exist) — the Merkle tree and its history are public by nature, even though individual leaf-to-withdrawal links are not.
-- Pool capacity: each pool's Merkle tree has depth 8, so a pool accepts at most 256 deposits; the next deposit reverts with "Tree is full".
+- Pool capacity: each V5 pool's Merkle tree has depth 8, so a pool accepts at most 256 deposits; the next deposit reverts with "Tree is full". V6 pools (`withdraw_v4`, depth 20) accept 1,048,576.
 
 **Privacy of the deposit↔withdrawal link should not be read as full network-level anonymity.** An observer with enough resources correlating transaction timing across a small anonymity set could still form probabilistic guesses. This is a known, disclosed limitation, not a defect being hidden.
 
@@ -57,7 +57,7 @@ We do **not** currently assume protection against:
 - Selective disclosure (V4/V5) reveals to the chosen auditor which deposit is being disclosed; see §2.5. The disclosure circuit and contracts are a prototype with no independent review. On V3 pools disclosure remains manual.
 - No independent cryptographic review or formal security audit has been performed yet.
 - Anonymity set size is currently very small: the pools hold mostly test deposits.
-- The Merkle tree capacity is 256 deposits per pool (see §4).
+- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6 pool (see §4). A V5 pool keeps 30 roots and a V6 pool 100: a proof made against an older root is refused and has to be made again.
 
 ### 8.1 Known issue (V3 / V4 pools): the withdrawal recipient is not bound to the proof. Fixed in V5.
 

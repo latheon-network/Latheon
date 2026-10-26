@@ -874,12 +874,14 @@ function applyStatic() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
 }
 
-const LEVELS = 8;
-const CAPACITY = 2 ** LEVELS;
+const LEVELS = 8;                                   // V5 and legacy pools (withdraw_v3 / v2); V6 pools have 20 (withdraw_v4)
+const levelsOf = (version) => (version === 'v6' ? 20 : LEVELS);
+const modern = (version) => version === 'v5' || version === 'v6';   // recipient bound into the proof; notes name their pool
 const FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 const CIRCUIT_BASE = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/';
 const CIRCUITS = {
+  v4:       { wasm: CIRCUIT_BASE + 'withdraw_v4/withdraw_v4.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v4/withdraw_v4_final.zkey' },
   v3:       { wasm: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3_final.zkey' },
   v2:       { wasm: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2_final.zkey' },
   disclose: { wasm: CIRCUIT_BASE + 'disclose/disclose.wasm',        zkey: CIRCUIT_BASE + 'disclose/disclose_final.zkey' },
@@ -892,6 +894,10 @@ const ERC20_ABI = [
 ];
 const EVENT_ABI = ['event Deposit(uint256 indexed commitment, uint32 leafIndex, uint256 timestamp)'];
 const POOL_ABI = {
+  // V6: 20-level tree; recipient, relayer and fee bound into the proof (withdraw_v4).
+  v6: ['function deposit(uint256 commitment) payable', 'function token() view returns (address)', 'function DENOMINATION() view returns (uint256)',
+       'function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient, address relayer, uint256 fee)',
+       'function isKnownRoot(uint256) view returns (bool)', 'function nullifierHashes(uint256) view returns (bool)'].concat(EVENT_ABI),
   // V5: the recipient is bound into the proof; root and nullifierHash are passed explicitly.
   v5: ['function deposit(uint256 commitment) payable', 'function token() view returns (address)', 'function DENOMINATION() view returns (uint256)',
        'function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient)',
@@ -902,6 +908,7 @@ const POOL_ABI = {
        'function isKnownRoot(uint256) view returns (bool)', 'function nullifierHashes(uint256) view returns (bool)'].concat(EVENT_ABI),
 };
 const VERIFIER_ABI = {
+  v6: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[5] _pubSignals) view returns (bool)'],
   v5: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[3] _pubSignals) view returns (bool)'],
   v4: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[2] _pubSignals) view returns (bool)'],
   disclose: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[3] _pubSignals) view returns (bool)'],
@@ -912,7 +919,7 @@ const DEPOSIT_TOPIC = DEPOSIT_IFACE.getEvent('Deposit').topicHash;
 
 let CONFIG = null, POOLS = [], currentPoolId = null;
 let provider = null, signer = null, userAddress = null;
-const circuitBuf = { v3: null, v2: null, disclose: null };
+const circuitBuf = { v4: null, v3: null, v2: null, disclose: null };
 const manualParts = { withdraw: {}, disclose: {} };
 const depositWallets = new Set();   // wallets that made a deposit in this session (lower-case)
 let daPlan = null;   // { router, plan } when the amount on screen can be deposited
@@ -971,7 +978,7 @@ function hash2(a, b) { return poseidon2([BigInt(a), BigInt(b)]); }
 function computeCommitment(spendKey, viewKey) { return hash2(hash2(BigInt(spendKey), BigInt(viewKey)), 0n); }
 function computeNullifierHash(spendKey) { return hash2(BigInt(spendKey), 1n); }
 function computeDisclosureTag(viewKey, auditorNonce) { return hash2(BigInt(viewKey), BigInt(auditorNonce)); }
-function computeZeroCascade() { const z = [0n]; let c = 0n; for (let i = 0; i < LEVELS; i++) { c = hash2(c, c); z.push(c); } return z; }
+function computeZeroCascade(levels = LEVELS) { const z = [0n]; let c = 0n; for (let i = 0; i < levels; i++) { c = hash2(c, c); z.push(c); } return z; }
 function randomFieldElement() { return BigInt(ethers.hexlify(ethers.randomBytes(32))) % FIELD_SIZE; }
 
 // distribution-core:begin
@@ -1104,7 +1111,7 @@ function selectNotes(notes, target) {
 //   latheon-v5:<chainId>:<poolAddress>:<spendKey>:<viewKey>
 // Legacy notes (V4 pools) keep the old format: latheon-v4-note:<spendKey>:<viewKey>
 function encodeNote(pool, spendKey, viewKey) {
-  return pool.version === 'v5'
+  return modern(pool.version)
     ? `latheon-v5:${pool.net.chainId}:${pool.address}:${spendKey}:${viewKey}`
     : `latheon-v4-note:${spendKey}:${viewKey}`;
 }
@@ -1137,17 +1144,21 @@ async function loadConfig() {
   CONFIG = await r.json();
   POOLS = CONFIG.pools.map((p) => {
     // 'v5-native': the V5 pool for a network's own coin (deposit with msg.value, no approve); otherwise the same as V5
-    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native';
+    // 'v6' / 'v6-native': 20-level tree, withdraw_v4 (recipient, relayer and fee in the proof)
+    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native', v6 = p.version === 'v6' || p.version === 'v6-native';
+    const version = v6 ? 'v6' : v5 ? 'v5' : p.version;
     return Object.assign({}, p, {
-      net, tok, decimals: tok.decimals, version: v5 ? 'v5' : p.version, native: !!tok.native,
+      net, tok, decimals: tok.decimals, version, native: !!tok.native, levels: levelsOf(version),
       denomination: BigInt(p.amount) * 10n ** BigInt(tok.decimals),
-      verifierAddr: v5 ? net.v5Verifier : p.verifier,
-      startBlock: v5 ? p.deployBlock : p.startBlock,
-      circuit: v5 ? 'v3' : 'v2',
+      verifierAddr: v6 ? net.v6Verifier : v5 ? net.v5Verifier : p.verifier,
+      startBlock: (v5 || v6) ? p.deployBlock : p.startBlock,
+      circuit: v6 ? 'v4' : v5 ? 'v3' : 'v2',
       address: ethers.getAddress(p.address),
       label: (p.legacy ? 'legacy V4 · ' : '') + p.amount + ' ' + p.token,
     });
   });
+  // A network with both generations: the V5 pools stay listed (their notes must stay withdrawable) but are marked
+  for (const p of POOLS) if (p.version === 'v5' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v6')) p.label = 'V5 (256 max) · ' + p.label;
   loadRouters();
 }
 const currentPool = () => POOLS.find((p) => p.id === currentPoolId);
@@ -1479,9 +1490,10 @@ async function findDeposit(pool, commitment) {
   if (!mine) { log('Deposit not in the cached range — rescanning this pool from its first block…'); deposits = await fetchDeposits(pool, false); mine = deposits.find((d) => d.commitment === commitment); }
   return { deposits, mine };
 }
-function buildTreeLevels(leaves, zeros) {
+function buildTreeLevels(leaves, zeros) {   // depth = zeros.length - 1 (8 or 20)
+  const depth = zeros.length - 1;
   const levels = [leaves.slice()]; let cur = leaves.slice();
-  for (let d = 0; d < LEVELS; d++) {
+  for (let d = 0; d < depth; d++) {
     const next = []; const size = Math.ceil(cur.length / 2) || 1;
     for (let i = 0; i < size; i++) next.push(hash2(cur[2 * i] !== undefined ? cur[2 * i] : zeros[d], cur[2 * i + 1] !== undefined ? cur[2 * i + 1] : zeros[d]));
     levels.push(next); cur = next;
@@ -1489,12 +1501,12 @@ function buildTreeLevels(leaves, zeros) {
   return levels;
 }
 function getMerklePath(levels, leafIndex, zeros) {
-  const pathElements = [], pathIndices = []; let idx = leafIndex;
-  for (let d = 0; d < LEVELS; d++) {
+  const pathElements = [], pathIndices = []; let idx = leafIndex; const depth = levels.length - 1;
+  for (let d = 0; d < depth; d++) {
     const level = levels[d], isRight = idx % 2 === 1, sib = isRight ? idx - 1 : idx + 1;
     pathElements.push(level[sib] !== undefined ? level[sib] : zeros[d]); pathIndices.push(isRight ? 1 : 0); idx = Math.floor(idx / 2);
   }
-  return { pathElements, pathIndices, root: levels[LEVELS][0] };
+  return { pathElements, pathIndices, root: levels[depth][0] };
 }
 
 // ---------- the pool's real tree ----------
@@ -1502,12 +1514,15 @@ let lastTree = null;
 function renderTree(pool, deposits, myLeaf) {
   lastTree = { pool, deposits, myLeaf };
   const used = new Set(deposits.map((d) => d.leafIndex));
+  const cap = 2 ** (pool.levels || LEVELS);
+  // 256 cells at most: a V6 pool (2^20 leaves) shows the block of 256 that holds your leaf, or the latest one
+  const ref = myLeaf != null ? myLeaf : Math.max(0, deposits.length - 1), base = Math.floor(ref / 256) * 256;
   let cells = '';
-  for (let i = 0; i < CAPACITY; i++) cells += '<i class="' + (i === myLeaf ? 'me' : used.has(i) ? 'f' : '') + '" title="leaf ' + i + '"></i>';
-  const sub = th('tree.sub', { net: pool.net.name, label: pool.label, used: deposits.length, cap: CAPACITY });
+  for (let i = base; i < Math.min(cap, base + 256); i++) cells += '<i class="' + (i === myLeaf ? 'me' : used.has(i) ? 'f' : '') + '" title="leaf ' + i + '"></i>';
+  const sub = th('tree.sub', { net: pool.net.name, label: pool.label, used: deposits.length, cap: cap.toLocaleString('en-US') });
   $('treeBox').innerHTML = '<div class="tree-box"><h4>' + esc(t('tree.title')) + '</h4>' +
     '<p class="muted small">' + sub + '</p>' +
-    '<div class="grid256" role="img" aria-label="' + esc(deposits.length + ' / ' + CAPACITY) + '">' + cells + '</div>' +
+    '<div class="grid256" role="img" aria-label="' + esc(deposits.length + ' / ' + cap) + '">' + cells + '</div>' +
     '<div class="legend"><span style="--c:var(--gold)">' + (myLeaf != null ? th('tree.yoursLeaf', { n: myLeaf }) : esc(t('tree.yours'))) + '</span>' +
     '<span style="--c:var(--violet-deep)">' + esc(t('tree.others')) + '</span><span style="--c:rgba(242,239,233,.12)">' + esc(t('tree.empty')) + '</span></div></div>';
 }
@@ -1732,7 +1747,7 @@ $('withdrawBtn').addEventListener('click', async () => {
       if (!pool.legacy) throw new Error(t('err.oldNote'));
     }
     const recipient = ethers.getAddress($('recipientInput').value.trim());
-    const viaRelay = pool.version === 'v5' && !pool.legacy && relayOn(pool.net, 'useRelay');   // no wallet needed
+    const viaRelay = modern(pool.version) && !pool.legacy && relayOn(pool.net, 'useRelay');   // no wallet needed
     if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork(pool); await refreshBalances(); }
     st.go(0);
     setStatus('withdrawStatus', t('wd.loading'), 'info');
@@ -1748,7 +1763,7 @@ $('withdrawBtn').addEventListener('click', async () => {
     renderTree(pool, deposits, mine.leafIndex); updateWarnings();
 
     st.go(2);
-    const zeros = computeZeroCascade();
+    const zeros = computeZeroCascade(pool.levels);
     const leaves = []; for (const d of deposits) leaves[d.leafIndex] = d.commitment;
     const { pathElements, pathIndices, root } = getMerklePath(buildTreeLevels(leaves, zeros), mine.leafIndex, zeros);
     const nullifierHash = computeNullifierHash(note.spendKey);
@@ -1760,13 +1775,14 @@ $('withdrawBtn').addEventListener('click', async () => {
     st.go(3); st.tick(3);
     setStatus('withdrawStatus', t('wd.proving'), 'info');
     const input = { root: root.toString(), nullifierHash: nullifierHash.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
-    if (pool.version === 'v5') input.recipient = BigInt(recipient).toString();
+    if (modern(pool.version)) input.recipient = BigInt(recipient).toString();
+    if (pool.version === 'v6') { input.relayer = '0'; input.fee = '0'; }   // no relayer fee today: relayer address 0, fee 0
     const t0 = performance.now();
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
     st.stopTick(); st.extra(3, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
     log('Proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
     const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
-    if (pool.version === 'v5' && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+    if (modern(pool.version) && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
 
     st.go(4);
     setStatus('withdrawStatus', t('wd.checking'), 'info');
@@ -1777,7 +1793,7 @@ $('withdrawBtn').addEventListener('click', async () => {
     if (viaRelay) {
       st.go(5, t('x.block'));
       setStatus('withdrawStatus', t('wd.relaying'), 'info');
-      const r = await relayPost(pool.net, '/withdraw', { pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient });
+      const r = await relayPost(pool.net, '/withdraw', Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, pool.version === 'v6' ? { relayer: ethers.ZeroAddress, fee: '0' } : {}));
       log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
       st.extra(5, ''); st.done();
       setStatus('withdrawStatus', t('wd.success', { tx: r.tx }), 'ok'); if (signer) await refreshBalances();
@@ -1787,7 +1803,8 @@ $('withdrawBtn').addEventListener('click', async () => {
     setStatus('withdrawStatus', t('wd.submitting'), 'info');
     const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
     const fees = await feeOverrides(pool.net);
-    const tx = pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
+    const tx = pool.version === 'v6' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
+      : pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
     log('Withdraw tx: ' + tx.hash);
     st.extra(5, t('x.block'));
     const rc = await tx.wait();
@@ -1816,12 +1833,16 @@ const ROUTER_ABI = [
   'function pools(uint256) view returns (address)', 'function denominations(uint256) view returns (uint256)',
   'function token() view returns (address)', 'function MAX_NOTES() view returns (uint256)', 'function MAX_WITHDRAWALS() view returns (uint256)',
 ];
+// V6 routers: each item carries its fee and withdrawMany names the relayer (both bound into the proofs).
+const ROUTER_ABI_V6 = ROUTER_ABI.map((f) => f.startsWith('function withdrawMany') ? 'function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash, uint256 fee)[] items, address recipient, address relayer)' : f);
+const routerAbi = (router) => (router.version === 'v6' ? ROUTER_ABI_V6 : ROUTER_ABI);
 const ROUTER_IFACE = new ethers.Interface(['event Distributed(address indexed depositor, uint256 amount, uint256 notes)']);
 function loadRouters() {
   ROUTERS = (CONFIG.routers || []).map((r) => {
     const net = CONFIG.networks[r.network], tok = net.tokens[r.token];
-    const pools = POOLS.filter((p) => p.network === r.network && p.token === r.token && p.version === 'v5' && !p.legacy).sort((a, b) => b.amount - a.amount);
-    return Object.assign({}, r, { net, tok, decimals: tok.decimals, address: ethers.getAddress(r.address), pools });
+    const version = r.version === 'v6' ? 'v6' : 'v5';   // a router serves the four pools of its own version
+    const pools = POOLS.filter((p) => p.network === r.network && p.token === r.token && p.version === version && !p.legacy).sort((a, b) => b.amount - a.amount);
+    return Object.assign({}, r, { net, tok, decimals: tok.decimals, address: ethers.getAddress(r.address), pools, version });
   }).filter((r) => r.pools.length === 4);
 }
 const routerFor = (pool) => pool ? ROUTERS.find((r) => r.network === pool.network && r.token === pool.token) : null;
@@ -2044,10 +2065,10 @@ $('waGoBtn').addEventListener('click', async () => {
     st.go(2);
     const plan = waRenderPlan(sc, target);
     if (!plan || !plan.chosen) throw new Error(t('wa.noplanShort'));
-    const { router, rp, deps } = sc, tok = router.token, circ = await loadCircuit('v3');
+    const { router, rp, deps } = sc, tok = router.token, v6 = router.version === 'v6', circ = await loadCircuit(v6 ? 'v4' : 'v3');
     const viaRelay = relayOn(router.net, 'waUseRelay');   // no wallet needed
     if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
-    const zeros = computeZeroCascade(), levelsByPool = {}, rootChecked = {};
+    const zeros = computeZeroCascade(levelsOf(router.version)), levelsByPool = {}, rootChecked = {};
     const chosen = plan.chosen.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);
     const items = [];
     st.go(3); st.tick(3);
@@ -2061,28 +2082,29 @@ $('waGoBtn').addEventListener('click', async () => {
         rootChecked[n.pi] = root;
       }
       const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
+      if (v6) { input.relayer = '0'; input.fee = '0'; }
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
       const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
       if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
-      items.push([n.pi, pA, pB, pC, pub[0], pub[1]]);
+      items.push(v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
       log('Proof ' + (i + 1) + '/' + chosen.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
     }
     st.stopTick(); st.extra(3, '');
     st.go(4);
-    const max = Number(await withRetry(() => new ethers.Contract(router.address, ROUTER_ABI, rp).MAX_WITHDRAWALS(), 'reading the batch limit'));
+    const max = Number(await withRetry(() => new ethers.Contract(router.address, routerAbi(router), rp).MAX_WITHDRAWALS(), 'reading the batch limit'));
     const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
-    const rr = new ethers.Contract(router.address, ROUTER_ABI, rp);
-    for (const b of batches) await rr.withdrawMany.staticCall(b, recipient);   // refuses early, before any gas is spent (the sender does not matter)
+    const rr = new ethers.Contract(router.address, routerAbi(router), rp), relayArg = v6 ? [ethers.ZeroAddress] : [];
+    for (const b of batches) await rr.withdrawMany.staticCall(b, recipient, ...relayArg);   // refuses early, before any gas is spent (the sender does not matter)
     st.go(5, viaRelay ? t('x.block') : t('x.confirm'));
     let lastTx = null;
     for (let i = 0; i < batches.length; i++) {
       if (batches.length > 1) st.extra(5, t('wa.batch', { i: i + 1, n: batches.length }));
       if (viaRelay) {
-        const r = await relayPost(router.net, '/withdrawMany', { router: router.address, items: batches[i], recipient }); lastTx = r.tx;
+        const r = await relayPost(router.net, '/withdrawMany', Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {})); lastTx = r.tx;
         log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
         continue;
       }
-      const tx = await new ethers.Contract(router.address, ROUTER_ABI, signer).withdrawMany(batches[i], recipient, await feeOverrides(router.net)); lastTx = tx.hash;
+      const tx = await new ethers.Contract(router.address, routerAbi(router), signer).withdrawMany(batches[i], recipient, ...relayArg, await feeOverrides(router.net)); lastTx = tx.hash;
       log('withdrawMany tx: ' + tx.hash);
       const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
     }
