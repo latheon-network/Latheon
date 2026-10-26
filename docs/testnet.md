@@ -20,7 +20,7 @@ Latheon's own test chain: an Arbitrum Orbit chain that settles to Arbitrum Sepol
 
 The demo adds the network to your wallet when you connect. To add it by hand, use the values above.
 
-**Getting test LTH:** the faucet gives 100 LTH per address once a day (also once a day per IP, at most 5,000 LTH a day in total, and not to an address that already holds 100 LTH or more). That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
+**Getting test LTH:** the faucet gives 100 LTH per address once a day (also once a day per IP, at most 50,000 LTH a day in total (raised from 5,000 on 26 October 2026), and not to an address that already holds 100 LTH or more). That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
 
 ## Try it
 
@@ -90,7 +90,7 @@ At the chain's minimum price of 0.1 gwei these cost about 0.001 to 0.005 LTH. A 
 - The node is the only sequencer and the only validator. Its assertions on Arbitrum Sepolia are confirmed after the challenge period (30 minutes), so a withdrawal from the chain to Arbitrum Sepolia becomes executable after three waits in a row: the batch poster posts the batch that contains it (at low traffic it waits up to about an hour to fill a batch), the validator posts an assertion covering that batch (it checks every 15 minutes), and the assertion is confirmed after the challenge period. Measured on 24 October 2026: a withdrawal sent at 13:33 UTC was in a batch at 14:20, in an assertion at 14:43, confirmable at about 15:29, and claimed at 15:38, about two hours in total.
 - Public RPC and explorer API are rate-limited per IP (RPC 25 requests a second and 600 a minute; explorer API 40 a second); above that the answer is HTTP 429 with Retry-After. The node's debug methods are not exposed.
 - The endpoints are checked from outside every 15 minutes.
-- **Withdrawal relayer:** `https://explorer.testnet.latheon.xyz/relay/api` (`GET /status`, `POST /withdraw`, `POST /withdrawMany`). It sends withdrawals from its own address and pays the gas, so a fresh address can receive without holding anything and no wallet is needed to withdraw. It accepts only the pools and routers listed above (V5 and V6; for V6 the proof may name a relayer and a fee, and this relayer accepts only no fee or a fee paid to itself), simulates every request first and refuses what the chain would reject without spending gas, allows 10 relayed withdrawals per IP per hour and 500 a day in total, and charges no fee. It cannot redirect a withdrawal: the proof is bound to the recipient. If it refuses or is down, the same proof can be sent from any wallet.
+- **Withdrawal relayer:** `https://explorer.testnet.latheon.xyz/relay/api` (`GET /status`, `POST /withdraw`, `POST /withdrawMany`). It sends withdrawals from its own address and pays the gas, so a fresh address can receive without holding anything and no wallet is needed to withdraw. It accepts only the pools and routers listed above (V5 and V6; for V6 the proof may name a relayer and a fee, and this relayer accepts only no fee or a fee paid to itself), simulates every request first and refuses what the chain would reject without spending gas, allows 30 relayed withdrawals per IP per hour and 5,000 a day in total (raised from 10 and 500 on 26 October 2026), and charges no fee. It cannot redirect a withdrawal: the proof is bound to the recipient. If it refuses or is down, the same proof can be sent from any wallet.
 
 ## Limits
 
