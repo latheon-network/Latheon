@@ -471,7 +471,7 @@ const I18N = {
     'err.nonce': 'Enter the auditor nonce.', 'err.config': 'Could not load deployments.json (HTTP {code}).', 'err.startup': 'Startup failed: ',
     'tree.title': "This pool's tree, read from the chain", 'tree.sub': '{net} · {label} · {used} of {cap} leaves used. Withdrawn deposits stay in the tree, and nobody can tell which ones they are.',
     'tree.yours': 'yours', 'tree.yoursLeaf': 'yours (leaf {n})', 'tree.others': 'other deposits', 'tree.empty': 'empty',
-    'relay.use': 'Send through the network\'s relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal', 'relay.note': 'The relayer sends the withdrawal and pays its gas; your wallet does not appear in it. The relayer sees the recipient and your IP address, like any server you talk to. It cannot change the recipient: the proof is bound to it.', 'relay.refused': 'The relayer refused: ', 'relay.down': 'The relayer did not answer. Untick the relayer box to send the withdrawal from your own wallet.', 'wd.s6r': 'Send through the relayer', 'wd.relaying': 'Sending through the relayer…',
+    'relay.use': 'Send through the network\'s relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal', 'relay.note': 'The relayer sends the withdrawal and pays its gas; your wallet does not appear in it. The relayer sees the recipient and your IP address, like any server you talk to. It cannot change the recipient: the proof is bound to it.', 'relay.refused': 'The relayer refused: ', 'relay.down': 'The relayer did not answer. Untick the relayer box to send the withdrawal from your own wallet.', 'wd.s6r': 'Send through the relayer', 'wd.relaying': 'Sending through the relayer…', 'wd.rootRetry': 'Many deposits arrived in this pool meanwhile, so the pool no longer knows the root of the proof. Making a new proof against the current root; the note is untouched…',
     'warn.selfRecipient': 'The recipient is the wallet you are connected with. Anyone can see that this wallet pays itself, so the withdrawal is not private. Use a fresh address.',
     'warn.sameWallet': 'This wallet ({addr}) made a deposit in this session. The withdrawal transaction is sent and paid for by the connected wallet, and that is public, so the link is visible. Connect a different wallet with a little test ETH before withdrawing.',
     'warn.sender': 'The withdrawal is sent from {addr}, and the sender and gas payer are public. If this wallet also made the deposit, anyone can link them.',
@@ -615,7 +615,7 @@ const I18N = {
     'err.nonce': 'Введите код аудитора.', 'err.config': 'Не удалось загрузить deployments.json (HTTP {code}).', 'err.startup': 'Не удалось запуститься: ',
     'tree.title': 'Дерево этого пула, прочитанное из сети', 'tree.sub': '{net} · {label} · занято {used} из {cap} листьев. Выведенные депозиты остаются в дереве, и никто не может сказать, какие именно.',
     'tree.yours': 'ваш', 'tree.yoursLeaf': 'ваш (лист {n})', 'tree.others': 'другие депозиты', 'tree.empty': 'пусто',
-    'relay.use': 'Отправить через релейер сети: газ и кошелёк не нужны, и ваш кошелёк не появится в выводе', 'relay.note': 'Релейер отправляет вывод и платит за газ, ваш кошелёк в нём не появляется. Релейер видит адрес получателя и ваш IP-адрес, как любой сервер, к которому вы обращаетесь. Изменить получателя он не может: доказательство привязано к нему.', 'relay.refused': 'Релейер отказал: ', 'relay.down': 'Релейер не ответил. Снимите галочку релейера, чтобы отправить вывод со своего кошелька.', 'wd.s6r': 'Отправить через релейер', 'wd.relaying': 'Отправляю через релейер…',
+    'relay.use': 'Отправить через релейер сети: газ и кошелёк не нужны, и ваш кошелёк не появится в выводе', 'relay.note': 'Релейер отправляет вывод и платит за газ, ваш кошелёк в нём не появляется. Релейер видит адрес получателя и ваш IP-адрес, как любой сервер, к которому вы обращаетесь. Изменить получателя он не может: доказательство привязано к нему.', 'relay.refused': 'Релейер отказал: ', 'relay.down': 'Релейер не ответил. Снимите галочку релейера, чтобы отправить вывод со своего кошелька.', 'wd.s6r': 'Отправить через релейер', 'wd.relaying': 'Отправляю через релейер…', 'wd.rootRetry': 'Пока шёл вывод, в пул пришло много депозитов, и пул уже не помнит корень этого доказательства. Делаю новое доказательство от текущего корня; нота не тронута…',
     'warn.selfRecipient': 'Получатель совпадает с подключённым кошельком. Любой увидит, что кошелёк платит сам себе, поэтому вывод не приватен. Укажите новый адрес.',
     'warn.sameWallet': 'Этот кошелёк ({addr}) делал депозит в этой сессии. Транзакцию вывода отправляет и оплачивает подключённый кошелёк, и это публично, поэтому связь видна. Перед выводом подключите другой кошелёк с небольшим количеством тестового ETH.',
     'warn.sender': 'Вывод отправляется с {addr}; отправитель и плательщик газа публичны. Если этот же кошелёк делал депозит, их легко связать.',
@@ -759,7 +759,7 @@ const I18N = {
     'err.nonce': '请输入审计方代码。', 'err.config': '无法加载 deployments.json（HTTP {code}）。', 'err.startup': '启动失败：',
     'tree.title': '此资金池的树，读取自链上', 'tree.sub': '{net} · {label} · 已使用 {used}/{cap} 个叶子。已取款的存款仍留在树中，没有人能分辨是哪些。',
     'tree.yours': '您的', 'tree.yoursLeaf': '您的（叶子 {n}）', 'tree.others': '其他存款', 'tree.empty': '空',
-    'relay.use': '通过网络的中继器发送：无需 Gas，也无需钱包，您的钱包不会出现在取款中', 'relay.note': '中继器发送取款并支付 Gas，您的钱包不会出现在其中。中继器能看到接收地址和您的 IP 地址，就像您访问的任何服务器一样。它无法更改接收地址：证明已与其绑定。', 'relay.refused': '中继器拒绝：', 'relay.down': '中继器没有响应。取消勾选中继器，即可用您自己的钱包发送取款。', 'wd.s6r': '通过中继器发送', 'wd.relaying': '正在通过中继器发送…',
+    'relay.use': '通过网络的中继器发送：无需 Gas，也无需钱包，您的钱包不会出现在取款中', 'relay.note': '中继器发送取款并支付 Gas，您的钱包不会出现在其中。中继器能看到接收地址和您的 IP 地址，就像您访问的任何服务器一样。它无法更改接收地址：证明已与其绑定。', 'relay.refused': '中继器拒绝：', 'relay.down': '中继器没有响应。取消勾选中继器，即可用您自己的钱包发送取款。', 'wd.s6r': '通过中继器发送', 'wd.relaying': '正在通过中继器发送…', 'wd.rootRetry': '在此期间该池收到了很多存款，池已不再记得此证明的根。正在基于当前根重新生成证明；凭证未受影响…',
     'warn.selfRecipient': '接收地址就是当前连接的钱包。任何人都能看到该钱包向自己付款，因此这笔取款没有隐私。请使用新地址。',
     'warn.sameWallet': '此钱包（{addr}）在本次会话中进行过存款。取款交易由当前连接的钱包发送并支付 Gas，这是公开的，因此关联可见。取款前请连接另一个持有少量测试 ETH 的钱包。',
     'warn.sender': '取款将从 {addr} 发送，发送方和 Gas 支付方是公开的。如果存款也来自此钱包，任何人都能将两者关联。',
@@ -944,6 +944,12 @@ const errText = (e) => {
   const inner = e && ((e.error && (e.error.data && e.error.data.message || e.error.message)) || (e.info && e.info.error && (e.info.error.data && e.info.error.data.message || e.info.error.message)));
   return inner && !base.includes(inner) ? base + ' (' + String(inner).slice(0, 200) + ')' : base;
 };
+// A proof names one Merkle root; the pool remembers only its last roots (30 in V5, 100 in V6). If that many deposits
+// land in the pool between proving and sending, the pool answers "Unknown root": the note is untouched, and a new
+// proof against the current root works. Withdrawals retry that case on their own (ROOT_RETRIES attempts in all).
+const ROOT_RETRIES = 3;
+const staleRootErr = () => Object.assign(new Error(t('err.root')), { staleRoot: true });
+const isStaleRoot = (e) => !!(e && e.staleRoot) || /Unknown root/i.test(errText(e));
 let toastT;
 function toast(m) { const tt = $('toast'); tt.textContent = m; tt.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => tt.classList.remove('on'), 1600); }
 async function copyText(text, whatKey) {
@@ -1484,10 +1490,10 @@ async function fetchDeposits(pool, useCache) {
   saveCache(pool, deposits, latestBlock);
   return deposits;
 }
-async function findDeposit(pool, commitment) {
-  let deposits = await fetchDeposits(pool, true);
+async function findDeposit(pool, commitment, full = false) {   // full: ignore the cache (a retry after an unknown root)
+  let deposits = await fetchDeposits(pool, !full);
   let mine = deposits.find((d) => d.commitment === commitment);
-  if (!mine) { log('Deposit not in the cached range — rescanning this pool from its first block…'); deposits = await fetchDeposits(pool, false); mine = deposits.find((d) => d.commitment === commitment); }
+  if (!mine && !full) { log('Deposit not in the cached range — rescanning this pool from its first block…'); deposits = await fetchDeposits(pool, false); mine = deposits.find((d) => d.commitment === commitment); }
   return { deposits, mine };
 }
 function buildTreeLevels(leaves, zeros) {   // depth = zeros.length - 1 (8 or 20)
@@ -1753,64 +1759,74 @@ $('withdrawBtn').addEventListener('click', async () => {
     setStatus('withdrawStatus', t('wd.loading'), 'info');
     const circ = await loadCircuit(pool.circuit);
 
-    st.go(1);
-    setStatus('withdrawStatus', t('wd.finding'), 'info');
-    const commitment = computeCommitment(note.spendKey, note.viewKey);
-    const { deposits, mine } = await findDeposit(pool, commitment);   // read through the network's RPC, not the wallet's
-    if (!mine) throw new Error(t('err.notFound'));
-    log('Found deposit at leaf index ' + mine.leafIndex);
-    lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
-    renderTree(pool, deposits, mine.leafIndex); updateWarnings();
+    for (let attempt = 1; ; attempt++) {   // a fresh scan and a fresh proof if the pool no longer knows the root
+     try {
+      st.go(1);
+      setStatus('withdrawStatus', t('wd.finding'), 'info');
+      const commitment = computeCommitment(note.spendKey, note.viewKey);
+      const { deposits, mine } = await findDeposit(pool, commitment, attempt > 1);   // read through the network's RPC, not the wallet's
+      if (!mine) throw new Error(t('err.notFound'));
+      log('Found deposit at leaf index ' + mine.leafIndex);
+      lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
+      renderTree(pool, deposits, mine.leafIndex); updateWarnings();
 
-    st.go(2);
-    const zeros = computeZeroCascade(pool.levels);
-    const leaves = []; for (const d of deposits) leaves[d.leafIndex] = d.commitment;
-    const { pathElements, pathIndices, root } = getMerklePath(buildTreeLevels(leaves, zeros), mine.leafIndex, zeros);
-    const nullifierHash = computeNullifierHash(note.spendKey);
+      st.go(2);
+      const zeros = computeZeroCascade(pool.levels);
+      const leaves = []; for (const d of deposits) leaves[d.leafIndex] = d.commitment;
+      const { pathElements, pathIndices, root } = getMerklePath(buildTreeLevels(leaves, zeros), mine.leafIndex, zeros);
+      const nullifierHash = computeNullifierHash(note.spendKey);
 
-    const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], readProvider(pool.net));
-    if (await poolRead.nullifierHashes(nullifierHash)) throw new Error(t('err.spent'));
-    if (!(await poolRead.isKnownRoot(root))) throw new Error(t('err.root'));
+      const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], readProvider(pool.net));
+      if (await poolRead.nullifierHashes(nullifierHash)) throw new Error(t('err.spent'));
+      if (!(await poolRead.isKnownRoot(root))) throw staleRootErr();
 
-    st.go(3); st.tick(3);
-    setStatus('withdrawStatus', t('wd.proving'), 'info');
-    const input = { root: root.toString(), nullifierHash: nullifierHash.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
-    if (modern(pool.version)) input.recipient = BigInt(recipient).toString();
-    if (pool.version === 'v6') { input.relayer = '0'; input.fee = '0'; }   // no relayer fee today: relayer address 0, fee 0
-    const t0 = performance.now();
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
-    st.stopTick(); st.extra(3, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
-    log('Proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
-    const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
-    if (modern(pool.version) && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+      st.go(3); st.tick(3);
+      setStatus('withdrawStatus', t('wd.proving'), 'info');
+      const input = { root: root.toString(), nullifierHash: nullifierHash.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
+      if (modern(pool.version)) input.recipient = BigInt(recipient).toString();
+      if (pool.version === 'v6') { input.relayer = '0'; input.fee = '0'; }   // no relayer fee today: relayer address 0, fee 0
+      const t0 = performance.now();
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
+      st.stopTick(); st.extra(3, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+      log('Proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
+      const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+      if (modern(pool.version) && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
 
-    st.go(4);
-    setStatus('withdrawStatus', t('wd.checking'), 'info');
-    const isValid = await new ethers.Contract(pool.verifierAddr, VERIFIER_ABI[pool.version], readProvider(pool.net)).verifyProof(pA, pB, pC, pub);
-    log('On-chain verification: ' + (isValid ? 'TRUE' : 'FALSE'));
-    if (!isValid) throw new Error(t('err.invalid'));
+      st.go(4);
+      setStatus('withdrawStatus', t('wd.checking'), 'info');
+      const isValid = await new ethers.Contract(pool.verifierAddr, VERIFIER_ABI[pool.version], readProvider(pool.net)).verifyProof(pA, pB, pC, pub);
+      log('On-chain verification: ' + (isValid ? 'TRUE' : 'FALSE'));
+      if (!isValid) throw new Error(t('err.invalid'));
 
-    if (viaRelay) {
-      st.go(5, t('x.block'));
-      setStatus('withdrawStatus', t('wd.relaying'), 'info');
-      const r = await relayPost(pool.net, '/withdraw', Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, pool.version === 'v6' ? { relayer: ethers.ZeroAddress, fee: '0' } : {}));
-      log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+      if (viaRelay) {
+        st.go(5, t('x.block'));
+        setStatus('withdrawStatus', t('wd.relaying'), 'info');
+        const r = await relayPost(pool.net, '/withdraw', Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, pool.version === 'v6' ? { relayer: ethers.ZeroAddress, fee: '0' } : {}));
+        log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+        st.extra(5, ''); st.done();
+        setStatus('withdrawStatus', t('wd.success', { tx: r.tx }), 'ok');
+        break;
+      }
+      st.go(5, t('x.confirm'));
+      setStatus('withdrawStatus', t('wd.submitting'), 'info');
+      const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
+      const fees = await feeOverrides(pool.net);
+      const tx = pool.version === 'v6' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
+        : pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
+      log('Withdraw tx: ' + tx.hash);
+      st.extra(5, t('x.block'));
+      const rc = await tx.wait();
+      log('Confirmed in block ' + rc.blockNumber + ', gas: ' + rc.gasUsed.toString());
       st.extra(5, ''); st.done();
-      setStatus('withdrawStatus', t('wd.success', { tx: r.tx }), 'ok'); if (signer) await refreshBalances();
-      return;
+      setStatus('withdrawStatus', t('wd.success', { tx: tx.hash }), 'ok');
+      break;
+     } catch (e) {
+      if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
+      log('The pool no longer knows the root of this proof (' + errText(e).slice(0, 80) + '); scanning again and making a new proof (attempt ' + (attempt + 1) + ' of ' + ROOT_RETRIES + ').');
+      setStatus('withdrawStatus', t('wd.rootRetry'), 'info');
+     }
     }
-    st.go(5, t('x.confirm'));
-    setStatus('withdrawStatus', t('wd.submitting'), 'info');
-    const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
-    const fees = await feeOverrides(pool.net);
-    const tx = pool.version === 'v6' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
-      : pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
-    log('Withdraw tx: ' + tx.hash);
-    st.extra(5, t('x.block'));
-    const rc = await tx.wait();
-    log('Confirmed in block ' + rc.blockNumber + ', gas: ' + rc.gasUsed.toString());
-    st.extra(5, ''); st.done();
-    setStatus('withdrawStatus', t('wd.success', { tx: tx.hash }), 'ok'); await refreshBalances();
+    if (signer) await refreshBalances();
   } catch (e) { st.fail(); setStatus('withdrawStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { syncWithdrawBtn(); if (signer) btn.disabled = false; }
 });
@@ -2068,45 +2084,60 @@ $('waGoBtn').addEventListener('click', async () => {
     const { router, rp, deps } = sc, tok = router.token, v6 = router.version === 'v6', circ = await loadCircuit(v6 ? 'v4' : 'v3');
     const viaRelay = relayOn(router.net, 'waUseRelay');   // no wallet needed
     if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
-    const zeros = computeZeroCascade(levelsOf(router.version)), levelsByPool = {}, rootChecked = {};
-    const chosen = plan.chosen.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);
-    const items = [];
-    st.go(3); st.tick(3);
-    for (let i = 0; i < chosen.length; i++) {
-      const n = chosen[i], pool = router.pools[n.pi];
-      st.extra(3, t('wa.proving', { i: i + 1, n: chosen.length }));
-      if (!levelsByPool[n.pi]) { const leaves = []; for (const d of deps[n.pi]) leaves[d.leafIndex] = d.commitment; levelsByPool[n.pi] = buildTreeLevels(leaves, zeros); }
-      const { pathElements, pathIndices, root } = getMerklePath(levelsByPool[n.pi], n.leafIndex, zeros);
-      if (rootChecked[n.pi] !== root) {   // one check per pool: every note of a pool is proven against the same root
-        if (!(await new ethers.Contract(pool.address, POOL_ABI.v5, rp).isKnownRoot(root))) throw new Error(t('err.root'));
-        rootChecked[n.pi] = root;
-      }
-      const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
-      if (v6) { input.relayer = '0'; input.fee = '0'; }
-      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
-      const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
-      if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
-      items.push(v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
-      log('Proof ' + (i + 1) + '/' + chosen.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
-    }
-    st.stopTick(); st.extra(3, '');
-    st.go(4);
-    const max = Number(await withRetry(() => new ethers.Contract(router.address, routerAbi(router), rp).MAX_WITHDRAWALS(), 'reading the batch limit'));
-    const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
+    const zeros = computeZeroCascade(levelsOf(router.version));
+    let pending = plan.chosen.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);   // notes not yet paid out
+    let depsNow = deps, lastTx = null;
     const rr = new ethers.Contract(router.address, routerAbi(router), rp), relayArg = v6 ? [ethers.ZeroAddress] : [];
-    for (const b of batches) await rr.withdrawMany.staticCall(b, recipient, ...relayArg);   // refuses early, before any gas is spent (the sender does not matter)
-    st.go(5, viaRelay ? t('x.block') : t('x.confirm'));
-    let lastTx = null;
-    for (let i = 0; i < batches.length; i++) {
-      if (batches.length > 1) st.extra(5, t('wa.batch', { i: i + 1, n: batches.length }));
-      if (viaRelay) {
-        const r = await relayPost(router.net, '/withdrawMany', Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {})); lastTx = r.tx;
-        log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
-        continue;
+    const max = Number(await withRetry(() => rr.MAX_WITHDRAWALS(), 'reading the batch limit'));
+    // Proofs name each pool's current root. If a pool forgets that root before a batch is sent (many deposits meanwhile),
+    // the batch is refused as a whole with "Unknown root": the notes of the batches already paid stay paid, the rest are
+    // proven again against fresh roots and sent (ROOT_RETRIES attempts in all).
+    for (let attempt = 1; ; attempt++) {
+     try {
+      const levelsByPool = {}, rootChecked = {}, items = [];
+      st.go(3); st.tick(3);
+      for (let i = 0; i < pending.length; i++) {
+        const n = pending[i], pool = router.pools[n.pi];
+        st.extra(3, t('wa.proving', { i: i + 1, n: pending.length }));
+        if (!levelsByPool[n.pi]) { const leaves = []; for (const d of depsNow[n.pi]) leaves[d.leafIndex] = d.commitment; levelsByPool[n.pi] = buildTreeLevels(leaves, zeros); }
+        const { pathElements, pathIndices, root } = getMerklePath(levelsByPool[n.pi], n.leafIndex, zeros);
+        if (rootChecked[n.pi] !== root) {   // one check per pool: every note of a pool is proven against the same root
+          if (!(await new ethers.Contract(pool.address, POOL_ABI.v5, rp).isKnownRoot(root))) throw staleRootErr();
+          rootChecked[n.pi] = root;
+        }
+        const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
+        if (v6) { input.relayer = '0'; input.fee = '0'; }
+        const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
+        const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+        if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+        items.push(v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
+        log('Proof ' + (i + 1) + '/' + pending.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
       }
-      const tx = await new ethers.Contract(router.address, routerAbi(router), signer).withdrawMany(batches[i], recipient, ...relayArg, await feeOverrides(router.net)); lastTx = tx.hash;
-      log('withdrawMany tx: ' + tx.hash);
-      const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+      st.stopTick(); st.extra(3, '');
+      st.go(4);
+      const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
+      for (const b of batches) await rr.withdrawMany.staticCall(b, recipient, ...relayArg);   // refuses early, before any gas is spent (the sender does not matter)
+      st.go(5, viaRelay ? t('x.block') : t('x.confirm'));
+      for (let i = 0; i < batches.length; i++) {
+        if (batches.length > 1) st.extra(5, t('wa.batch', { i: i + 1, n: batches.length }));
+        if (viaRelay) {
+          const r = await relayPost(router.net, '/withdrawMany', Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {})); lastTx = r.tx;
+          log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+        } else {
+          const tx = await new ethers.Contract(router.address, routerAbi(router), signer).withdrawMany(batches[i], recipient, ...relayArg, await feeOverrides(router.net)); lastTx = tx.hash;
+          log('withdrawMany tx: ' + tx.hash);
+          const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+        }
+        pending = pending.slice(batches[i].length);   // this batch is paid
+      }
+      break;
+     } catch (e) {
+      st.stopTick();
+      if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
+      log('A pool no longer knows the root of these proofs (' + errText(e).slice(0, 80) + '); ' + pending.length + ' note(s) left: scanning again and making new proofs (attempt ' + (attempt + 1) + ' of ' + ROOT_RETRIES + ').');
+      setStatus('waStatus', t('wd.rootRetry'), 'info');
+      depsNow = await Promise.all(router.pools.map((p) => fetchDeposits(p, false)));
+     }
     }
     st.extra(5, ''); st.done();
     setStatus('waStatus', t('wa.success', { amt: target, token: tok, to: short(recipient), tx: lastTx }), 'ok');

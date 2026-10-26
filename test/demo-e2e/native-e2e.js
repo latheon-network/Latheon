@@ -100,17 +100,31 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     // a stand-in for the network's relayer: sends what it is given from its own account (index 3)
     const relayed = [];
     const relaySigner = await eth['latheon-testnet'].getSigner(3), relayAddr = await relaySigner.getAddress();
+    // Stale-root drill: when floodNext names a pool, the next relayed withdrawal first gets HIST deposits into that pool
+    // (random commitments from account 4), so the pool forgets the root the proof was made against and refuses it with
+    // "Unknown root". The demo must make a new proof and succeed on its own.
+    const HIST = V6 ? 100 : 30, FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+    let floodNext = null, relayCalls = 0;
+    const flooder = await eth['latheon-testnet'].getSigner(4);
+    async function flood(poolAddr, amount) {
+      const c = new ethers.Contract(poolAddr, ['function deposit(uint256 commitment) payable'], flooder);
+      for (let i = 0; i < HIST; i++) await (await c.deposit(BigInt(ethers.hexlify(ethers.randomBytes(32))) % FIELD, { value: amount })).wait();
+    }
     async function relayRoute(route) {
       const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
       if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });
       const url = route.request().url(), b = JSON.parse(route.request().postData() || '{}');
+      relayCalls++;
+      if (floodNext) { const f = floodNext; floodNext = null; await flood(f.addr, f.amount); }
       try {
         const Z = ethers.ZeroAddress;
-        const tx = url.endsWith('/withdrawMany') ? await new ethers.Contract(b.router, RELAY_ROUTER, relaySigner).withdrawMany(b.items, b.recipient, ...(V6 ? [b.relayer || Z] : []))
-          : await new ethers.Contract(b.pool, RELAY_POOL, relaySigner).withdraw(b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, ...(V6 ? [b.relayer || Z, b.fee || 0] : []));
+        const [c, fn, args] = url.endsWith('/withdrawMany') ? [new ethers.Contract(b.router, RELAY_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, ...(V6 ? [b.relayer || Z] : [])]]
+          : [new ethers.Contract(b.pool, RELAY_POOL, relaySigner), 'withdraw', [b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, ...(V6 ? [b.relayer || Z, b.fee || 0] : [])]];
+        try { await c[fn].staticCall(...args); } catch (e) { throw new Error('Refused before sending (the chain would reject it): ' + (e.reason || e.shortMessage || e.message)); }   // as the real relayer does
+        const tx = await c[fn](...args);
         const rc = await tx.wait(); relayed.push(tx.hash);
         return route.fulfill({ status: 200, contentType: 'application/json', headers: h, body: JSON.stringify({ tx: tx.hash, gasUsed: rc.gasUsed.toString() }) });
-      } catch (e) { return route.fulfill({ status: 400, contentType: 'application/json', headers: h, body: JSON.stringify({ error: (e.shortMessage || e.message).slice(0, 120) }) }); }
+      } catch (e) { return route.fulfill({ status: 400, contentType: 'application/json', headers: h, body: JSON.stringify({ error: (e.message || e.shortMessage).slice(0, 160) }) }); }
     }
 
     browser = await chromium.launch();
@@ -229,11 +243,15 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     await page.fill('#waKey', key); await page.fill('#waAmount', '161'); await page.fill('#waRecipient', r2);
     await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
     const userBefore10 = await coin(accounts[0]);
-    await page.click('#waGoBtn'); await waitText('#waStatus', /Withdrawn|Failed/);
+    floodNext = { addr: dep[N].pools['LTH-1'].addr, amount: E18 }; const calls10 = relayCalls;
+    await page.click('#waGoBtn'); await waitText('#waStatus', /Withdrawn|Failed/, 1200000);   // includes the stale-root drill (HIST deposits)
     const ws = (await page.textContent('#waStatus')).trim();
     const tx10 = relayed.length ? await eth[N].getTransaction(relayed[relayed.length - 1]) : null;
     rec('N10. Withdraw 161 by amount and key through the relayer: the empty address holds exactly 161 LTH, the transaction comes from the relayer, the user paid nothing',
       /Withdrawn 161 LTH/.test(ws) && (await coin(r2)) === 161n * E18 && tx10 && tx10.from === relayAddr && (await coin(accounts[0])) === userBefore10, ws.slice(0, 70));
+    const log10 = await page.textContent('#log');
+    rec(`N16. Router withdrawal survives a stale root: ${HIST} deposits landed in the 1 LTH pool between proving and sending, the relayer was refused once ("Unknown root"), the demo made new proofs and the second attempt paid`,
+      /no longer knows the root/.test(log10) && relayCalls - calls10 === 2 && (await coin(r2)) === 161n * E18, 'relayer calls ' + (relayCalls - calls10));
 
     // ---- a visitor with NO wallet at all withdraws a note through the relayer
     await page.click('#tab-deposit'); await page.click('#depMode-any');
@@ -252,10 +270,14 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     const r3 = fresh(3);
     await page2.fill('#noteInput', note2); await page2.fill('#recipientInput', r3);
     const enabledNoWallet = !(await page2.isDisabled('#withdrawBtn'));
-    await page2.click('#withdrawBtn'); await page2.waitForFunction(() => /Withdrawal successful|Failed/.test(document.getElementById('withdrawStatus').textContent), null, { timeout: 240000 });
+    floodNext = { addr: dep[N].pools['LTH-1'].addr, amount: E18 }; const calls15 = relayCalls;
+    await page2.click('#withdrawBtn'); await page2.waitForFunction(() => /Withdrawal successful|Failed/.test(document.getElementById('withdrawStatus').textContent), null, { timeout: 1200000 });
     const st2 = (await page2.textContent('#withdrawStatus')).trim(); const steps2 = await page2.$$eval('#wdSteps li span:first-child', (e) => e.map((x) => x.textContent.trim()));
     rec('N15. Without any wallet: the withdraw button works, the step says "Send through the relayer", the empty address gets exactly 1 LTH',
       enabledNoWallet && /Withdrawal successful/.test(st2) && steps2[5] === 'Send through the relayer' && (await coin(r3)) === 1n * E18 && !errs2.length, st2.slice(0, 60) + (errs2.length ? ' | ' + errs2[0] : ''));
+    const log15 = await page2.textContent('#log');
+    rec(`N17. One-note withdrawal survives a stale root: ${HIST} deposits in the pool between proving and sending, refused once, new proof, paid on the second attempt`,
+      /no longer knows the root/.test(log15) && relayCalls - calls15 === 2 && (await coin(r3)) === 1n * E18, 'relayer calls ' + (relayCalls - calls15));
     await page2.close();
 
     // ---- back to the ERC-20 network: approval step and gas row are back

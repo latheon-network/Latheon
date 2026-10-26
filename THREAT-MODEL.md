@@ -57,7 +57,7 @@ We do **not** currently assume protection against:
 - Selective disclosure (V4/V5) reveals to the chosen auditor which deposit is being disclosed; see §2.5. The disclosure circuit and contracts are a prototype with no independent review. On V3 pools disclosure remains manual.
 - No independent cryptographic review or formal security audit has been performed yet.
 - Anonymity set size is currently very small: the pools hold mostly test deposits.
-- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6 pool (see §4). A V5 pool keeps 30 roots and a V6 pool 100: a proof made against an older root is refused and has to be made again.
+- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6 pool (see §4). A V5 pool keeps 30 roots and a V6 pool 100: a proof made against an older root is refused and has to be made again. The demo does that on its own (a new scan and a new proof, up to three attempts); the note is never spent by a refused proof.
 
 ### 8.1 Known issue (V3 / V4 pools): the withdrawal recipient is not bound to the proof. Fixed in V5.
 

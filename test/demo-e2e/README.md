@@ -24,7 +24,9 @@ It does not replace a test with a real wallet and live RPC endpoints.
 ## Native-coin network: `native-e2e.js`
 
 The demo on a network whose gas coin is the pooled token, next to an ERC-20 network: native pools and router, a wallet
-that has to add the network, the relayer stand-in, a visitor with no wallet. 16 checks with real proofs. `V6=1` runs the
+that has to add the network, the relayer stand-in, a visitor with no wallet, and a stale root: the relayer stand-in puts
+30 deposits (V5) or 100 (V6) into the pool between proving and sending, and the demo must make a new proof on its own.
+18 checks with real proofs (the V6 run takes much longer because of those 100 deposits). `V6=1` runs the
 same checks on the V6 pools and router (`withdraw_v4`, 20-level trees, relayer and fee in the proof):
 
 ```
