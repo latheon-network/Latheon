@@ -468,7 +468,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <div class="big"><b>20</b><span data-i18n="pools.n1">V5 pools</span></div>
       <div class="big"><b>4</b><span data-i18n="pools.n2">testnets</span></div>
       <div class="big"><b>2</b><span data-i18n="pools.n3">tokens: LTH, USDG</span></div>
-      <div class="big"><b>5</b><span data-i18n="pools.n4">distribution routers</span></div>
+      <div class="big"><b>6</b><span data-i18n="pools.n4">distribution routers</span></div>
     </div>
     <p class="honest reveal" data-i18n="pools.honest"><strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.</p>
     <p class="gas-note reveal" data-i18n="pools.gasNote">Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.</p>
@@ -491,10 +491,10 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <p data-xi18n="vf.p">Live numbers read directly from each network's pool contracts, plus the code and the status document.</p>
     </div>
     <div class="x-cards" id="xNets">
-      <div class="x-card x-net reveal" data-net="latheon-testnet"><b>Latheon Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
-      <div class="x-card x-net reveal" data-net="ethereum-sepolia"><b>Ethereum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
-      <div class="x-card x-net reveal" data-net="arbitrum-sepolia"><b>Arbitrum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
-      <div class="x-card x-net reveal" data-net="robinhood-testnet"><b>Robinhood Chain Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the V5 pools</small></div>
+      <div class="x-card x-net reveal" data-net="latheon-testnet"><b>Latheon Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the pools</small></div>
+      <div class="x-card x-net reveal" data-net="ethereum-sepolia"><b>Ethereum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the pools</small></div>
+      <div class="x-card x-net reveal" data-net="arbitrum-sepolia"><b>Arbitrum Sepolia</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the pools</small></div>
+      <div class="x-card x-net reveal" data-net="robinhood-testnet"><b>Robinhood Chain Testnet</b><span class="x-num">—</span><small data-xi18n="vf.deps">deposits in the pools</small></div>
     </div>
     <div class="x-links reveal">
       <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener" data-xi18n="vf.code">Source code ↗</a>
@@ -630,7 +630,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.bridge.t': 'Приватность моста', 'st.bridge.d': 'Перевод средств между L1 и L2 пока не приватен.',
       'st.meta.t': 'Публичные метаданные', 'st.meta.d': 'Время и газ каждой транзакции видны всем.',
       'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в четырёх тестовых сетях, включая нашу собственную', 'pools.n1': 'пулов V5', 'pools.n2': 'тестовые сети', 'pools.n3': 'токена: LTH, USDG',
-      'pools.n4': 'роутера распределения', 'pools.router': 'Роутер',
+      'pools.n4': 'роутеров распределения', 'pools.router': 'Роутер',
       'pools.honest': '<strong>Честно:</strong> в пулах в основном наши собственные тестовые депозиты, поэтому толпа, в которой вы прячетесь, почти пуста. Механика работает и проверяется в блокчейне; для настоящей приватности нужны настоящие пользователи.',
       'pools.gasNote': 'Честно о газе: число единиц газа различается по сетям и меняется со временем. Наши последние одиночные выводы в блокчейне на V5: Ethereum Sepolia 419 919 · Arbitrum Sepolia 276 769 · Robinhood Chain 297 197 (LTH) и 306 346 (USDG). Цифру Ethereum мы пока не можем объяснить, поэтому не утверждаем, что L2 тратит больше или меньше единиц газа, чем L1; комиссия зависит от цены газа. Контролируемый перемер запланирован.',
       'pools.show': 'Показать адреса контрактов', 'pools.hide': 'Скрыть адреса контрактов', 'pools.copy': 'копировать', 'pools.view': 'смотреть ↗', 'pools.copied': 'Скопировано: {what}',
@@ -854,10 +854,14 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     'robinhood-testnet': ['Robinhood Chain Testnet', 'https://explorer.testnet.chain.robinhood.com']
   };
   var POOLS = [
-    ['latheon-testnet','LTH',100,'0xf10AF1771450c528fee0c5435D3E4f4214073aFe'],
-    ['latheon-testnet','LTH',50,'0x4D9b9624418e2E91a38122D53e2A12eE028194b3'],
-    ['latheon-testnet','LTH',10,'0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618'],
-    ['latheon-testnet','LTH',1,'0xD01D19B9D296299619f681b842b3b61C79736F3a'],
+    ['latheon-testnet','LTH · V6',100,'0xB4035F257793bB7323f9373Af41e5298b04A80dF'],
+    ['latheon-testnet','LTH · V6',50,'0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C'],
+    ['latheon-testnet','LTH · V6',10,'0x002B880740926A37da5b6f56faDbFD79400c759d'],
+    ['latheon-testnet','LTH · V6',1,'0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260'],
+    ['latheon-testnet','LTH · V5',100,'0xf10AF1771450c528fee0c5435D3E4f4214073aFe'],
+    ['latheon-testnet','LTH · V5',50,'0x4D9b9624418e2E91a38122D53e2A12eE028194b3'],
+    ['latheon-testnet','LTH · V5',10,'0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618'],
+    ['latheon-testnet','LTH · V5',1,'0xD01D19B9D296299619f681b842b3b61C79736F3a'],
     ['ethereum-sepolia','LTH',100,'0x851981f6a35EB0D91d927c0e854774f5d0ce6233'],
     ['ethereum-sepolia','LTH',50,'0x09d3D081195304FD83bb79e4b5B97344cE5e89b4'],
     ['ethereum-sepolia','LTH',10,'0x4402b051482B0304A118A4F8A8bb10095127499D'],
@@ -877,7 +881,8 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   ];
   /* distribution routers, one per token set (docs/distribution-pool-deployments.md) */
   var ROUTERS = [
-    ['latheon-testnet','LTH','0x0C3475657D4Bd198efe068dDB064725B6514FB04'],
+    ['latheon-testnet','LTH · V6','0x93963CF193DD6a961eFEA8311b0834EE31518150'],
+    ['latheon-testnet','LTH · V5','0x0C3475657D4Bd198efe068dDB064725B6514FB04'],
     ['ethereum-sepolia','LTH','0xC12095a1e7fAc20E827a93933576469e1122eB61'],
     ['arbitrum-sepolia','LTH','0x284985291A32cf0cfE48F6CA128615983952350e'],
     ['robinhood-testnet','LTH','0x006da9E656581A7740856aA89c690b3Abd296c30'],
@@ -966,7 +971,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'fd.eyebrow': 'Founder', 'fd.h2': 'Who builds Latheon', 'fd.name': 'Vladimir Smirnov, founder of Latheon',
       'fd.p1': 'Crypto lacks privacy. When every transaction is public, people and organizations can be exposed, and their data can end up in the hands of scammers. I knew a way to reduce that risk, so I started building it.',
       'fd.p2': 'Latheon is a privacy protocol on Ethereum, built and maintained by me alone. It is live on testnets only, and the long-term goal is a Layer 2 where privacy is the default. Before this I worked as a lead auditor in a control and audit department and studied public administration. That background shaped my approach: privacy should hold up under verification. The code and tests are open, the numbers are measured, and I say plainly what is not done yet, including that there is no independent audit.',
-      'vf.deps': 'deposits in the V5 pools', 'vf.na': 'network not responding — open the explorer', 'vf.code': 'Source code ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Threat model ↗'
+      'vf.deps': 'deposits in the pools', 'vf.na': 'network not responding — open the explorer', 'vf.code': 'Source code ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Threat model ↗'
     },
     ru: {
       'why.eyebrow': 'Зачем это нужно', 'why.h2': 'Приватность и доказательство одновременно',
@@ -985,7 +990,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'fd.eyebrow': 'Основатель', 'fd.h2': 'Кто создаёт Latheon', 'fd.name': 'Владимир Смирнов, основатель Latheon',
       'fd.p1': 'В крипто-индустрии не хватает приватности. Когда все операции открыты, люди и организации могут быть скомпрометированы, а их данные могут попасть к мошенникам. Я знал, как снизить этот риск, и решил это сделать.',
       'fd.p2': 'Latheon — протокол приватности на Ethereum, который я создаю и поддерживаю один. Сейчас он работает только в тестовых сетях, а долгосрочная цель — L2 с приватностью по умолчанию. До этого я работал ведущим аудитором в контрольно-ревизионном отделе и учился на государственном управлении. Этот опыт определил мой подход: приватность должна выдерживать проверку. Код и тесты открыты, цифры измерены, а о том, что ещё не сделано, я говорю прямо, в том числе о том, что независимого аудита пока нет.',
-      'vf.deps': 'депозитов в пулах V5', 'vf.na': 'сеть не отвечает — откройте обозреватель', 'vf.code': 'Исходный код ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Модель угроз ↗'
+      'vf.deps': 'депозитов в пулах', 'vf.na': 'сеть не отвечает — откройте обозреватель', 'vf.code': 'Исходный код ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Модель угроз ↗'
     },
     zh: {
       'why.eyebrow': '为什么重要', 'why.h2': '隐私与证明，兼而有之',
@@ -1004,7 +1009,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'fd.eyebrow': '创始人', 'fd.h2': '谁在构建 Latheon', 'fd.name': 'Vladimir Smirnov，Latheon 创始人',
       'fd.p1': '加密行业缺少隐私。当所有交易都公开时，个人和机构可能被暴露，他们的数据也可能落入诈骗者手中。我知道如何降低这种风险，所以决定动手去做。',
       'fd.p2': 'Latheon 是一个构建在以太坊上的隐私协议，由我一人开发和维护。目前仅在测试网运行，长期目标是打造默认保护隐私的 Layer 2。此前我在监督审计部门担任高级审计员，并学习公共管理。这段经历塑造了我的做法：隐私应当经得起验证。代码和测试公开，数据均为实测，尚未完成的部分我会如实说明，包括目前还没有独立审计。',
-      'vf.deps': 'V5 资金池中的存款', 'vf.na': '网络暂无响应——请打开区块浏览器', 'vf.code': '源代码 ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': '威胁模型 ↗'
+      'vf.deps': '资金池中的存款', 'vf.na': '网络暂无响应——请打开区块浏览器', 'vf.code': '源代码 ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': '威胁模型 ↗'
     }
   };
   function lang() { var l = 'en'; try { l = localStorage.getItem('latheon-lang') || (navigator.language || 'en').slice(0, 2); } catch (e) {} return X[l] ? l : 'en'; }
@@ -1036,7 +1041,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     }, { threshold: 0.6 }).observe(stage);
   }
 
-  /* live counters: deposits held by each network's V5 pools, read from the pool contracts themselves (nextIndex(), one
+  /* live counters: deposits held by each network's V5 and V6 pools, read from the pool contracts themselves (nextIndex(), one
      eth_call per pool through the network's RPC from demo/deployments.json). The explorer's "transactions" counter is
      not used: deposits made through the router are internal calls and do not show up there, and Blockscout does not
      index every chain completely. */
@@ -1057,7 +1062,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   }
   fetch('/demo/deployments.json').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (cfg) {
     Object.keys(cfg.networks).forEach(function (n) {
-      var net = cfg.networks[n], pools = cfg.pools.filter(function (p) { return p.network === n && (p.version === 'v5' || p.version === 'v5-native'); });
+      var net = cfg.networks[n], pools = cfg.pools.filter(function (p) { return p.network === n && (p.version === 'v5' || p.version === 'v5-native' || p.version === 'v6-native'); });
       if (!net.rpcUrl || !pools.length) return;
       Promise.all(pools.map(function (p) { return nextIndex(net.rpcUrl, p.address, 3); }))
         .then(function (arr) { counts[n] = arr.reduce(function (a, b) { return a + b; }, 0); renderCounts(); })

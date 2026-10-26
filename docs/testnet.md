@@ -55,6 +55,19 @@ Built from Latheon commit `180b4b8` (solc 0.8.37, optimizer 200 runs, EVM versio
 | Disclosure verifier | `0xB86360CBDE78664bb1674c367391E9d79c37F294` |
 | PoseidonT3 library | `0x8caC8633D6399cDe24d58e1c42cfc55ab00830CF` |
 
+**V6 set** (deployed 26 October 2026 from Latheon commit `5db02c6`; listed first in the demo). 20-level trees: 1,048,576 deposits per pool instead of 256; the pool keeps its last 100 roots instead of 30; circuit `withdraw_v4`, which binds the recipient, the relayer and the relayer's fee into the proof. The V5 set above stays, so notes made there can still be withdrawn.
+
+| Contract | Address |
+|---|---|
+| Pool 100 LTH (`LatheonShieldedPoolV6Native`) | `0xB4035F257793bB7323f9373Af41e5298b04A80dF` |
+| Pool 50 LTH | `0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C` |
+| Pool 10 LTH | `0x002B880740926A37da5b6f56faDbFD79400c759d` |
+| Pool 1 LTH | `0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260` |
+| Router (`LatheonDistributionPoolV6Native`) | `0x93963CF193DD6a961eFEA8311b0834EE31518150` |
+| Withdrawal verifier (`withdraw_v4`) | `0x49694EF1977b4A201b378740557f2aa41BDC3857` |
+
+The disclosure verifier and the PoseidonT3 library are shared with the V5 set. The V6 pools hold 999 LTH from a gas measurement made with commitments nobody can withdraw (23 deposits that are not real notes).
+
 Chain contracts on Arbitrum Sepolia: rollup `0xdDcA9a000d2DE69D6C11050B9e8fe90B5e02Bd89`, inbox `0x3F306353543EB48F419C8F8a19BfAd9fcB86aB17`, bridge `0x4D1FdE71BAd635148727694FEa04f24CAf881990`, outbox `0x61615B1b8493df67846C6BF17ab2EC4Fcb1775f7`, sequencer inbox `0x3b7f5F7fF9b38DFb848d9a4724dD45da7647Bea2`, test LTH token `0xcB44A83A9AD6dE27af7936A4fEbBEDb25c58db02`.
 
 ## Measured gas
@@ -65,8 +78,11 @@ Measured on this chain on 20 October 2026 with real proofs. "Total" includes the
 |---|---|---|
 | Router deposit, 11 LTH as 2 notes | 815,774 | 10,121,111 |
 | `withdrawMany`, 2 notes to an empty address | 554,474 | 30,273,597 |
+| V6 router deposit, 11 LTH as 2 notes (26 October) | 1,749,602 | 12,538,839 |
+| V6 `withdrawMany`, 2 notes with a relayer fee in the proofs | 625,860 | 37,174,867 |
+| V6 router deposit, 999 LTH as 23 notes | 16,229,508 | 52,218,520 |
 
-At the chain's minimum price of 0.1 gwei these cost about 0.001 and 0.003 LTH. Fees are set by the chain's own minimum price; data cost on the parent chain is paid by the chain in ETH whatever that price is.
+At the chain's minimum price of 0.1 gwei these cost about 0.001 to 0.005 LTH. A V6 deposit costs about twice the execution gas of V5 per note because its tree is 20 levels deep instead of 8. Fees are set by the chain's own minimum price; data cost on the parent chain is paid by the chain in ETH whatever that price is.
 
 ## How it is run
 
@@ -74,12 +90,13 @@ At the chain's minimum price of 0.1 gwei these cost about 0.001 and 0.003 LTH. F
 - The node is the only sequencer and the only validator. Its assertions on Arbitrum Sepolia are confirmed after the challenge period (30 minutes), so a withdrawal from the chain to Arbitrum Sepolia becomes executable after three waits in a row: the batch poster posts the batch that contains it (at low traffic it waits up to about an hour to fill a batch), the validator posts an assertion covering that batch (it checks every 15 minutes), and the assertion is confirmed after the challenge period. Measured on 24 October 2026: a withdrawal sent at 13:33 UTC was in a batch at 14:20, in an assertion at 14:43, confirmable at about 15:29, and claimed at 15:38, about two hours in total.
 - Public RPC and explorer API are rate-limited per IP (RPC 25 requests a second and 600 a minute; explorer API 40 a second); above that the answer is HTTP 429 with Retry-After. The node's debug methods are not exposed.
 - The endpoints are checked from outside every 15 minutes.
-- **Withdrawal relayer:** `https://explorer.testnet.latheon.xyz/relay/api` (`GET /status`, `POST /withdraw`, `POST /withdrawMany`). It sends withdrawals from its own address and pays the gas, so a fresh address can receive without holding anything and no wallet is needed to withdraw. It accepts only the pools and router listed above, simulates every request first and refuses what the chain would reject without spending gas, allows 10 relayed withdrawals per IP per hour and 500 a day in total, and charges no fee. It cannot redirect a withdrawal: the proof is bound to the recipient. If it refuses or is down, the same proof can be sent from any wallet.
+- **Withdrawal relayer:** `https://explorer.testnet.latheon.xyz/relay/api` (`GET /status`, `POST /withdraw`, `POST /withdrawMany`). It sends withdrawals from its own address and pays the gas, so a fresh address can receive without holding anything and no wallet is needed to withdraw. It accepts only the pools and routers listed above (V5 and V6; for V6 the proof may name a relayer and a fee, and this relayer accepts only no fee or a fee paid to itself), simulates every request first and refuses what the chain would reject without spending gas, allows 10 relayed withdrawals per IP per hour and 500 a day in total, and charges no fee. It cannot redirect a withdrawal: the proof is bound to the recipient. If it refuses or is down, the same proof can be sent from any wallet.
 
 ## Limits
 
 - **Trust:** one sequencer and one validator, both run by us; nobody else can challenge the chain's assertions yet. The chain owner, the rollup owner (upgrades) and the owner of the test LTH token are one development key today. A multisig with a timelock is planned before any production chain (see `ROADMAP.md`).
 - **Privacy:** the pools on this chain are new, so the anonymity set is tiny. Your deposit address is public; privacy here means a withdrawal cannot be linked to its deposit, and only once enough other deposits exist. By default the demo sends withdrawals through the chain's relayer (below), so your wallet does not appear in them; if you untick it, the wallet you connect sends and pays for the withdrawal in public, so use a different wallet than the one you deposited from (the demo warns about this). The relayer, like any server you talk to, sees the recipient and your IP address.
+- **Capacity:** a V5 pool takes at most 256 deposits and keeps its last 30 roots; a V6 pool takes 1,048,576 and keeps 100. A proof names one root: if that many deposits land in the pool between making the proof and sending it, the pool refuses it ("Unknown root") and nothing is spent; the demo then makes a new proof on its own. The router takes at most 32 notes per deposit and 16 per `withdrawMany`.
 - **Availability:** a single server; it can be down or reset. Test LTH and test notes may be lost if the chain has to be recreated.
 - **No audit, development keys:** the circuits use keys from a single-party setup (`docs/dev-ceremony-v3.md`); see `THREAT-MODEL.md` for what is and is not protected.
 

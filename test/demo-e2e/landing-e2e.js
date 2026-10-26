@@ -1,11 +1,11 @@
 // Browser test of the landing page's live counters ("Verify it yourself"): each card must show the sum of nextIndex()
-// over that network's V5 pools, read with eth_call from the RPC in demo/deployments.json; no explorer API is used; the
+// over that network's V5 and V6 pools, read with eth_call from the RPC in demo/deployments.json; no explorer API is used; the
 // label is translated (EN/RU/ZH); a network that does not answer shows a dash and a link to its explorer; no JS errors.
 // RPC answers are mocked, so the numbers here are test values. Needs Playwright with Chromium:  node landing-e2e.js
 const fs = require('fs'), path = require('path'), R = path.resolve(__dirname, '..', '..');
 let chromium; try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/usr/lib/node_modules/playwright')); }
 const cfg = JSON.parse(fs.readFileSync(R + '/demo/deployments.json', 'utf8'));
-const nextIdx = {}; cfg.pools.filter(p => p.version === 'v5' || p.version === 'v5-native').forEach((p, i) => nextIdx[p.address.toLowerCase()] = i % 4);
+const nextIdx = {}; cfg.pools.filter(p => p.version === 'v5' || p.version === 'v5-native' || p.version === 'v6-native').forEach((p, i) => nextIdx[p.address.toLowerCase()] = i % 4);
 (async () => {
   const results = []; const rec = (n, ok, note) => { results.push(ok); console.log((ok ? 'PASS ' : 'FAIL ') + n + (note ? '   [' + note + ']' : '')); };
   for (const mode of ['ok', 'arbDown']) {
@@ -33,14 +33,14 @@ const nextIdx = {}; cfg.pools.filter(p => p.version === 'v5' || p.version === 'v
     await page.goto('https://latheon.test/');
     await page.waitForTimeout(6000);
     const cards = await page.$$eval('#xNets [data-net]', els => els.map(e => [e.getAttribute('data-net'), e.querySelector('.x-num').textContent, e.querySelector('small').textContent]));
-    const want = {}; for (const n of Object.keys(cfg.networks)) want[n] = cfg.pools.filter(p => p.network === n && (p.version === 'v5' || p.version === 'v5-native')).reduce((a, p) => a + nextIdx[p.address.toLowerCase()], 0);
+    const want = {}; for (const n of Object.keys(cfg.networks)) want[n] = cfg.pools.filter(p => p.network === n && (p.version === 'v5' || p.version === 'v5-native' || p.version === 'v6-native')).reduce((a, p) => a + nextIdx[p.address.toLowerCase()], 0);
     if (mode === 'ok') {
       rec('counters show the sum of nextIndex() per network', cards.every(([n, v]) => Number(v) === want[n]), cards.map(c => c[0] + '=' + c[1]).join(' '));
-      rec('label reads "deposits in the V5 pools"', cards.every(c => c[2] === 'deposits in the V5 pools'));
+      rec('label reads "deposits in the pools"', cards.every(c => c[2] === 'deposits in the pools'));
       rec('no request goes to an explorer API', seen.explorer === 0, seen.explorer + ' requests');
       const sub = await page.textContent('[data-xi18n="vf.p"]');
       rec('subtitle says the numbers come from the pool contracts', /pool contracts/.test(sub), sub.slice(0, 60));
-      for (const [lang, label] of [['ru', 'депозитов в пулах V5'], ['zh', 'V5 资金池中的存款']]) {
+      for (const [lang, label] of [['ru', 'депозитов в пулах'], ['zh', '资金池中的存款']]) {
         const sel = await page.$('select'); 
         const switched = await page.evaluate((l) => { const s = [...document.querySelectorAll('select')].find(x => [...x.options].some(o => o.value === l)); if (!s) return false; s.value = l; s.dispatchEvent(new Event('change', { bubbles: true })); return true; }, lang);
         await page.waitForTimeout(500);

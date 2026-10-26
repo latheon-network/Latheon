@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-10-21",
+  "generated": "2026-10-26",
   "networks": {
     "latheon-testnet": {
       "name": "Latheon Testnet",
@@ -42,7 +42,8 @@
         "outbox": "0x61615B1b8493df67846C6BF17ab2EC4Fcb1775f7",
         "page": "https://latheon.xyz/bridge/",
         "note": "Deposit: ERC20Inbox.depositERC20 on the parent chain (after approve). Withdrawal: ArbSys.withdrawEth on this chain, then Outbox.executeTransaction on the parent once confirmed (about two hours at low traffic; the page reads the outbox from rollup.outbox())."
-      }
+      },
+      "v6Verifier": "0x49694EF1977b4A201b378740557f2aa41BDC3857"
     },
     "ethereum-sepolia": {
       "name": "Ethereum Sepolia",
@@ -116,6 +117,42 @@
     }
   },
   "pools": [
+    {
+      "id": "latheon-testnet:LTH-100:v6",
+      "network": "latheon-testnet",
+      "version": "v6-native",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0xB4035F257793bB7323f9373Af41e5298b04A80dF",
+      "deployBlock": 58
+    },
+    {
+      "id": "latheon-testnet:LTH-50:v6",
+      "network": "latheon-testnet",
+      "version": "v6-native",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C",
+      "deployBlock": 59
+    },
+    {
+      "id": "latheon-testnet:LTH-10:v6",
+      "network": "latheon-testnet",
+      "version": "v6-native",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0x002B880740926A37da5b6f56faDbFD79400c759d",
+      "deployBlock": 60
+    },
+    {
+      "id": "latheon-testnet:LTH-1:v6",
+      "network": "latheon-testnet",
+      "version": "v6-native",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260",
+      "deployBlock": 61
+    },
     {
       "id": "latheon-testnet:LTH-100",
       "network": "latheon-testnet",
@@ -342,6 +379,15 @@
     }
   ],
   "routers": [
+    {
+      "id": "latheon-testnet:LTH:v6",
+      "network": "latheon-testnet",
+      "token": "LTH",
+      "native": true,
+      "version": "v6",
+      "address": "0x93963CF193DD6a961eFEA8311b0834EE31518150",
+      "deployBlock": 62
+    },
     {
       "id": "latheon-testnet:LTH",
       "network": "latheon-testnet",
