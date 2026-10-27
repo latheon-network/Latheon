@@ -97,6 +97,8 @@ Measured on this chain on 20 October 2026 with real proofs. "Total" includes the
 | V7 router deposit, 11 LTH as 2 notes (27 October) | 1,749,602 | 12,219,550 |
 | V7 `withdrawMany`, 2 notes with a relayer fee in the proofs | 625,896 | 35,912,159 |
 | V7 router deposit, 999 LTH as 23 notes | 16,229,568 | 51,153,549 |
+| V7 router deposit from the demo, 111 LTH as 3 notes | — | 15,045,664 |
+| V7 `withdrawMany` of 3 notes through the relayer (demo) | — | 48,694,924 |
 
 At the chain's minimum price of 0.1 gwei these cost about 0.001 to 0.005 LTH. A V6 deposit costs about twice the execution gas of V5 per note because its tree is 20 levels deep instead of 8. Fees are set by the chain's own minimum price; data cost on the parent chain is paid by the chain in ETH whatever that price is.
 
