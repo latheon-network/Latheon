@@ -68,6 +68,7 @@ const POOLX = ['function nextIndex() view returns (uint256)', 'function nullifie
     for (const k of Object.keys(cfg.networks)) if (!CHAINS[k]) delete cfg.networks[k];
     cfg.pools = cfg.pools.filter((p) => CHAINS[p.network]); cfg.routers = (cfg.routers || []).filter((r) => CHAINS[r.network]);
     for (const [k, n] of Object.entries(cfg.networks)) {
+      delete n.deprecated; delete n.deprecatedNote;
       n.v5Verifier = dep[k].ver5.addr; n.discloseVerifier = dep[k].ver5.addr; n.tokens.LTH.address = dep[k].lth.addr;
       if (n.tokens.USDG) n.tokens.USDG.address = dep[k].usdg.addr;
     }

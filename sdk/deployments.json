@@ -65,7 +65,9 @@
           "decimals": 18,
           "faucet": "0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214"
         }
-      }
+      },
+      "deprecated": true,
+      "deprecatedNote": "V5 pools here use the pre-V7 circuit and are forgeable (STATUS §7). Deposits are frozen; withdrawals of existing notes still work. The project now focuses on the Latheon test chain."
     },
     "arbitrum-sepolia": {
       "name": "Arbitrum Sepolia",
@@ -87,7 +89,9 @@
           "decimals": 18,
           "faucet": "0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D"
         }
-      }
+      },
+      "deprecated": true,
+      "deprecatedNote": "V5 pools here use the pre-V7 circuit and are forgeable (STATUS §7). Deposits are frozen; withdrawals of existing notes still work. The project now focuses on the Latheon test chain."
     },
     "robinhood-testnet": {
       "name": "Robinhood Chain Testnet",
@@ -114,7 +118,9 @@
           "decimals": 6,
           "externalFaucet": "https://faucet.paxos.com/"
         }
-      }
+      },
+      "deprecated": true,
+      "deprecatedNote": "V5 pools here use the pre-V7 circuit and are forgeable (STATUS §7). Deposits are frozen; withdrawals of existing notes still work. The project now focuses on the Latheon test chain."
     }
   },
   "pools": [

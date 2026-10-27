@@ -429,6 +429,7 @@ const I18N = {
     'intro.pill': '● Testnets only · test tokens, no real value · no independent audit yet',
     'setup.pool': 'Network &amp; token', 'setup.net': 'Network', 'setup.tok': 'Token', 'setup.fixed': 'Pool (one fixed amount)', 'setup.poolHint': 'Each pool holds one fixed amount, so every deposit looks the same from outside.', 'setup.wallet': 'Wallet',
     'pool.loading': 'Loading deployments…', 'pool.info': '{net} · {label} · contract {addr}',
+    'dep.frozen': 'Deposits into this pool are frozen: it uses the pre-V7 circuit (or is on a deprecated network) and is kept only so existing notes can be withdrawn. Deposit into a V7 pool instead.', 'pool.frozenBanner': 'This pool is frozen for deposits. It predates the V7 fix (STATUS §7) or is on a deprecated network; its notes can still be withdrawn, but do not deposit fresh funds here — use a V7 pool.',
     'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Test tokens only — prefer the V5 pools.',
     'pool.legacyGroup': 'Legacy V4 (deprecated, recipient not bound)',
     'wallet.notConnected': 'Not connected. Needed for faucet, deposit and withdraw.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.gas': '{coin} balance (gas)', 'wallet.token': '{token} balance',
@@ -573,6 +574,7 @@ const I18N = {
     'intro.pill': '● Только тестовые сети · тестовые токены без реальной ценности · независимого аудита пока нет',
     'setup.pool': 'Сеть и токен', 'setup.net': 'Сеть', 'setup.tok': 'Токен', 'setup.fixed': 'Пул (одна фиксированная сумма)', 'setup.poolHint': 'В каждом пуле одна фиксированная сумма, поэтому снаружи все депозиты выглядят одинаково.', 'setup.wallet': 'Кошелёк',
     'pool.loading': 'Загружаю реестр…', 'pool.info': '{net} · {label} · контракт {addr}',
+    'dep.frozen': 'Депозиты в этот пул заморожены: он на схеме до V7 (или в снятой с эксплуатации сети) и оставлен только для вывода уже внесённых нот. Внесите депозит в пул V7.', 'pool.frozenBanner': 'Пул заморожен для депозитов. Он до исправления V7 (STATUS §7) или в снятой с эксплуатации сети; вывести ноты из него можно, но не вносите новые средства — используйте пул V7.',
     'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Только тестовые токены — используйте пулы V5.',
     'pool.legacyGroup': 'Устаревшие V4 (получатель не привязан)',
     'wallet.notConnected': 'Не подключён. Нужен для фаусета, депозита и вывода.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.gas': 'Баланс {coin} (газ)', 'wallet.token': 'Баланс {token}',
@@ -717,6 +719,7 @@ const I18N = {
     'intro.pill': '● 仅限测试网 · 测试代币，无实际价值 · 尚无独立审计',
     'setup.pool': '网络与代币', 'setup.net': '网络', 'setup.tok': '代币', 'setup.fixed': '资金池（单一定额）', 'setup.poolHint': '每个资金池只有一种固定金额，因此从外部看所有存款都一样。', 'setup.wallet': '钱包',
     'pool.loading': '正在加载部署信息…', 'pool.info': '{net} · {label} · 合约 {addr}',
+    'dep.frozen': '此资金池的存款已冻结：它使用 V7 之前的电路（或位于已弃用的网络上），仅保留用于取出已有凭证。请改向 V7 资金池存款。', 'pool.frozenBanner': '此资金池已冻结存款。它早于 V7 修复（STATUS §7）或位于已弃用网络；仍可取出其凭证，但请勿存入新资金——请使用 V7 资金池。',
     'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。仅限测试代币——请优先使用 V5 资金池。',
     'pool.legacyGroup': '旧版 V4（已弃用，未绑定接收地址）',
     'wallet.notConnected': '未连接。领取测试币、存款和取款需要钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.gas': '{coin} 余额（Gas）', 'wallet.token': '{token} 余额',
@@ -1168,12 +1171,15 @@ async function loadConfig() {
       label: (p.legacy ? 'legacy V4 · ' : '') + p.amount + ' ' + p.token,
     });
   });
-  // When a newer generation exists on a network, older pools stay listed (their notes must stay withdrawable) but are
-  // marked so no one deposits fresh funds into them. A V7 pool exists => V5 and V6 are superseded.
+  // Only V7 is free of the pre-V7 Merkle-path flaw (STATUS §7). A pool is FROZEN for deposits — withdrawals of existing
+  // notes still work — when it is not V7 and either a V7 pool supersedes it, its network is deprecated, or it is legacy.
+  // (A config with a single generation and no 'deprecated' network — the e2e tests — freezes nothing, so deposits run.)
   const hasV7 = (p) => POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v7');
   for (const p of POOLS) {
-    if (p.version === 'v6' && hasV7(p)) p.label = 'V6 (superseded) · ' + p.label;
-    else if (p.version === 'v5' && hasV7(p)) p.label = 'V5 (superseded) · ' + p.label;
+    const secure = p.version === 'v7';
+    p.frozen = !secure && (!!p.legacy || !!p.net.deprecated || hasV7(p));
+    if (p.version === 'v6' && hasV7(p)) p.label = 'V6 (frozen) · ' + p.label;
+    else if (p.version === 'v5' && (hasV7(p) || p.net.deprecated)) p.label = 'V5 (frozen) · ' + p.label;
     else if (p.version === 'v5' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v6')) p.label = 'V5 (256 max) · ' + p.label;
   }
   loadRouters();
@@ -1220,6 +1226,7 @@ function updatePoolUI() {
   $('depositAmountOut').textContent = p.amount + ' ' + p.token;
   const banner = $('legacyBanner');
   if (p.legacy) { banner.textContent = t('pool.legacyBanner'); banner.style.display = 'block'; }
+  else if (p.frozen) { banner.textContent = t('pool.frozenBanner'); banner.style.display = 'block'; }
   else banner.style.display = 'none';
   $('withdrawHelp').textContent = p.legacy ? t('wd.helpLegacy') : t('wd.help');
   syncWithdrawBtn();
@@ -1584,10 +1591,11 @@ TABS.forEach((tb, i) => {
 
 // ---------- UI wiring ----------
 function syncDepositBtn() {
-  $('depositBtn').disabled = !signer || unsavedNote;
-  $('depositHint').textContent = unsavedNote ? t('dep.hint') : '';
-  $('daDepositBtn').disabled = !signer || unsavedNote || !daPlan;
-  $('daHint').textContent = unsavedNote ? t('da.hint') : '';
+  const frozen = !!(currentPool() && currentPool().frozen);   // deposits into pre-V7 / deprecated / legacy pools are frozen
+  $('depositBtn').disabled = !signer || unsavedNote || frozen;
+  $('depositHint').textContent = frozen ? t('dep.frozen') : unsavedNote ? t('dep.hint') : '';
+  $('daDepositBtn').disabled = !signer || unsavedNote || !daPlan || frozen;
+  $('daHint').textContent = frozen ? t('dep.frozen') : unsavedNote ? t('da.hint') : '';
   syncWaButtons();
 }
 
@@ -1643,6 +1651,7 @@ $('claimBtn').addEventListener('click', async () => {
 
 $('depositBtn').addEventListener('click', async () => {
   const btn = $('depositBtn'); btn.disabled = true;
+  if (currentPool() && currentPool().frozen) { $('depositResult').innerHTML = '<div class="status err">' + esc(t('dep.frozen')) + '</div>'; btn.disabled = false; return; }
   const p0 = currentPool();
   const st = Steps('depSteps', p0 && p0.native ? ['dep.s1n', 'dep.s2n', 'dep.s3', 'dep.s4'] : ['dep.s1', 'dep.s2', 'dep.s3', 'dep.s4']);
   $('depositResult').innerHTML = '';
@@ -1901,7 +1910,7 @@ function refreshDepositAny() {
   const pool = CONFIG && currentPool();
   const router = routerFor(pool);
   if (!pool) return;
-  if (!router || pool.legacy) { setStatus('daRouter', t('da.noRouter', { token: pool.token, net: pool.net.name }), 'err'); $('daPreview').style.display = 'none'; syncDepositBtn(); return; }
+  if (!router || pool.legacy || pool.frozen) { setStatus('daRouter', t(pool && pool.frozen ? 'dep.frozen' : 'da.noRouter', { token: pool.token, net: pool.net && pool.net.name }), pool && pool.frozen ? 'info' : 'err'); $('daPreview').style.display = 'none'; syncDepositBtn(); return; }
   setStatus('daRouter', t('da.router', { net: router.net.name, token: router.token, addr: short(router.address) }), 'info');
   $('daAmountLabel').textContent = t('da.amount', { token: router.token });
   const txt = $('daAmount').value.trim().replace(',', '.');
@@ -1932,6 +1941,7 @@ document.querySelectorAll('input[name="daRound"]').forEach((r) => r.addEventList
 // -- deposit through the router
 $('daDepositBtn').addEventListener('click', async () => {
   const btn = $('daDepositBtn'); btn.disabled = true;
+  if (currentPool() && currentPool().frozen) { setStatus('daRouter', t('dep.frozen'), 'err'); btn.disabled = false; return; }
   const st = Steps('depAnySteps', ['da.s1', daPlan && daPlan.router.tok.native ? 'da.s2n' : 'da.s2', 'da.s3', 'da.s4']);
   $('depAnyResult').innerHTML = '';
   try {
@@ -2289,7 +2299,7 @@ $('auditVerifyBtn').addEventListener('click', async () => {
   try {
     await loadConfig();
     populatePoolSelect();
-    selectPool(POOLS.filter((p) => !p.legacy)[0].id);
+    selectPool((POOLS.filter((p) => !p.frozen && !p.legacy)[0] || POOLS.filter((p) => !p.legacy)[0]).id);
     $('connectBtn').disabled = false; $('checkNoteBtn').disabled = false;
     $('genNonceBtn').disabled = false; $('auditVerifyBtn').disabled = false;
     log(`Loaded ${POOLS.length} pools on ${Object.keys(CONFIG.networks).length} networks.`);

@@ -2,7 +2,7 @@
 
 **Do not use these keys to protect real funds.** They exist so the V7 pools can be tested end to end on testnets.
 
-## Why withdraw_v5 exists: a critical fix
+## Why withdraw_v5 exists: a critical fix (found in internal review)
 
 `circuits/withdraw_v5.circom` is `withdraw_v4` with one change, and it closes a critical flaw that was present in **every earlier circuit** (`withdraw.circom`, `withdraw_v2`, `withdraw_v3`, `withdraw_v4`):
 
@@ -32,4 +32,4 @@ The matched set is `circuits/build/withdraw_v5/withdraw_v5.wasm` + `withdraw_v5_
 
 ## What has to happen before any real-money deployment
 
-An independent review of the circuit (this fix came out of one such review, which is exactly why they matter), then a public multi-party ceremony with independent, named participants for the final circuit. Every circuit change means a new ceremony, new verifiers and new pools.
+An independent review of the circuit — this fix came out of an internal review, and a genuinely independent one is still needed — then a public multi-party ceremony with independent, named participants for the final circuit. Every circuit change means a new ceremony, new verifiers and new pools.

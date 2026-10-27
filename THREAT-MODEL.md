@@ -68,7 +68,7 @@ In `MerkleTreeChecker` (shared by `withdraw.circom`, `withdraw_v2`, `withdraw_v3
 - **Scope:** every pool generation — V5 (`withdraw_v3`) on Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet and the Latheon test chain; V6 (`withdraw_v4`) on the Latheon test chain; the deprecated V3/V4 pools.
 - **Funds affected so far:** none; all pools are testnet-only.
 - **Fix:** V7 (`circuits/withdraw_v5.circom`, `LatheonShieldedPoolV7Native` on `WithdrawVerifierV5`) adds `pathIndices[i] * (1 - pathIndices[i]) === 0` at every level. Nothing else changes; notes keep their format. After the fix the forgery can no longer be proven (witness generation fails) and an honest withdrawal still verifies (`test/native-v7`). Each pool's verifier is immutable, so V7 ships as fresh pools that supersede V5 and V6; the older pools must be treated as forgeable until retired.
-- Details: `docs/dev-ceremony-v5.md`. Found 27 October 2026 by an independent code review.
+- Details: `docs/dev-ceremony-v5.md`. Found 27 October 2026 by an internal review.
 
 ### 8.1 Known issue (V3 / V4 pools): the withdrawal recipient is not bound to the proof. Fixed in V5.
 

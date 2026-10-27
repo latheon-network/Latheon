@@ -93,6 +93,7 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     for (const k of Object.keys(cfg.networks)) if (!CHAINS[k]) delete cfg.networks[k];
     cfg.pools = cfg.pools.filter((p) => CHAINS[p.network]); cfg.routers = (cfg.routers || []).filter((r) => CHAINS[r.network]);
     for (const [k, n] of Object.entries(cfg.networks)) {
+      delete n.deprecated; delete n.deprecatedNote;
       n.v5Verifier = dep[k].ver5.addr; n.discloseVerifier = dep[k].verD.addr;
       n.tokens.LTH.address = dep[k].lth.addr; n.tokens.LTH.faucet = dep[k].faucet.addr;
       if (n.tokens.USDG) n.tokens.USDG.address = dep[k].t6.addr;
