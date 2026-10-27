@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Latheon — Demo (V5)</title>
+<title>Latheon — Demo</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 :root {
@@ -430,7 +430,7 @@ const I18N = {
     'setup.pool': 'Network &amp; token', 'setup.net': 'Network', 'setup.tok': 'Token', 'setup.fixed': 'Pool (one fixed amount)', 'setup.poolHint': 'Each pool holds one fixed amount, so every deposit looks the same from outside.', 'setup.wallet': 'Wallet',
     'pool.loading': 'Loading deployments…', 'pool.info': '{net} · {label} · contract {addr}',
     'dep.frozen': 'Deposits into this pool are frozen: it uses the pre-V7 circuit (or is on a deprecated network) and is kept only so existing notes can be withdrawn. Deposit into a V7 pool instead.', 'pool.frozenBanner': 'This pool is frozen for deposits. It predates the V7 fix (STATUS §7) or is on a deprecated network; its notes can still be withdrawn, but do not deposit fresh funds here — use a V7 pool.',
-    'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Test tokens only — prefer the V5 pools.',
+    'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Deposits are frozen; use the V7 pools.',
     'pool.legacyGroup': 'Legacy V4 (deprecated, recipient not bound)',
     'wallet.notConnected': 'Not connected. Needed for faucet, deposit and withdraw.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.gas': '{coin} balance (gas)', 'wallet.token': '{token} balance',
     'wallet.noWallet': 'No wallet found — install MetaMask (desktop browser).', 'wallet.connected': 'Connected to {net}.', 'wallet.connFailed': 'Connection failed: ',
@@ -509,7 +509,7 @@ const I18N = {
     'mode.wd.any': 'By amount and key',
     'da.lead': 'Enter any amount. The router splits it into notes of 100, 50, 10 and 1 and deposits them into the four pools in one transaction. You get one master key for all of them.',
     'da.router': 'Router on {net} for {token}: {addr}',
-    'da.noRouter': 'No router for {token} on {net} (legacy pools have none). Pick a V5 pool above.',
+    'da.noRouter': 'No router for {token} on {net} (legacy pools have none). Pick a V7 pool above.',
     'da.amount': 'Amount ({token})',
     'da.amountPh': 'e.g. 160',
     'da.exact': 'Exactly this amount',
@@ -575,7 +575,7 @@ const I18N = {
     'setup.pool': 'Сеть и токен', 'setup.net': 'Сеть', 'setup.tok': 'Токен', 'setup.fixed': 'Пул (одна фиксированная сумма)', 'setup.poolHint': 'В каждом пуле одна фиксированная сумма, поэтому снаружи все депозиты выглядят одинаково.', 'setup.wallet': 'Кошелёк',
     'pool.loading': 'Загружаю реестр…', 'pool.info': '{net} · {label} · контракт {addr}',
     'dep.frozen': 'Депозиты в этот пул заморожены: он на схеме до V7 (или в снятой с эксплуатации сети) и оставлен только для вывода уже внесённых нот. Внесите депозит в пул V7.', 'pool.frozenBanner': 'Пул заморожен для депозитов. Он до исправления V7 (STATUS §7) или в снятой с эксплуатации сети; вывести ноты из него можно, но не вносите новые средства — используйте пул V7.',
-    'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Только тестовые токены — используйте пулы V5.',
+    'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Депозиты заморожены; используйте пулы V7.',
     'pool.legacyGroup': 'Устаревшие V4 (получатель не привязан)',
     'wallet.notConnected': 'Не подключён. Нужен для фаусета, депозита и вывода.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.gas': 'Баланс {coin} (газ)', 'wallet.token': 'Баланс {token}',
     'wallet.noWallet': 'Кошелёк не найден — установите MetaMask (браузер на компьютере).', 'wallet.connected': 'Подключено к {net}.', 'wallet.connFailed': 'Не удалось подключиться: ',
@@ -654,7 +654,7 @@ const I18N = {
     'mode.wd.any': 'По сумме и ключу',
     'da.lead': 'Введите любую сумму. Роутер разобьёт её на ноты 100, 50, 10 и 1 и внесёт в четыре пула одной транзакцией. На всё вы получите один мастер-ключ.',
     'da.router': 'Роутер в {net} для {token}: {addr}',
-    'da.noRouter': 'Для {token} в {net} роутера нет (у старых пулов его нет). Выберите пул V5 выше.',
+    'da.noRouter': 'Для {token} в {net} роутера нет (у старых пулов его нет). Выберите пул V7 выше.',
     'da.amount': 'Сумма ({token})',
     'da.amountPh': 'например, 160',
     'da.exact': 'Ровно эту сумму',
@@ -720,7 +720,7 @@ const I18N = {
     'setup.pool': '网络与代币', 'setup.net': '网络', 'setup.tok': '代币', 'setup.fixed': '资金池（单一定额）', 'setup.poolHint': '每个资金池只有一种固定金额，因此从外部看所有存款都一样。', 'setup.wallet': '钱包',
     'pool.loading': '正在加载部署信息…', 'pool.info': '{net} · {label} · 合约 {addr}',
     'dep.frozen': '此资金池的存款已冻结：它使用 V7 之前的电路（或位于已弃用的网络上），仅保留用于取出已有凭证。请改向 V7 资金池存款。', 'pool.frozenBanner': '此资金池已冻结存款。它早于 V7 修复（STATUS §7）或位于已弃用网络；仍可取出其凭证，但请勿存入新资金——请使用 V7 资金池。',
-    'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。仅限测试代币——请优先使用 V5 资金池。',
+    'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。存款已冻结；请使用 V7 资金池。',
     'pool.legacyGroup': '旧版 V4（已弃用，未绑定接收地址）',
     'wallet.notConnected': '未连接。领取测试币、存款和取款需要钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.gas': '{coin} 余额（Gas）', 'wallet.token': '{token} 余额',
     'wallet.noWallet': '未找到钱包——请安装 MetaMask（电脑浏览器）。', 'wallet.connected': '已连接到 {net}。', 'wallet.connFailed': '连接失败：',
@@ -799,7 +799,7 @@ const I18N = {
     'mode.wd.any': '按金额与密钥',
     'da.lead': '输入任意金额。路由器会把它拆成 100、50、10、1 的凭证，并在一笔交易中存入四个池。你只会得到一个主密钥。',
     'da.router': '{net} 上 {token} 的路由器：{addr}',
-    'da.noRouter': '{net} 上的 {token} 没有路由器（旧版池没有）。请在上方选择 V5 池。',
+    'da.noRouter': '{net} 上的 {token} 没有路由器（旧版池没有）。请在上方选择 V7 池。',
     'da.amount': '金额（{token}）',
     'da.amountPh': '例如 160',
     'da.exact': '精确此金额',
@@ -1704,7 +1704,7 @@ $('depositBtn').addEventListener('click', async () => {
     $('copyNoteBtn').addEventListener('click', () => { copyText(note, 'what.note'); $('copyNoteBtn').textContent = t('btn.copied'); });
     $('downloadNoteBtn').addEventListener('click', () => {
       const body = [t('file.l1'), t('file.l2'), '',
-        t('file.network') + ': ' + p.net.name + ' (chainId ' + p.net.chainId + ')', t('file.pool') + ': ' + p.label + ' ' + (p.legacy ? '' : '(V5) ') + p.address,
+        t('file.network') + ': ' + p.net.name + ' (chainId ' + p.net.chainId + ')', t('file.pool') + ': ' + p.label + ' ' + (p.legacy ? '' : '(' + String(p.version).toUpperCase() + ') ') + p.address,
         (leafIndex != null ? t('file.leaf') + ': #' + leafIndex : ''), t('file.tx') + ': ' + explorerTx, '', t('file.note') + ':', note, ''].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([body], { type: 'text/plain;charset=utf-8' }));
@@ -2282,7 +2282,7 @@ $('auditVerifyBtn').addEventListener('click', async () => {
     const pools = POOLS.filter((p) => p.net.chainId === net.chainId).sort((x, y) => (x.legacy ? 1 : 0) - (y.legacy ? 1 : 0));
     const hit = await findCommitment(net, pools, commitment);
     if (hit) {
-      add('ok', esc(t('au.found')), th('au.foundSub', { net: net.name, label: hit.pool.label + (hit.pool.legacy ? ' (legacy)' : ' (V5)'), leaf: hit.leafIndex }) +
+      add('ok', esc(t('au.found')), th('au.foundSub', { net: net.name, label: hit.pool.label + (hit.pool.legacy ? ' (legacy)' : ' (' + String(hit.pool.version).toUpperCase() + ')'), leaf: hit.leafIndex }) +
         (hit.timestamp ? ' · ' + esc(new Date(hit.timestamp * 1000).toISOString().slice(0, 16).replace('T', ' ')) + ' UTC' : '') +
         ' · <a href="' + esc(net.explorerUrl + '/tx/' + hit.txHash) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a>');
     } else add('no', esc(t('au.notFound')), th('au.notFoundSub', { net: net.name }));

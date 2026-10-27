@@ -35,6 +35,7 @@ We ask researchers to allow reasonable time for investigation and remediation be
 
 ## Past findings
 
+- **Withdrawal without a deposit (all circuits before V7); found in an internal review on 27 October 2026, fixed in V7.** In `MerkleTreeChecker` the left/right choice at each level of the Merkle path (`pathIndices`) was not constrained to 0 or 1, so a crafted proof could match a pool's current root without any deposit and withdraw. Reproduced locally with test tokens only. Fix: `circuits/withdraw_v5.circom` (V7 pools on the Latheon test chain); all older pools are frozen for deposits and kept for withdrawals only. Details: `THREAT-MODEL.md` §8.0 and `docs/dev-ceremony-v5.md`.
 - **Withdrawal recipient not bound to the proof (V3/V4); found internally, fixed in V5.** A pending withdrawal could be redirected by replaying its proof with a different recipient. Only testnet tokens were involved. Details and reproduction: [`docs/withdraw-recipient-binding.md`](./docs/withdraw-recipient-binding.md) and `test/v5-integration`.
 
 ## Current known limitations

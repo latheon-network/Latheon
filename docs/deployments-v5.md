@@ -1,5 +1,7 @@
 # V5 deployments (testnets)
 
+> **Deprecated (27 October 2026).** These V5 pools use the `withdraw_v3` circuit, which carries the pre-V7 flaw (withdrawal without a deposit, see `THREAT-MODEL.md` §8.0). They are frozen for deposits in the demo and kept only so existing notes can be withdrawn; Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are no longer developed. The current generation is V7 on the Latheon test chain: see `docs/testnet.md`.
+
 All V5 pools share the same source (`LatheonShieldedPoolV5.sol`), differing only in the `denomination` constructor argument. Proofs are bound to the recipient address (see `docs/withdraw-recipient-binding.md`). Keys are development keys (see `docs/dev-ceremony-v3.md`): **testnet only**.
 
 Machine-readable version: `sdk/deployments.json` (the demo reads it at runtime, so adding a pool or network is a data change, not a code change).

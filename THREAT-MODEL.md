@@ -9,8 +9,8 @@ This document describes the privacy goals, mechanics, assumptions, and limitatio
 1. **Deposit** — a user locks a fixed amount into the pool (current pool sizes: 100 / 50 / 10 / 1 tokens). Fixed denominations exist specifically so that no deposit reveals more than any other by its size. The deposit's commitment is inserted into an **on-chain** incremental Merkle tree in the same transaction, using an on-chain Poseidon hash implementation — no operator or off-chain step is involved.
 2. **Prove** — off-chain, the depositor (or anyone they've shared the secret with) generates a zero-knowledge proof (Groth16) asserting "I know a secret corresponding to a deposit in this pool" without stating which deposit.
 3. **Verify** — the on-chain `Groth16Verifier` checks the proof against the pool contract's own known-root history. It never receives or sees the underlying secret.
-4. **Withdraw** — on a valid proof, funds release to the address the proof was made for. In V5 pools the recipient is a public input of the proof; in the older V3/V4 pools it is not (see §8.1). That address does not need to be, and typically is not, the original depositor's address.
-5. **Selective disclosure** — in V4/V5 pools the depositor holds two keys, `spendKey` and `viewKey` (`docs/selective-disclosure-design.md`). They can prove to ONE chosen auditor, with a proof bound to that auditor's one-time nonce, that they control a specific deposit, without giving the auditor any ability to spend it. The auditor learns **which deposit** it is (its commitment is public on-chain anyway), but not the keys, not the depositor's other deposits, and not where the funds went when withdrawn. This is not "invisible to the auditor": it hides keys and history, not the deposit being discussed. Prototype status, no independent review yet. On the older V3 pool disclosure is still manual: sharing the `secret`, which also hands over spending power.
+4. **Withdraw** — on a valid proof, funds release to the address the proof was made for. In V5 and later pools (V6, and V7, the current generation on the Latheon test chain) the recipient is a public input of the proof; in the older V3/V4 pools it is not (see §8.1). That address does not need to be, and typically is not, the original depositor's address.
+5. **Selective disclosure** — in V4 and later pools (V5, V6, V7) the depositor holds two keys, `spendKey` and `viewKey` (`docs/selective-disclosure-design.md`). They can prove to ONE chosen auditor, with a proof bound to that auditor's one-time nonce, that they control a specific deposit, without giving the auditor any ability to spend it. The auditor learns **which deposit** it is (its commitment is public on-chain anyway), but not the keys, not the depositor's other deposits, and not where the funds went when withdrawn. This is not "invisible to the auditor": it hides keys and history, not the deposit being discussed. Prototype status, no independent review yet. On the older V3 pool disclosure is still manual: sharing the `secret`, which also hands over spending power.
 
 ## 3. What is protected
 
@@ -24,7 +24,7 @@ Depending on deployment and usage, an observer of the public chain can see:
 - That a withdrawal transaction occurred, its block, timestamp, and recipient address.
 - Gas usage and other standard transaction metadata.
 - The size of the current anonymity set (how many unspent deposits exist) — the Merkle tree and its history are public by nature, even though individual leaf-to-withdrawal links are not.
-- Pool capacity: each V5 pool's Merkle tree has depth 8, so a pool accepts at most 256 deposits; the next deposit reverts with "Tree is full". V6 pools (`withdraw_v4`, depth 20) accept 1,048,576.
+- Pool capacity: V6 and V7 pools (depth 20) accept 1,048,576 deposits each; the older V5 pools (depth 8) accept at most 256, after which a deposit reverts with "Tree is full".
 
 **Privacy of the deposit↔withdrawal link should not be read as full network-level anonymity.** An observer with enough resources correlating transaction timing across a small anonymity set could still form probabilistic guesses. This is a known, disclosed limitation, not a defect being hidden.
 
@@ -43,7 +43,7 @@ We do **not** currently assume protection against:
 
 ## 6. Assumptions the current guarantee relies on
 
-- Correct implementation of the Groth16 circuit (`circuits/withdraw_v3.circom` for V5 pools) and its trusted setup (development keys from a single operator today, see `docs/dev-ceremony-v3.md`).
+- Correct implementation of the Groth16 circuit (`circuits/withdraw_v5.circom` for the current V7 pools; `withdraw_v3`/`withdraw_v4` for the frozen V5/V6 pools, which carry the flaw in §8.0) and its trusted setup (development keys from a single operator today, see `docs/dev-ceremony-v5.md`).
 - Correct implementation of the on-chain verifier and the on-chain Merkle tree / Poseidon hashing.
 - The depositor keeps their secret confidential until they choose to disclose it.
 - A sufficiently large and active anonymity set — privacy is weaker in a pool with very few deposits.
@@ -84,9 +84,9 @@ In `LatheonShieldedPoolV3` and `V4`, the `recipient` passed to `withdraw()` is n
 
 A future L2 faces a leak that the cryptography does not cover: funding an L2 wallet through a standard bridge from an L1 address that is linkable to an identity links that identity to the later shielded deposit. This is unsolved; options and trade-offs are in `docs/bridge-privacy-design.md`.
 
-### 8.3 Distribution router and master key (V5 pools; testnets, not independently reviewed)
+### 8.3 Distribution router and master key (V5, V6 and V7 routers; testnets, not independently reviewed)
 
-The router (`LatheonDistributionPool`) places ordinary V5 notes in the four fixed pools and can pay several of them out in one transaction. What this does and does not protect:
+The router (`LatheonDistributionPool`) places ordinary notes in the four fixed pools of its generation (today the V7 router on the Latheon test chain) and can pay several of them out in one transaction. What this does and does not protect:
 
 - **Linkage by design.** All notes of one `withdrawMany` go to one recipient in one transaction, so an observer can see that they belong together. The anonymity of each note inside its pool is unchanged, but the group is visible. For unlinked payouts, withdraw notes separately to different addresses (the demo has a "show separate notes" mode).
 - **Amount pattern.** Depositing a round amount in one transaction places a recognisable set of notes. Rounding down to a step and withdrawing in different shapes lowers this; the numbers in `docs/distribution-pool-architecture.md` come from a toy model and are not guarantees.
