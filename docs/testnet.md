@@ -55,6 +55,19 @@ Built from Latheon commit `180b4b8` (solc 0.8.37, optimizer 200 runs, EVM versio
 | Disclosure verifier | `0xB86360CBDE78664bb1674c367391E9d79c37F294` |
 | PoseidonT3 library | `0x8caC8633D6399cDe24d58e1c42cfc55ab00830CF` |
 
+**V7 set** (deployed 27 October 2026 from Latheon commit `129a4c0`; the current generation, listed first in the demo). Same as V6 but built on `withdraw_v5`, which constrains the Merkle path selector to a bit and closes a critical flaw in every earlier circuit (a non-binary path let anyone withdraw without a deposit; see STATUS §7 and THREAT-MODEL §8.0). The note format is unchanged.
+
+| Contract | Address |
+|---|---|
+| Pool 100 LTH (`LatheonShieldedPoolV7Native`) | `0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae` |
+| Pool 50 LTH | `0x5A3DA32BCc848a81A3a379620120ae06DfA7C657` |
+| Pool 10 LTH | `0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429` |
+| Pool 1 LTH | `0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A` |
+| Router (`LatheonDistributionPoolV7Native`) | `0x1D1189D5399B24BB40858AEACDb649977b596Cf2` |
+| Withdrawal verifier (`withdraw_v5`) | `0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51` |
+
+The disclosure verifier and the PoseidonT3 library are shared with the older sets. **The V5 and V6 pools below stay deployed only so their notes can be withdrawn; they are forgeable (STATUS §7) — do not deposit fresh funds into them.** The V7 pools hold 999 LTH from a gas measurement made with unspendable commitments.
+
 **V6 set** (deployed 26 October 2026 from Latheon commit `5db02c6`; listed first in the demo). 20-level trees: 1,048,576 deposits per pool instead of 256; the pool keeps its last 100 roots instead of 30; circuit `withdraw_v4`, which binds the recipient, the relayer and the relayer's fee into the proof. The V5 set above stays, so notes made there can still be withdrawn.
 
 | Contract | Address |
@@ -81,6 +94,9 @@ Measured on this chain on 20 October 2026 with real proofs. "Total" includes the
 | V6 router deposit, 11 LTH as 2 notes (26 October) | 1,749,602 | 12,538,839 |
 | V6 `withdrawMany`, 2 notes with a relayer fee in the proofs | 625,860 | 37,174,867 |
 | V6 router deposit, 999 LTH as 23 notes | 16,229,508 | 52,218,520 |
+| V7 router deposit, 11 LTH as 2 notes (27 October) | 1,749,602 | 12,219,550 |
+| V7 `withdrawMany`, 2 notes with a relayer fee in the proofs | 625,896 | 35,912,159 |
+| V7 router deposit, 999 LTH as 23 notes | 16,229,568 | 51,153,549 |
 
 At the chain's minimum price of 0.1 gwei these cost about 0.001 to 0.005 LTH. A V6 deposit costs about twice the execution gas of V5 per note because its tree is 20 levels deep instead of 8. Fees are set by the chain's own minimum price; data cost on the parent chain is paid by the chain in ETH whatever that price is.
 

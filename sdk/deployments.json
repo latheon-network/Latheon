@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-10-26",
+  "generated": "2026-10-27",
   "networks": {
     "latheon-testnet": {
       "name": "Latheon Testnet",
@@ -43,7 +43,8 @@
         "page": "https://latheon.xyz/bridge/",
         "note": "Deposit: ERC20Inbox.depositERC20 on the parent chain (after approve). Withdrawal: ArbSys.withdrawEth on this chain, then Outbox.executeTransaction on the parent once confirmed (about two hours at low traffic; the page reads the outbox from rollup.outbox())."
       },
-      "v6Verifier": "0x49694EF1977b4A201b378740557f2aa41BDC3857"
+      "v6Verifier": "0x49694EF1977b4A201b378740557f2aa41BDC3857",
+      "v7Verifier": "0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51"
     },
     "ethereum-sepolia": {
       "name": "Ethereum Sepolia",
@@ -117,6 +118,42 @@
     }
   },
   "pools": [
+    {
+      "id": "latheon-testnet:LTH-100:v7",
+      "network": "latheon-testnet",
+      "version": "v7-native",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae",
+      "deployBlock": 1464
+    },
+    {
+      "id": "latheon-testnet:LTH-50:v7",
+      "network": "latheon-testnet",
+      "version": "v7-native",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0x5A3DA32BCc848a81A3a379620120ae06DfA7C657",
+      "deployBlock": 1465
+    },
+    {
+      "id": "latheon-testnet:LTH-10:v7",
+      "network": "latheon-testnet",
+      "version": "v7-native",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429",
+      "deployBlock": 1466
+    },
+    {
+      "id": "latheon-testnet:LTH-1:v7",
+      "network": "latheon-testnet",
+      "version": "v7-native",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A",
+      "deployBlock": 1467
+    },
     {
       "id": "latheon-testnet:LTH-100:v6",
       "network": "latheon-testnet",
@@ -379,6 +416,15 @@
     }
   ],
   "routers": [
+    {
+      "id": "latheon-testnet:LTH:v7",
+      "network": "latheon-testnet",
+      "token": "LTH",
+      "native": true,
+      "version": "v7",
+      "address": "0x1D1189D5399B24BB40858AEACDb649977b596Cf2",
+      "deployBlock": 1468
+    },
     {
       "id": "latheon-testnet:LTH:v6",
       "network": "latheon-testnet",
