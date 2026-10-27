@@ -276,13 +276,12 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     const ast2 = (await page.textContent('#auditStatus')).trim(); const lst2 = (await page.textContent('#auditResult')).replace(/\s+/g, ' ');
     rec('T12. Доказательство для старого кода аудитор НЕ принимает: «Not verified», «bound to a different code»', /^Not verified/.test(ast2) && /bound to a different code/i.test(lst2), ast2.slice(0, 40));
 
-    // ---- T7: legacy V4 pool
+    // ---- T7: legacy V4 pool — deposits are frozen (recipient not bound + the pre-V7 path flaw); banner shown, button disabled
     await pick('ethereum-sepolia:legacy-eth-lth');
     const banner = await page.isVisible('#legacyBanner');
-    note = await deposit();
-    msg = await withdraw(note, R_(1));
-    got = await bal('ethereum-sepolia', dep['ethereum-sepolia'].lth.addr, R_(1));
-    rec('T7. Legacy V4: показан красный баннер, нота старого формата, вывод работает', banner && note.startsWith('latheon-v4-note:') && /successful/.test(msg) && got === 100n * E18, note.slice(0, 20));
+    const depFrozen = await page.isDisabled('#depositBtn');
+    const hint = (await page.textContent('#depositHint')) || '';
+    rec('T7. Legacy V4: красный баннер показан, депозит заморожен (кнопка отключена, подсказка о заморозке)', banner && depFrozen && /frozen|заморож|冻结/.test(hint), 'banner ' + banner + ', disabled ' + depFrozen + ', hint ' + hint.slice(0, 30));
 
     // ---- T8: garbage note
     msg = await withdraw('hello:world', R_(2));
