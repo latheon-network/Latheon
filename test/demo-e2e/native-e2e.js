@@ -4,7 +4,10 @@
 // Needs the same setup as router-e2e.js (see README.md).
 //   DEMO=/path/to/demo node native-e2e.js          (V5 native pools and router)
 //   V6=1 DEMO=/path/to/demo node native-e2e.js     (the same run on V6: 20-level trees, withdraw_v4, relayer and fee in the proof)
-const V6 = process.env.V6 === '1';
+//   V7=1 DEMO=/path/to/demo node native-e2e.js     (V7: withdraw_v5, the pathIndices fix; same interface as V6)
+const GEN = process.env.V7 === '1' ? 'v7' : process.env.V6 === '1' ? 'v6' : 'v5';
+const V6 = GEN !== 'v5';   // fee-bearing interface (V6 and V7 share it); V7 only fixes the circuit
+const V7 = GEN === 'v7';
 const fs = require('fs'), path = require('path');
 const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
 const req = (m) => require(path.join(NM, m));
@@ -27,6 +30,9 @@ const sources = {
   'contracts/V6N.sol': { content: rd(REPO + '/contracts/LatheonShieldedPoolV6Native.sol') },
   'contracts/Dist6N.sol': { content: rd(REPO + '/contracts/LatheonDistributionPoolV6Native.sol') },
   'contracts/VerifierV4.sol': { content: rd(REPO + '/contracts/WithdrawVerifierV4.sol') },
+  'contracts/V7N.sol': { content: rd(REPO + '/contracts/LatheonShieldedPoolV7Native.sol') },
+  'contracts/Dist7N.sol': { content: rd(REPO + '/contracts/LatheonDistributionPoolV7Native.sol') },
+  'contracts/VerifierV5c.sol': { content: rd(REPO + '/contracts/WithdrawVerifierV5.sol') },
 };
 const imp = (p) => { const f = path.join(NM, p); return fs.existsSync(f) ? { contents: rd(f) } : { error: 'nf ' + p }; };
 say('Compiling…');
@@ -38,6 +44,7 @@ const C = {
   Dist: K('Dist.sol', 'LatheonDistributionPool'), DistN: K('DistN.sol', 'LatheonDistributionPoolNative'),
   Poseidon: K('PoseidonT3.sol', 'PoseidonT3'), Token: K('Token.sol', 'LatheonToken'), Ver5: K('VerifierV5.sol', 'Groth16Verifier'),
   Pool6N: K('V6N.sol', 'LatheonShieldedPoolV6Native'), Dist6N: K('Dist6N.sol', 'LatheonDistributionPoolV6Native'), Ver4: K('VerifierV4.sol', 'WithdrawVerifierV4'),
+  Pool7N: K('V7N.sol', 'LatheonShieldedPoolV7Native'), Dist7N: K('Dist7N.sol', 'LatheonDistributionPoolV7Native'), Ver5c: K('VerifierV5c.sol', 'WithdrawVerifierV5'),
 };
 const linked = (c, libs) => { let code = c.evm.bytecode.object; const refs = c.evm.bytecode.linkReferences; for (const f in refs) for (const l in refs[f]) for (const { start, length } of refs[f][l]) code = code.slice(0, start * 2) + libs[l].slice(2).toLowerCase() + code.slice(start * 2 + length * 2); return code; };
 // The native network uses the Latheon test chain's real chainId; the wallet does not know it until the demo adds it.
@@ -67,11 +74,11 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       const s = await eth[k].getSigner(0), me = await s.getAddress();
       const d = async (c, args = [], libs = {}) => { const f = new ethers.ContractFactory(c.abi, '0x' + linked(c, libs), s); const x = await f.deploy(...args); const rc = await x.deploymentTransaction().wait(); return { c: x, addr: await x.getAddress(), block: rc.blockNumber }; };
       const lib = await d(C.Poseidon), libs = { PoseidonT3: lib.addr };
-      const ver5 = await d(V6 && k === 'latheon-testnet' ? C.Ver4 : C.Ver5);
+      const ver5 = await d(k === 'latheon-testnet' && V7 ? C.Ver5c : k === 'latheon-testnet' && V6 ? C.Ver4 : C.Ver5);
       const pools = {}, ps = [];
       if (k === 'latheon-testnet') {
-        for (const a of [100, 50, 10, 1]) { const p = await d(V6 ? C.Pool6N : C.Pool5N, [ver5.addr, BigInt(a) * E18], libs); pools['LTH-' + a] = p; ps.push(p.addr); }
-        dep[k] = { ver5, pools, router: await d(V6 ? C.Dist6N : C.DistN, [ps]) };
+        for (const a of [100, 50, 10, 1]) { const p = await d(V7 ? C.Pool7N : V6 ? C.Pool6N : C.Pool5N, [ver5.addr, BigInt(a) * E18], libs); pools['LTH-' + a] = p; ps.push(p.addr); }
+        dep[k] = { ver5, pools, router: await d(V7 ? C.Dist7N : V6 ? C.Dist6N : C.DistN, [ps]) };
       } else {
         const lth = await d(C.Token, [me]);
         for (const a of [100, 50, 10, 1]) { const p = await d(C.Pool5, [lth.addr, ver5.addr, BigInt(a) * E18], libs); pools['LTH-' + a] = p; ps.push(p.addr); }
@@ -80,7 +87,7 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       say('  ' + k + ': 4 pools and a router deployed');
     }
     const net = (k, extra) => Object.assign({ name: k === 'latheon-testnet' ? 'Latheon Testnet' : 'Ethereum Sepolia', chainId: CHAINS[k].id, chainIdHex: CHAINS[k].hex,
-      rpcUrl: 'https://rpc.' + k + '.test', explorerUrl: 'https://explorer.' + k + '.test', v5Verifier: dep[k].ver5.addr, discloseVerifier: dep[k].ver5.addr }, V6 && k === 'latheon-testnet' ? { v6Verifier: dep[k].ver5.addr } : {}, extra);
+      rpcUrl: 'https://rpc.' + k + '.test', explorerUrl: 'https://explorer.' + k + '.test', v5Verifier: dep[k].ver5.addr, discloseVerifier: dep[k].ver5.addr }, k === 'latheon-testnet' && V7 ? { v7Verifier: dep[k].ver5.addr } : k === 'latheon-testnet' && V6 ? { v6Verifier: dep[k].ver5.addr } : {}, extra);
     const cfg = {
       schema: 1, generated: 'test',
       networks: {
@@ -93,8 +100,8 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       pools: [], routers: [],
     };
     for (const k of Object.keys(CHAINS)) {
-      for (const a of [100, 50, 10, 1]) { const p = dep[k].pools['LTH-' + a]; cfg.pools.push({ id: k + ':LTH-' + a, network: k, version: k === 'latheon-testnet' ? (V6 ? 'v6-native' : 'v5-native') : 'v5', token: 'LTH', amount: a, address: p.addr, deployBlock: p.block }); }
-      cfg.routers.push({ id: k + ':LTH', network: k, token: 'LTH', native: k === 'latheon-testnet' || undefined, version: V6 && k === 'latheon-testnet' ? 'v6' : undefined, address: dep[k].router.addr, deployBlock: dep[k].router.block });
+      for (const a of [100, 50, 10, 1]) { const p = dep[k].pools['LTH-' + a]; cfg.pools.push({ id: k + ':LTH-' + a, network: k, version: k === 'latheon-testnet' ? (V7 ? 'v7-native' : V6 ? 'v6-native' : 'v5-native') : 'v5', token: 'LTH', amount: a, address: p.addr, deployBlock: p.block }); }
+      cfg.routers.push({ id: k + ':LTH', network: k, token: 'LTH', native: k === 'latheon-testnet' || undefined, version: k === 'latheon-testnet' ? (V7 ? 'v7' : V6 ? 'v6' : undefined) : undefined, address: dep[k].router.addr, deployBlock: dep[k].router.block });
     }
     const cfgJson = JSON.stringify(cfg);
     // a stand-in for the network's relayer: sends what it is given from its own account (index 3)
@@ -150,8 +157,10 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       } catch (e) { return JSON.stringify({ error: { code: e.code || -32000, message: e.message || String(e) } }); }
     });
     await page.addInitScript(() => { window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { const r = JSON.parse(await window.__rpc(method, JSON.stringify(params || []))); if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; throw e; } return r.result; }, on() {}, removeListener() {} }; });
-    const V3 = REPO + '/circuits/build/withdraw_v3/', V4 = REPO + '/circuits/build/withdraw_v4/';
+    const V3 = REPO + '/circuits/build/withdraw_v3/', V4 = REPO + '/circuits/build/withdraw_v4/', V5c = REPO + '/circuits/build/withdraw_v5/';
     const FILES = {
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v5/withdraw_v5.wasm': V5c + 'withdraw_v5.wasm',
+      'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v5/withdraw_v5_final.zkey': V5c + 'withdraw_v5_final.zkey',
       'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v4/withdraw_v4.wasm': V4 + 'withdraw_v4.wasm',
       'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v4/withdraw_v4_final.zkey': V4 + 'withdraw_v4_final.zkey',
       'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v3/withdraw_v3.wasm': V3 + 'withdraw_v3.wasm',

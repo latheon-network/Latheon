@@ -875,12 +875,14 @@ function applyStatic() {
 }
 
 const LEVELS = 8;                                   // V5 and legacy pools (withdraw_v3 / v2); V6 pools have 20 (withdraw_v4)
-const levelsOf = (version) => (version === 'v6' ? 20 : LEVELS);
-const modern = (version) => version === 'v5' || version === 'v6';   // recipient bound into the proof; notes name their pool
+const levelsOf = (version) => (version === 'v6' || version === 'v7' ? 20 : LEVELS);
+const modern = (version) => version === 'v5' || version === 'v6' || version === 'v7';   // recipient bound into the proof; notes name their pool
+const feeVer = (version) => version === 'v6' || version === 'v7';   // relayer and fee also bound into the proof (same interface)
 const FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 const CIRCUIT_BASE = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/';
 const CIRCUITS = {
+  v5:       { wasm: CIRCUIT_BASE + 'withdraw_v5/withdraw_v5.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v5/withdraw_v5_final.zkey' },
   v4:       { wasm: CIRCUIT_BASE + 'withdraw_v4/withdraw_v4.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v4/withdraw_v4_final.zkey' },
   v3:       { wasm: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3_final.zkey' },
   v2:       { wasm: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2_final.zkey' },
@@ -913,13 +915,15 @@ const VERIFIER_ABI = {
   v4: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[2] _pubSignals) view returns (bool)'],
   disclose: ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[3] _pubSignals) view returns (bool)'],
 };
+POOL_ABI.v7 = POOL_ABI.v6;         // V7 = V6 interface (withdraw_v5 only fixes the circuit, not the ABI)
+VERIFIER_ABI.v7 = VERIFIER_ABI.v6;
 const FAUCET_ABI = ['function claim()'];
 const DEPOSIT_IFACE = new ethers.Interface(EVENT_ABI);
 const DEPOSIT_TOPIC = DEPOSIT_IFACE.getEvent('Deposit').topicHash;
 
 let CONFIG = null, POOLS = [], currentPoolId = null;
 let provider = null, signer = null, userAddress = null;
-const circuitBuf = { v4: null, v3: null, v2: null, disclose: null };
+const circuitBuf = { v5: null, v4: null, v3: null, v2: null, disclose: null };
 const manualParts = { withdraw: {}, disclose: {} };
 const depositWallets = new Set();   // wallets that made a deposit in this session (lower-case)
 let daPlan = null;   // { router, plan } when the amount on screen can be deposited
@@ -1151,20 +1155,27 @@ async function loadConfig() {
   POOLS = CONFIG.pools.map((p) => {
     // 'v5-native': the V5 pool for a network's own coin (deposit with msg.value, no approve); otherwise the same as V5
     // 'v6' / 'v6-native': 20-level tree, withdraw_v4 (recipient, relayer and fee in the proof)
-    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native', v6 = p.version === 'v6' || p.version === 'v6-native';
-    const version = v6 ? 'v6' : v5 ? 'v5' : p.version;
+    // 'v7' / 'v7-native': same interface as V6, circuit withdraw_v5 (fixes the under-constrained Merkle path); supersedes V6
+    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native', v6 = p.version === 'v6' || p.version === 'v6-native', v7 = p.version === 'v7' || p.version === 'v7-native';
+    const version = v7 ? 'v7' : v6 ? 'v6' : v5 ? 'v5' : p.version;
     return Object.assign({}, p, {
       net, tok, decimals: tok.decimals, version, native: !!tok.native, levels: levelsOf(version),
       denomination: BigInt(p.amount) * 10n ** BigInt(tok.decimals),
-      verifierAddr: v6 ? net.v6Verifier : v5 ? net.v5Verifier : p.verifier,
-      startBlock: (v5 || v6) ? p.deployBlock : p.startBlock,
-      circuit: v6 ? 'v4' : v5 ? 'v3' : 'v2',
+      verifierAddr: v7 ? net.v7Verifier : v6 ? net.v6Verifier : v5 ? net.v5Verifier : p.verifier,
+      startBlock: (v5 || v6 || v7) ? p.deployBlock : p.startBlock,
+      circuit: v7 ? 'v5' : v6 ? 'v4' : v5 ? 'v3' : 'v2',
       address: ethers.getAddress(p.address),
       label: (p.legacy ? 'legacy V4 · ' : '') + p.amount + ' ' + p.token,
     });
   });
-  // A network with both generations: the V5 pools stay listed (their notes must stay withdrawable) but are marked
-  for (const p of POOLS) if (p.version === 'v5' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v6')) p.label = 'V5 (256 max) · ' + p.label;
+  // When a newer generation exists on a network, older pools stay listed (their notes must stay withdrawable) but are
+  // marked so no one deposits fresh funds into them. A V7 pool exists => V5 and V6 are superseded.
+  const hasV7 = (p) => POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v7');
+  for (const p of POOLS) {
+    if (p.version === 'v6' && hasV7(p)) p.label = 'V6 (superseded) · ' + p.label;
+    else if (p.version === 'v5' && hasV7(p)) p.label = 'V5 (superseded) · ' + p.label;
+    else if (p.version === 'v5' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v6')) p.label = 'V5 (256 max) · ' + p.label;
+  }
   loadRouters();
 }
 const currentPool = () => POOLS.find((p) => p.id === currentPoolId);
@@ -1784,7 +1795,7 @@ $('withdrawBtn').addEventListener('click', async () => {
       setStatus('withdrawStatus', t('wd.proving'), 'info');
       const input = { root: root.toString(), nullifierHash: nullifierHash.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
       if (modern(pool.version)) input.recipient = BigInt(recipient).toString();
-      if (pool.version === 'v6') { input.relayer = '0'; input.fee = '0'; }   // no relayer fee today: relayer address 0, fee 0
+      if (feeVer(pool.version)) { input.relayer = '0'; input.fee = '0'; }   // no relayer fee today: relayer address 0, fee 0
       const t0 = performance.now();
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
       st.stopTick(); st.extra(3, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
@@ -1801,7 +1812,7 @@ $('withdrawBtn').addEventListener('click', async () => {
       if (viaRelay) {
         st.go(5, t('x.block'));
         setStatus('withdrawStatus', t('wd.relaying'), 'info');
-        const r = await relayPost(pool.net, '/withdraw', Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, pool.version === 'v6' ? { relayer: ethers.ZeroAddress, fee: '0' } : {}));
+        const r = await relayPost(pool.net, '/withdraw', Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, feeVer(pool.version) ? { relayer: ethers.ZeroAddress, fee: '0' } : {}));
         log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
         st.extra(5, ''); st.done();
         setStatus('withdrawStatus', t('wd.success', { tx: r.tx }), 'ok');
@@ -1811,7 +1822,7 @@ $('withdrawBtn').addEventListener('click', async () => {
       setStatus('withdrawStatus', t('wd.submitting'), 'info');
       const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
       const fees = await feeOverrides(pool.net);
-      const tx = pool.version === 'v6' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
+      const tx = feeVer(pool.version) ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
         : pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
       log('Withdraw tx: ' + tx.hash);
       st.extra(5, t('x.block'));
@@ -1851,14 +1862,15 @@ const ROUTER_ABI = [
 ];
 // V6 routers: each item carries its fee and withdrawMany names the relayer (both bound into the proofs).
 const ROUTER_ABI_V6 = ROUTER_ABI.map((f) => f.startsWith('function withdrawMany') ? 'function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash, uint256 fee)[] items, address recipient, address relayer)' : f);
-const routerAbi = (router) => (router.version === 'v6' ? ROUTER_ABI_V6 : ROUTER_ABI);
+const routerAbi = (router) => (feeVer(router.version) ? ROUTER_ABI_V6 : ROUTER_ABI);
 const ROUTER_IFACE = new ethers.Interface(['event Distributed(address indexed depositor, uint256 amount, uint256 notes)']);
 function loadRouters() {
   ROUTERS = (CONFIG.routers || []).map((r) => {
     const net = CONFIG.networks[r.network], tok = net.tokens[r.token];
-    const version = r.version === 'v6' ? 'v6' : 'v5';   // a router serves the four pools of its own version
+    const version = r.version === 'v7' ? 'v7' : r.version === 'v6' ? 'v6' : 'v5';   // a router serves the four pools of its own version
+    const circuit = version === 'v7' ? 'v5' : version === 'v6' ? 'v4' : 'v3';
     const pools = POOLS.filter((p) => p.network === r.network && p.token === r.token && p.version === version && !p.legacy).sort((a, b) => b.amount - a.amount);
-    return Object.assign({}, r, { net, tok, decimals: tok.decimals, address: ethers.getAddress(r.address), pools, version });
+    return Object.assign({}, r, { net, tok, decimals: tok.decimals, address: ethers.getAddress(r.address), pools, version, circuit });
   }).filter((r) => r.pools.length === 4);
 }
 const routerFor = (pool) => pool ? ROUTERS.find((r) => r.network === pool.network && r.token === pool.token) : null;
@@ -2081,7 +2093,7 @@ $('waGoBtn').addEventListener('click', async () => {
     st.go(2);
     const plan = waRenderPlan(sc, target);
     if (!plan || !plan.chosen) throw new Error(t('wa.noplanShort'));
-    const { router, rp, deps } = sc, tok = router.token, v6 = router.version === 'v6', circ = await loadCircuit(v6 ? 'v4' : 'v3');
+    const { router, rp, deps } = sc, tok = router.token, v6 = feeVer(router.version), circ = await loadCircuit(router.circuit);
     const viaRelay = relayOn(router.net, 'waUseRelay');   // no wallet needed
     if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
     const zeros = computeZeroCascade(levelsOf(router.version));

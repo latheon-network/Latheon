@@ -57,7 +57,18 @@ We do **not** currently assume protection against:
 - Selective disclosure (V4/V5) reveals to the chosen auditor which deposit is being disclosed; see §2.5. The disclosure circuit and contracts are a prototype with no independent review. On V3 pools disclosure remains manual.
 - No independent cryptographic review or formal security audit has been performed yet.
 - Anonymity set size is currently very small: the pools hold mostly test deposits.
-- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6 pool (see §4). A V5 pool keeps 30 roots and a V6 pool 100: a proof made against an older root is refused and has to be made again. The demo does that on its own (a new scan and a new proof, up to three attempts); the note is never spent by a refused proof.
+- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6/V7 pool (see §4). A V5 pool keeps 30 roots and a V6 pool 100: a proof made against an older root is refused and has to be made again. The demo does that on its own (a new scan and a new proof, up to three attempts); the note is never spent by a refused proof.
+
+### 8.0 Critical (every pool before V7): the Merkle path selector was not constrained to a bit. Fixed in V7.
+
+In `MerkleTreeChecker` (shared by `withdraw.circom`, `withdraw_v2`, `withdraw_v3`, `withdraw_v4`), each `pathIndices[i]` was fed straight into circomlib's `MultiMux1` as the selector. `MultiMux1` computes `out = (c1 - c0) * s + c0` and does **not** force `s ∈ {0,1}`, and nothing else constrained it (the `s * (1 - s) === 0` check the original Tornado Cash `DualMux` carried was lost in the move to `MultiMux1`).
+
+- **Consequence:** with a non-binary selector the prover can drive a mux output to any field element and satisfy `root === levelHashes[levels]` for a commitment that was never deposited. A pool's current root is `Poseidon(filledSubtrees[L-1], zeros[L-1])`, both public getters, so its two children are readable and a path can be interpolated to them. The result is **withdrawal without a deposit** — the pool can be drained one denomination at a time.
+- **Reproduced** with a transaction-level proof of concept on a local EVM (an attacker with zero deposits emptied a pool).
+- **Scope:** every pool generation — V5 (`withdraw_v3`) on Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet and the Latheon test chain; V6 (`withdraw_v4`) on the Latheon test chain; the deprecated V3/V4 pools.
+- **Funds affected so far:** none; all pools are testnet-only.
+- **Fix:** V7 (`circuits/withdraw_v5.circom`, `LatheonShieldedPoolV7Native` on `WithdrawVerifierV5`) adds `pathIndices[i] * (1 - pathIndices[i]) === 0` at every level. Nothing else changes; notes keep their format. After the fix the forgery can no longer be proven (witness generation fails) and an honest withdrawal still verifies (`test/native-v7`). Each pool's verifier is immutable, so V7 ships as fresh pools that supersede V5 and V6; the older pools must be treated as forgeable until retired.
+- Details: `docs/dev-ceremony-v5.md`. Found 27 October 2026 by an independent code review.
 
 ### 8.1 Known issue (V3 / V4 pools): the withdrawal recipient is not bound to the proof. Fixed in V5.
 

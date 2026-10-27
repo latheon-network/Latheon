@@ -2,3 +2,4 @@ node_modules/
 *.log
 .DS_Store
 test/native-v6/node_modules
+test/native-v7/node_modules
