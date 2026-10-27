@@ -47,7 +47,9 @@ The V3 source code is verified on Sourcify and Blockscout — inspect it directl
 
 This exact flow — including the on-chain Merkle tree update — has been executed and confirmed on Sepolia.
 
-## 2a. Current generation: V5 pools (🟢 LIVE on three testnets)
+## 2a. Previous generation: V5 pools (deprecated 27 October 2026; frozen for deposits)
+
+**Superseded by V7 (§2c, §4).** Like every pool before V7, the V5 pools carry the circuit flaw in §7; since 27 October 2026 deposits into them are frozen in our interface and the three external testnets are deprecated. The text below is kept as the record of what V5 was.
 
 V5 supersedes the V3/V4 pools for new use. It changes two things: the withdrawal proof is **bound to the recipient address** (fixing the flaw described in §7), and the **pool size is a constructor parameter**, so one source covers every size and token.
 

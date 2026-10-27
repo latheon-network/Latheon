@@ -576,10 +576,10 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': 'yours', 'tag.auditor': 'auditor sees this one', 'tree.root': 'root',
       'status.eyebrow': 'Status', 'status.h2': 'What works, what we fixed, what\'s open', 'status.p': 'Click a line for details and the source.',
       'col.live': 'Works on testnets', 'col.fixed': 'Fixed', 'col.open': 'Still open',
-      'st.pools.t': '20 V5 pools on 4 testnets', 'st.pools.d': '4 on the Latheon test chain (its own coin, test LTH), 4 on Ethereum Sepolia, 4 on Arbitrum Sepolia, 8 on Robinhood Chain Testnet (LTH and USDG).',
-      'st.router.t': 'Distribution router: any amount, one transaction', 'st.router.d': 'Splits an amount into 100 / 50 / 10 / 1 notes and deposits them in one transaction; <code>withdrawMany</code> collects several notes in one. No owner, no fee, holds no funds. Checked by hand with real proofs on all four token sets, no independent review. It pays one address, so it is convenience, not privacy.',
+      'st.pools.t': '4 V7 pools on our test chain', 'st.pools.d': 'The current generation (circuit withdraw_v5) on the Latheon test chain, paid in its own coin, test LTH. The older V5/V6 pools there and the V5 pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are frozen for deposits and kept only for withdrawals.', 'st.path.t': 'Withdrawal without a deposit (before V7)', 'st.path.d': 'In every circuit before V7 one value in the Merkle path was not limited to 0 or 1, so a crafted proof could withdraw from a pool without any deposit. Found in an internal review and reproduced locally with test tokens; no real funds were involved. Fixed in V7 (withdraw_v5); older pools are frozen for deposits.',
+      'st.router.t': 'Distribution router: any amount, one transaction', 'st.router.d': 'Splits an amount into 100 / 50 / 10 / 1 notes and deposits them in one transaction; <code>withdrawMany</code> collects several notes in one. No owner, no fee, holds no funds. Checked by hand with real proofs; the current router is V7 on our test chain, the routers on the three external testnets are deprecated. No independent review. It pays one address, so it is convenience, not privacy.',
       'st.bind.t': 'Recipient bound to the proof', 'st.bind.d': 'The receiving address is part of the withdraw proof and cannot be swapped in transit.',
-      'st.tree.t': 'On-chain Merkle tree', 'st.tree.d': 'Updated by the contract on every deposit. 256 deposits per pool.',
+      'st.tree.t': 'On-chain Merkle tree', 'st.tree.d': 'Updated by the contract on every deposit. Up to 1,048,576 deposits per V7 pool (256 in the old V5 pools).',
       'st.disc.t': 'Selective disclosure', 'st.disc.d': 'Proves control of one specific deposit to one auditor, tied to that auditor\'s one-time code.',
       'st.swap.t': 'Recipient swap in V3/V4', 'st.swap.d': 'The recipient was not in the proof, so a pending withdrawal could be redirected. Reproduced locally with test tokens. Fixed in V5; old pools are marked legacy.',
       'st.audit.t': 'No independent audit', 'st.audit.d': 'No third party has reviewed the code.',
@@ -618,10 +618,10 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': 'ваш', 'tag.auditor': 'аудитор видит этот', 'tree.root': 'корень',
       'status.eyebrow': 'Статус', 'status.h2': 'Что работает, что исправили, что открыто', 'status.p': 'Нажмите на строку, чтобы увидеть подробности и источник.',
       'col.live': 'Работает в тестовых сетях', 'col.fixed': 'Исправлено', 'col.open': 'Пока открыто',
-      'st.pools.t': '20 пулов V5 в 4 тестовых сетях', 'st.pools.d': '4 в тестовой сети Latheon (на её родной монете, тестовом LTH), 4 в Ethereum Sepolia, 4 в Arbitrum Sepolia, 8 в Robinhood Chain Testnet (LTH и USDG).',
-      'st.router.t': 'Роутер распределения: любая сумма, одна транзакция', 'st.router.d': 'Делит сумму на ноты 100 / 50 / 10 / 1 и вносит их одной транзакцией; <code>withdrawMany</code> выводит несколько нот одной. Без владельца и комиссии, средств не хранит. Проверен вручную с настоящими доказательствами на всех четырёх наборах токенов, независимой проверки нет. Платит на один адрес: это удобство, а не приватность.',
+      'st.pools.t': '4 пула V7 в нашей тестовой сети', 'st.pools.d': 'Текущее поколение (схема withdraw_v5) в тестовой сети Latheon, на её родной монете, тестовом LTH. Старые пулы V5/V6 там же и пулы V5 в Ethereum Sepolia, Arbitrum Sepolia и Robinhood Chain Testnet заморожены для депозитов и оставлены только для вывода.', 'st.path.t': 'Вывод без депозита (до V7)', 'st.path.d': 'Во всех схемах до V7 одно значение в пути дерева Меркла не было ограничено нулём или единицей, поэтому поддельное доказательство позволяло вывести средства из пула без депозита. Найдено внутренней проверкой и воспроизведено локально на тестовых токенах; реальные средства не затронуты. Исправлено в V7 (withdraw_v5); старые пулы заморожены для депозитов.',
+      'st.router.t': 'Роутер распределения: любая сумма, одна транзакция', 'st.router.d': 'Делит сумму на ноты 100 / 50 / 10 / 1 и вносит их одной транзакцией; <code>withdrawMany</code> выводит несколько нот одной. Без владельца и комиссии, средств не хранит. Проверен вручную с настоящими доказательствами; текущий роутер — V7 в нашей тестовой сети, роутеры в трёх внешних сетях сняты с эксплуатации. Независимой проверки нет. Платит на один адрес: это удобство, а не приватность.',
       'st.bind.t': 'Получатель привязан к доказательству', 'st.bind.d': 'Адрес получателя входит в доказательство вывода, и подменить его по дороге нельзя.',
-      'st.tree.t': 'Дерево Меркла в блокчейне', 'st.tree.d': 'Контракт обновляет его при каждом депозите. 256 депозитов на пул.',
+      'st.tree.t': 'Дерево Меркла в блокчейне', 'st.tree.d': 'Контракт обновляет его при каждом депозите. До 1 048 576 депозитов на пул V7 (256 в старых пулах V5).',
       'st.disc.t': 'Избирательное раскрытие', 'st.disc.d': 'Доказывает одному аудитору контроль над одним конкретным депозитом; доказательство привязано к одноразовому коду этого аудитора.',
       'st.swap.t': 'Подмена получателя в V3/V4', 'st.swap.d': 'Получатель не входил в доказательство, поэтому ожидающий вывод можно было перенаправить. Воспроизведено локально на тестовых токенах. Исправлено в V5; старые пулы помечены как устаревшие.',
       'st.audit.t': 'Нет независимого аудита', 'st.audit.d': 'Код не проверяла третья сторона.',
@@ -660,10 +660,10 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': '您的', 'tag.auditor': '审计方看到的是这一笔', 'tree.root': '根',
       'status.eyebrow': '状态', 'status.h2': '哪些已可用，哪些已修复，哪些仍待解决', 'status.p': '点击任一行查看详情和来源。',
       'col.live': '已在测试网运行', 'col.fixed': '已修复', 'col.open': '仍待解决',
-      'st.pools.t': '4 个测试网上的 20 个 V5 资金池', 'st.pools.d': 'Latheon 测试链上 4 个（使用其原生币，即测试 LTH），Ethereum Sepolia 上 4 个，Arbitrum Sepolia 上 4 个，Robinhood Chain Testnet 上 8 个（LTH 和 USDG）。',
-      'st.router.t': '分配路由合约：任意金额，一笔交易', 'st.router.d': '把金额拆分为 100 / 50 / 10 / 1 的票据并在一笔交易中存入；<code>withdrawMany</code> 可在一笔交易中提取多张票据。无所有者、无手续费、不持有资金。已在四组代币上用真实证明手动验证，尚无独立审查。它付给同一个地址，因此方便但不隐私。',
+      'st.pools.t': '我们测试链上的 4 个 V7 资金池', 'st.pools.d': 'Latheon 测试链上的当前一代（电路 withdraw_v5），使用其原生币测试 LTH。该链上较旧的 V5/V6 资金池，以及 Ethereum Sepolia、Arbitrum Sepolia 和 Robinhood Chain Testnet 上的 V5 资金池已冻结存款，仅保留用于取款。', 'st.path.t': '无需存款即可取款（V7 之前）', 'st.path.d': '在 V7 之前的所有电路中，默克尔路径中的一个值没有被限制为 0 或 1，因此精心构造的证明可以在没有任何存款的情况下从资金池取款。由内部审查发现，并在本地用测试代币复现；未涉及真实资金。已在 V7（withdraw_v5）中修复；旧资金池已冻结存款。',
+      'st.router.t': '分配路由合约：任意金额，一笔交易', 'st.router.d': '把金额拆分为 100 / 50 / 10 / 1 的票据并在一笔交易中存入；<code>withdrawMany</code> 可在一笔交易中提取多张票据。无所有者、无手续费、不持有资金。已用真实证明手动验证；当前路由合约为我们测试链上的 V7，三个外部测试网上的路由合约已弃用。尚无独立审查。它付给同一个地址，因此方便但不隐私。',
       'st.bind.t': '接收地址与证明绑定', 'st.bind.d': '接收地址是取款证明的一部分，传输途中无法被替换。',
-      'st.tree.t': '链上 Merkle 树', 'st.tree.d': '每次存款时由合约更新。每个资金池可容纳 256 笔存款。',
+      'st.tree.t': '链上 Merkle 树', 'st.tree.d': '每次存款时由合约更新。每个 V7 资金池最多可容纳 1,048,576 笔存款（旧 V5 资金池为 256 笔）。',
       'st.disc.t': '选择性披露', 'st.disc.d': '向一位审计方证明对某一笔特定存款的控制权，并与该审计方的一次性代码绑定。',
       'st.swap.t': 'V3/V4 中接收地址可被替换', 'st.swap.d': '接收地址不在证明中，因此待处理的取款可能被转向。已在本地用测试代币复现。V5 中已修复；旧资金池标记为旧版。',
       'st.audit.t': '尚无独立审计', 'st.audit.d': '代码尚未经过第三方审查。',
@@ -833,8 +833,8 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   /* ---------- status columns ---------- */
   var COLS = [
     ['live', 'col.live', [['st.pools', 'sdk/deployments.json'], ['st.bind', 'docs/withdraw-recipient-binding.md'], ['st.tree', 'STATUS.md'], ['st.disc', 'STATUS.md'], ['st.router', 'docs/distribution-pool-deployments.md']]],
-    ['fixed', 'col.fixed', [['st.swap', 'docs/withdraw-recipient-binding.md']]],
-    ['open', 'col.open', [['st.audit', 'THREAT-MODEL.md'], ['st.keys', 'docs/dev-ceremony-v3.md'], ['st.anon', 'THREAT-MODEL.md'], ['st.bridge', 'STATUS.md'], ['st.meta', 'THREAT-MODEL.md']]]
+    ['fixed', 'col.fixed', [['st.path', 'docs/dev-ceremony-v5.md'], ['st.swap', 'docs/withdraw-recipient-binding.md']]],
+    ['open', 'col.open', [['st.audit', 'THREAT-MODEL.md'], ['st.keys', 'docs/dev-ceremony-v5.md'], ['st.anon', 'THREAT-MODEL.md'], ['st.bridge', 'STATUS.md'], ['st.meta', 'THREAT-MODEL.md']]]
   ];
   function renderCols() {
     var openNow = {};

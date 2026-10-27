@@ -14,9 +14,9 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 - Groth16 verifier deployed, checking proofs against the pool's own on-chain root history.
 - A complete shielded withdrawal — deposit, on-chain tree update, off-chain proof, on-chain verification, withdrawal to an unlinked address — demonstrated end-to-end on Sepolia.
 - Contracts, circuit, and tooling published as open source.
-- **V5 pools** (recipient-bound proofs, pool size as a constructor parameter) deployed on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets, with integration tests using real proofs in `test/v5-integration`. See `docs/deployments-v5.md`.
+- **V5 pools** (recipient-bound proofs, pool size as a constructor parameter) deployed on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets, with integration tests using real proofs in `test/v5-integration`. See `docs/deployments-v5.md`. **Deprecated on 27 October 2026:** like every pool before V7 they carry the circuit flaw described in `STATUS.md` §7, so deposits into them are frozen in our interface and they are kept only for withdrawals of existing notes. The project focuses on the Latheon test chain; V7 is not planned on these three networks.
 
-- **Latheon test chain** (Arbitrum Orbit on Arbitrum Sepolia, test LTH as gas) with public RPC, explorer and faucet; native-coin V5 pools and router confirmed with real proofs. See [`docs/testnet.md`](./docs/testnet.md).
+- **Latheon test chain** (Arbitrum Orbit on Arbitrum Sepolia, test LTH as gas) with public RPC, explorer, faucet, relayer and bridge page. The current pools are **V7** (circuit `withdraw_v5`, 20-level trees, relayer fee bound into the proof), live since 27 October 2026 and confirmed with real proofs; V7 fixes a flaw present in every earlier circuit (withdrawal without a deposit, found in an internal review). The older V5 and V6 pools on the chain are frozen for deposits and kept for withdrawals. See [`docs/testnet.md`](./docs/testnet.md).
 
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
@@ -56,9 +56,10 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Public multi-party trusted-setup ceremony. The circuit must be frozen first; new keys mean new verifiers and pools. Required before any real-value deployment (`docs/dev-ceremony-v3.md`).
 - [x] Distribution router for arbitrary deposit amounts (`deposit` and `withdrawMany`): deployed on four testnet token sets and checked by hand, not reviewed independently (`docs/distribution-pool-architecture.md`, `docs/distribution-pool-deployments.md`).
 - [x] Wallet-side note selection and the deposit rounding choice in the demo (exact or rounded down, user's choice; one master key; withdrawal by amount and key). Built and tested on local chains, run live on Ethereum Sepolia. Still open: pool-activity indicators and a planner that proposes several addresses and delays (`docs/distribution-pool-architecture.md`, D2 and D4).
-- [ ] Update the JavaScript SDK for the `spendKey` / `viewKey` split and recipient-bound proofs (it currently targets the V3 pool).
-- [ ] Re-measure gas on V5 under controlled conditions (two consecutive withdrawals per network); see the note in `docs/gas-benchmark.en.md`. Ethereum Sepolia runs Glamsterdam (EIP-8037) since 6 October 2026, so compare like with like.
-- [ ] Proof-generation timing, partly done: `docs/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the V5 circuit (`withdraw_v3`), a named device, and phones.
+- [ ] Update the JavaScript SDK for the `spendKey` / `viewKey` split and recipient-bound proofs, targeting V7 (it currently targets the V3 pool).
+- [ ] Retire the frozen pools (V3–V6 and the three external testnets) from the demo and `deployments.json` once their remaining test notes are withdrawn.
+- [ ] Re-measure gas on V7 on the Latheon test chain under controlled conditions (two consecutive withdrawals); see the note in `docs/gas-benchmark.en.md`. The earlier per-network V5 plan is dropped with the external testnets.
+- [ ] Proof-generation timing, partly done: `docs/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the current circuit (`withdraw_v5`), a named device, and phones.
 
 ---
 
@@ -75,7 +76,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
 **Decision (October 2026): the framework is Arbitrum Orbit.** Earlier versions of this section described a sovereign Layer 1 (dropped: no precedent for small teams), then a general "Ethereum L2, framework under evaluation". The evaluation was done in practice, not only on paper: the full V5 stack was run on Arbitrum Sepolia, on a local Arbitrum chain with a custom gas token, and on a test chain we created ourselves (below). Arbitrum Orbit was chosen as the path of least resistance for a small team: mature, audited rollup code; a chain can be created and run without special hardware; and a custom gas token is supported. Our own expertise — the privacy circuits and pools — stays the differentiator.
 
-**What exists today (testnet only, no audit):** the Latheon test chain, an Arbitrum Orbit chain settling to Arbitrum Sepolia (Rollup mode), with test LTH as its gas coin, a public RPC, a block explorer, a faucet, and the V5 pools and the distribution router built for the chain's native coin (deposits are made with the coin itself, no wrapping, no approval). Withdrawals with real proofs to empty addresses have been confirmed by transactions. It runs on one rented server with a single sequencer and a single validator, both operated by us; nobody else can challenge its assertions yet. Details, addresses and limits: `STATUS.md`.
+**What exists today (testnet only, no audit):** the Latheon test chain, an Arbitrum Orbit chain settling to Arbitrum Sepolia (Rollup mode), with test LTH as its gas coin, a public RPC, a block explorer, a faucet, and the V7 pools and the distribution router built for the chain's native coin (deposits are made with the coin itself, no wrapping, no approval); the older V5/V6 pools there are frozen for deposits. Withdrawals with real proofs to empty addresses have been confirmed by transactions. It runs on one rented server with a single sequencer and a single validator, both operated by us; nobody else can challenge its assertions yet. Details, addresses and limits: `STATUS.md`.
 
 **Design decisions taken:**
 - **Gas token: LTH**, not ETH or a stablecoin.
@@ -91,7 +92,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - **Bridge privacy** in general (see `docs/bridge-privacy-design.md`): the depositor's address is always public; privacy means a withdrawal cannot be linked to its deposit. Until the bridge design above is built, this is an explicit user-facing caveat, not something silently assumed away — see `THREAT-MODEL.md`.
 - **Optional compliance tooling** such as association sets (in the style of Privacy Pools): whether it is mandatory or voluntary, and who maintains the lists.
 - **Proving system.** Groth16 over BN254 is not post-quantum secure; PLONK/Halo, STARK-based proving and protocol-level proof aggregation on Ethereum (EIP-8288, a draft) are watched, see `THREAT-MODEL.md` §9.1.
-- **Timing.** No production launch date is set. A production chain comes after independent circuit review, a public trusted-setup ceremony and an audit. The current pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet keep working as they are.
+- **Timing.** No production launch date is set. A production chain comes after independent circuit review, a public trusted-setup ceremony and an audit. The pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are deprecated (27 October 2026): frozen for deposits in our interface, kept only for withdrawals of existing notes.
 
 Realistic properties, as on virtually every production rollup today: confirmation by the sequencer within a few seconds, finality on the parent chain in minutes to hours, low fees, and a centralized sequencer at launch. Full sequencer decentralization remains an open, industry-wide problem, not something we would solve alone. Native light clients, a permissionless validator set and a dedicated consensus layer are dropped from the earlier plan: the chain inherits the security of the chain it settles to.
 
