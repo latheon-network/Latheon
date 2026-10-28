@@ -9,6 +9,7 @@ const GEN = process.env.V7 === '1' ? 'v7' : process.env.V6 === '1' ? 'v6' : 'v5'
 const V6 = GEN !== 'v5';   // fee-bearing interface (V6 and V7 share it); V7 only fixes the circuit
 const V7 = GEN === 'v7';
 const fs = require('fs'), path = require('path');
+const { cspFor } = require('../../tools/make-headers.js');   // pages are served with the CSP of site/_headers
 const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
 const req = (m) => require(path.join(NM, m));
 const solc = req('solc'), ganache = req('ganache'), { ethers } = req('ethers');
@@ -170,10 +171,12 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     const cors = { 'access-control-allow-origin': '*' };
     const routeAll = async (route) => {
       const url = route.request().url();
-      if (url === 'https://latheon.test/demo/') return route.fulfill({ status: 200, contentType: 'text/html', body: rd(DEMO + '/index.html') });
+      if (url === 'https://latheon.test/demo/') { const html = rd(DEMO + '/index.html'); return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'content-security-policy': cspFor(html, cfg) }, body: html }); }
+      if (url.startsWith('https://latheon.test/demo/vendor/')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: rd(DEMO + '/vendor/' + url.split('/').pop()) });
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
-      if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
+      const fk = url.replace(/latheon@[0-9a-f]{40}\//, 'latheon@main/');   // the demo pins circuits to a commit
+      if (FILES[fk]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[fk]) });
       if (url.startsWith(RELAY + '/')) return relayRoute(route);
       const rk = Object.entries(cfg.networks).find(([, n]) => url.startsWith(n.rpcUrl));
       if (rk) {

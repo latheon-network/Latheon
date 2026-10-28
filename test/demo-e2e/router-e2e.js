@@ -3,6 +3,7 @@
 // Playwright with Chromium, and the browser bundles from build-bundles.sh. See README.md.
 //   DEMO=/path/to/demo node router-e2e.js
 const fs = require('fs'), path = require('path');
+const { cspFor } = require('../../tools/make-headers.js');   // pages are served with the CSP of site/_headers
 const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
 const req = (m) => require(path.join(NM, m));
 const solc = req('solc'), ganache = req('ganache'), { ethers } = req('ethers');
@@ -72,6 +73,8 @@ const POOLX = ['function nextIndex() view returns (uint256)', 'function nullifie
       n.v5Verifier = dep[k].ver5.addr; n.discloseVerifier = dep[k].ver5.addr; n.tokens.LTH.address = dep[k].lth.addr;
       if (n.tokens.USDG) n.tokens.USDG.address = dep[k].usdg.addr;
     }
+    // these tests check the deposit mechanics on the pre-V7 pools; the freeze itself is checked in T7 and in native-e2e.js
+    for (const x of [...cfg.pools, ...cfg.routers]) { delete x.frozen; delete x.forgeable; }
     cfg.pools = cfg.pools.filter((p) => p.version === 'v5');
     for (const p of cfg.pools) { const x = dep[p.network].pools[p.token + '-' + p.amount]; p.address = x.addr; p.deployBlock = x.block; }
     for (const r of cfg.routers) { const x = dep[r.network].routers[r.token]; r.address = x.addr; r.deployBlock = x.block; }
@@ -108,10 +111,12 @@ const POOLX = ['function nextIndex() view returns (uint256)', 'function nullifie
     const cors = { 'access-control-allow-origin': '*' };
     await page.route('**/*', async (route) => {
       const url = route.request().url();
-      if (url === 'https://latheon.test/demo/') return route.fulfill({ status: 200, contentType: 'text/html', body: rd(DEMO + '/index.html') });
+      if (url === 'https://latheon.test/demo/') { const html = rd(DEMO + '/index.html'); return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'content-security-policy': cspFor(html, cfg) }, body: html }); }
+      if (url.startsWith('https://latheon.test/demo/vendor/')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: rd(DEMO + '/vendor/' + url.split('/').pop()) });
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
-      if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
+      const fk = url.replace(/latheon@[0-9a-f]{40}\//, 'latheon@main/');   // the demo pins circuits to a commit
+      if (FILES[fk]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[fk]) });
       const rk = Object.entries(cfg.networks).find(([k, n]) => [n.rpcUrl, n.logsRpcUrl].filter(Boolean).some((u) => url.startsWith(u)));
       if (rk) {
         const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };

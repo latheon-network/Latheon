@@ -4,6 +4,7 @@
 // it credits deposits on the child and confirms withdrawals on the parent. Mock wallet as in the demo tests.
 //   BRIDGE=/path/to/folder/with/index.html node bridge-e2e.js
 const fs = require('fs'), path = require('path');
+const { cspFor } = require('../../tools/make-headers.js');   // pages are served with the CSP of site/_headers
 const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
 const req = (m) => require(path.join(NM, m));
 const solc = req('solc'), ganache = req('ganache'), { ethers } = req('ethers');
@@ -111,8 +112,9 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
       await ctx.addInitScript(() => { window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { const r = JSON.parse(await window.__rpc(method, JSON.stringify(params || []))); if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; if (r.error.data) e.data = r.error.data; throw e; } return r.result; }, on() {}, removeListener() {} }; });
       await ctx.route('**/*', async (route) => {
         const url = route.request().url();
-        if (url === 'https://latheon.test/bridge/') return route.fulfill({ status: 200, contentType: 'text/html', body: rd(BRIDGE + '/index.html') });
+        if (url === 'https://latheon.test/bridge/') { const html = rd(BRIDGE + '/index.html'); return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'content-security-policy': cspFor(html, cfg) }, body: html }); }
         if (url.startsWith('https://latheon.test/demo/deployments.json')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cfg) });
+        if (url.startsWith('https://latheon.test/demo/vendor/')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: rd(path.join(BRIDGE, '..', 'demo', 'vendor', url.split('/').pop())) });
         if (url === 'https://esm.run/ethers') return route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' }, body: rd(__dirname + '/bundles/ethers.mjs') });
         const k = url.startsWith(URL.parentRpc) ? 'parent' : url.startsWith(URL.childRpc) ? 'child' : null;
         if (k) {

@@ -413,9 +413,10 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { poseidon2, poseidon4 } from 'https://esm.run/poseidon-lite';
-import { ethers } from 'https://esm.run/ethers';
-import * as snarkjs from 'https://esm.run/snarkjs';
+// Libraries served from this site, built from pinned versions (tools/build-vendor.sh; hashes in vendor/SHA256SUMS).
+import { poseidon2, poseidon4 } from './vendor/poseidon-lite-0.3.0.mjs';
+import { ethers } from './vendor/ethers-6.17.0.mjs';
+import * as snarkjs from './vendor/snarkjs-0.7.6.mjs';
 
 const $ = (id) => document.getElementById(id);
 
@@ -502,6 +503,7 @@ const I18N = {
     'au.found': 'The deposit exists', 'au.foundSub': '{net} · pool {label} · leaf #{leaf}', 'au.notFound': 'No deposit with this commitment was found', 'au.notFoundSub': 'Not in any Latheon pool on {net} listed in the registry.',
     'au.pass': 'Verified: the sender controls this specific deposit. You did not receive their keys, their other deposits, or where funds were withdrawn to.',
     'au.fail': 'Not verified. See the details below.',
+    'au.passNoCode': 'Proof valid and the deposit exists, but not verified against a code you issued: no code was generated on this page in this session. Only accept it if {code} is the code you gave; otherwise generate a code and ask for a new proof.',
     'log.summary': 'Technical log',
     'mode.dep.fixed': 'One fixed pool',
     'mode.dep.any': 'Any amount',
@@ -647,6 +649,7 @@ const I18N = {
     'au.found': 'Депозит существует', 'au.foundSub': '{net} · пул {label} · лист #{leaf}', 'au.notFound': 'Депозит с таким commitment не найден', 'au.notFoundSub': 'Его нет ни в одном пуле Latheon в {net} из реестра.',
     'au.pass': 'Проверено: отправитель контролирует именно этот депозит. Вы не получили ни его ключей, ни других депозитов, ни адреса, куда выводились средства.',
     'au.fail': 'Не подтверждено. Подробности ниже.',
+    'au.passNoCode': 'Доказательство верно и депозит существует, но не сверено с выданным вами кодом: на этой странице в этой сессии код не создавался. Принимайте, только если {code} — код, который вы дали; иначе создайте код и попросите новое доказательство.',
     'log.summary': 'Технический журнал',
     'mode.dep.fixed': 'Один пул',
     'mode.dep.any': 'Любая сумма',
@@ -792,6 +795,7 @@ const I18N = {
     'au.found': '存款存在', 'au.foundSub': '{net} · 资金池 {label} · 叶子 #{leaf}', 'au.notFound': '未找到该 commitment 对应的存款', 'au.notFoundSub': '不在注册表所列 {net} 上的任何 Latheon 资金池中。',
     'au.pass': '已验证：发送方控制这笔特定存款。您没有获得对方的密钥、其他存款或资金去向。',
     'au.fail': '未通过验证。详情见下方。',
+    'au.passNoCode': '证明有效且存款存在，但未与您签发的代码核对：本次会话中未在此页面生成代码。仅当 {code} 是您给出的代码时才接受；否则请生成代码并要求新的证明。',
     'log.summary': '技术日志',
     'mode.dep.fixed': '单一定额池',
     'mode.dep.any': '任意金额',
@@ -883,13 +887,16 @@ const modern = (version) => version === 'v5' || version === 'v6' || version === 
 const feeVer = (version) => version === 'v6' || version === 'v7';   // relayer and fee also bound into the proof (same interface)
 const FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
-const CIRCUIT_BASE = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/';
+// Circuit files from a fixed commit (not a branch), and each one checked against its SHA-256 before use.
+const CIRCUIT_COMMIT = '129a4c0d38af03b0ad2db59e8ad01823e813ed77';
+const CIRCUIT_BASE = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@' + CIRCUIT_COMMIT + '/circuits/build/';
+const circ = (dir, wasmSha, zkeySha) => ({ wasm: CIRCUIT_BASE + dir + '/' + dir + '.wasm', zkey: CIRCUIT_BASE + dir + '/' + dir + '_final.zkey', wasmSha, zkeySha });
 const CIRCUITS = {
-  v5:       { wasm: CIRCUIT_BASE + 'withdraw_v5/withdraw_v5.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v5/withdraw_v5_final.zkey' },
-  v4:       { wasm: CIRCUIT_BASE + 'withdraw_v4/withdraw_v4.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v4/withdraw_v4_final.zkey' },
-  v3:       { wasm: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v3/withdraw_v3_final.zkey' },
-  v2:       { wasm: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2.wasm',  zkey: CIRCUIT_BASE + 'withdraw_v2/withdraw_v2_final.zkey' },
-  disclose: { wasm: CIRCUIT_BASE + 'disclose/disclose.wasm',        zkey: CIRCUIT_BASE + 'disclose/disclose_final.zkey' },
+  v5:       circ('withdraw_v5', '9d8d188ebf8d196cfb3ace1c3c808ff89563bbb6fae9f909da5495ae4b93d667', '5466c0421bbdeafa85e2efcbf6e292cdb0b876e5ae21ab3fe5e14d84bd1397de'),
+  v4:       circ('withdraw_v4', 'ba1cf9034e40a2cffa6ee3039c014b9630886c9153d64816099c460c0fad9701', 'f9514eaa4881a68c5d8be0d6f5088c5ff23beec4085570acba89e0b97ce3deed'),
+  v3:       circ('withdraw_v3', '20aea3d282af1dbdf46206219c25511b9446e88a04e1068cbdd89d76ee7c6623', '6e2fee21fefb1ec06db5ebf0d1fa588b0f8e3a92427894b32bf3521a904dce94'),
+  v2:       circ('withdraw_v2', 'effefdcce687eb56289ecf3bdf0d9f95db529f5725a12a21dcc31a844fd32f68', 'ca43971075f129db592d38551159a00adf613102634f153a04848db2fe85659d'),
+  disclose: circ('disclose',    '479e1ae4350000257c4dddfc1a7f19017dd361d1bcdd9ff11ed3fcf7b896ddfe', 'da2ef269e48c724d6dadc2ac2ed7f755a937c65640cac389d4805f25c71e18ea'),
 };
 
 const ERC20_ABI = [
@@ -1177,7 +1184,7 @@ async function loadConfig() {
   const hasV7 = (p) => POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v7');
   for (const p of POOLS) {
     const secure = p.version === 'v7';
-    p.frozen = !secure && (!!p.legacy || !!p.net.deprecated || hasV7(p));
+    p.frozen = !!p.frozen || (!secure && (!!p.legacy || !!p.net.deprecated || hasV7(p)));   // deployments.json marks pre-V7 pools frozen; older files are inferred
     if (p.version === 'v6' && hasV7(p)) p.label = 'V6 (frozen) · ' + p.label;
     else if (p.version === 'v5' && (hasV7(p) || p.net.deprecated)) p.label = 'V5 (frozen) · ' + p.label;
     else if (p.version === 'v5' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v6')) p.label = 'V5 (256 max) · ' + p.label;
@@ -1272,11 +1279,17 @@ function setLanguage(lang) {
 })();
 
 // ---------- circuits ----------
-async function fetchBuf(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url); return new Uint8Array(await r.arrayBuffer()); }
+const sha256hex = async (buf) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map((b) => b.toString(16).padStart(2, '0')).join('');
+async function fetchBuf(url, sha) {
+  const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url);
+  const buf = new Uint8Array(await r.arrayBuffer());
+  if (sha && (await sha256hex(buf)) !== sha) throw new Error('Circuit file does not match its published hash, refusing to use it: ' + url);
+  return buf;
+}
 async function loadCircuit(kind) {
   if (circuitBuf[kind]) return circuitBuf[kind];
   const c = CIRCUITS[kind];
-  const [wasm, zkey] = await Promise.all([fetchBuf(c.wasm), fetchBuf(c.zkey)]);
+  const [wasm, zkey] = await Promise.all([fetchBuf(c.wasm, c.wasmSha), fetchBuf(c.zkey, c.zkeySha)]);
   circuitBuf[kind] = { wasm, zkey };
   log(`Loaded ${kind} circuit: wasm ${wasm.length} bytes, zkey ${zkey.length} bytes.`);
   return circuitBuf[kind];
@@ -2288,8 +2301,10 @@ $('auditVerifyBtn').addEventListener('click', async () => {
     } else add('no', esc(t('au.notFound')), th('au.notFoundSub', { net: net.name }));
     st.done();
 
-    const pass = ok && hit && (issuedNonce == null || nonce === issuedNonce);
-    setStatus('auditStatus', pass ? t('au.pass') : t('au.fail'), pass ? 'ok' : 'err');
+    // Verified only against a code issued on this page: without one, an old or forwarded disclosure would also pass.
+    const pass = ok && hit && issuedNonce != null && nonce === issuedNonce;
+    if (!pass && ok && hit && issuedNonce == null) setStatus('auditStatus', t('au.passNoCode', { code: nonce.toString() }), 'info');
+    else setStatus('auditStatus', pass ? t('au.pass') : t('au.fail'), pass ? 'ok' : 'err');
   } catch (e) { st.fail(); setStatus('auditStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { btn.disabled = false; }
 });

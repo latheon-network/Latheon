@@ -4,6 +4,7 @@
 // Needs test/distribution/node_modules (npm install there), Playwright with Chromium and the bundles from build-bundles.sh.
 //   DEMO=/path/to/demo node e2e.js
 const fs = require('fs');
+const { cspFor } = require('../../tools/make-headers.js');   // pages are served with the CSP of site/_headers
 const path = require('path');
 const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
 const req = (m) => require(path.join(NM, m));
@@ -98,6 +99,8 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
       n.tokens.LTH.address = dep[k].lth.addr; n.tokens.LTH.faucet = dep[k].faucet.addr;
       if (n.tokens.USDG) n.tokens.USDG.address = dep[k].t6.addr;
     }
+    // these tests check the deposit mechanics on the pre-V7 pools; the freeze itself is checked in T7 and in native-e2e.js
+    for (const x of [...cfg.pools, ...cfg.routers]) { delete x.frozen; delete x.forgeable; }
     cfg.pools = cfg.pools.filter((p) => p.version === 'v5' || p.id === 'ethereum-sepolia:legacy-eth-lth');
     for (const p of cfg.pools) {
       if (p.version === 'v5') { const x = dep[p.network].pools[p.token + '-' + p.amount]; p.address = x.addr; p.deployBlock = x.block; }
@@ -151,10 +154,12 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     const cors = { 'access-control-allow-origin': '*' };
     await page.route('**/*', async (route) => {
       const url = route.request().url();
-      if (url === 'https://latheon.test/demo/') return route.fulfill({ status: 200, contentType: 'text/html', body: rd(DEMO + '/index.html') });
+      if (url === 'https://latheon.test/demo/') { const html = rd(DEMO + '/index.html'); return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'content-security-policy': cspFor(html, cfg) }, body: html }); }
+      if (url.startsWith('https://latheon.test/demo/vendor/')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: rd(DEMO + '/vendor/' + url.split('/').pop()) });
       if (url === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: cfgJson });
       if (BUNDLES[url]) return route.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: rd(__dirname + '/bundles/' + BUNDLES[url] + '.mjs') });
-      if (FILES[url]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[url]) });
+      const fk = url.replace(/latheon@[0-9a-f]{40}\//, 'latheon@main/');   // the demo pins circuits to a commit
+      if (FILES[fk]) return route.fulfill({ status: 200, contentType: 'application/octet-stream', headers: cors, body: fs.readFileSync(FILES[fk]) });
       const rk = Object.entries(cfg.networks).find(([k, n]) => [n.rpcUrl, n.logsRpcUrl].filter(Boolean).some((u) => url.startsWith(u)));
       if (rk) {
         const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
@@ -291,6 +296,13 @@ const ERC20 = ['function balanceOf(address) view returns (uint256)'];
     await pick('arbitrum-sepolia:LTH-1');
     msg = await withdraw('latheon-v4-note:123:456', R_(3));
     rec('T9. Старая нота при выбранном V5-пуле: понятная ошибка, ничего не отправлено', /old-format note/.test(msg), msg.slice(0, 70));
+
+    // ---- T13: after a reload no code was issued on the page: a valid disclosure is NOT shown as "Verified"
+    await page.reload(); await page.waitForFunction(() => !document.getElementById('auditVerifyBtn').disabled, null, { timeout: 60000 });
+    await page.click('#tab-auditor'); await page.fill('#auditBlockInput', block2); await page.click('#auditVerifyBtn');
+    await waitText('#auditStatus', /Verified|Not verified|Failed|Proof valid/, 120000);
+    const ast3 = (await page.textContent('#auditStatus')).trim();
+    rec('T13. Без выданного на странице кода аудитор не видит «Verified»: только «Proof valid … not verified against a code you issued»', /^Proof valid/.test(ast3) && /not verified against a code/.test(ast3), ast3.slice(0, 70));
 
     rec('T10. В браузере не было необработанных JS-ошибок', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
     await page.screenshot({ path: SHOTS + '/e2e-final.png', fullPage: false });

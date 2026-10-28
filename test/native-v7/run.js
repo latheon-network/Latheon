@@ -480,6 +480,19 @@ async function main() {
     // a trivial non-binary index (2) is rejected too
     let two = false; try { const e2 = Array(LEVELS).fill(zeros[0].toString()); const i2 = Array(LEVELS).fill('0'); i2[0] = '2'; await snarkjs.groth16.fullProve({ root: root.toString(), nullifierHash: poseidon2([sk, 1n]).toString(), recipient: '1', relayer: '0', fee: '0', spendKey: sk.toString(), viewKey: vk.toString(), pathElements: e2, pathIndices: i2 }, w3, z3); two = true; } catch (e) { /* expected */ }
     rec('pathIndices = 2 is rejected as well', !two, '');
+    // The same forgery past the witness generator: compute the witness with the old withdraw_v4 wasm (no bit check,
+    // same wires), then prove with the FINAL withdraw_v5 key. The V5 verification key must reject that proof, while
+    // the V4 key accepts it (showing this witness is the real attack). Guards the deployed key, not just the wasm.
+    {
+      const V4DIR = path.join(ROOT, 'circuits', 'build', 'withdraw_v4');
+      const inp = { root: root.toString(), nullifierHash: poseidon2([sk, 1n]).toString(), recipient: BigInt(newAddr()).toString(), relayer: '0', fee: '0', spendKey: sk.toString(), viewKey: vk.toString(), pathElements: el, pathIndices: idx };
+      const wtns = { type: 'mem' }; await snarkjs.wtns.calculate(inp, path.join(V4DIR, 'withdraw_v4.wasm'), wtns);
+      const vk5 = JSON.parse(read(path.join(V5DIR, 'verification_key.json'))), vk4 = JSON.parse(read(path.join(V4DIR, 'verification_key.json')));
+      let ok5 = null, err5 = '';
+      try { const pr = await snarkjs.groth16.prove(path.join(V5DIR, 'withdraw_v5_final.zkey'), wtns); ok5 = await snarkjs.groth16.verify(vk5, pr.publicSignals, pr.proof); } catch (e) { err5 = String(e && e.message || e).slice(0, 60); }
+      const pr4 = await snarkjs.groth16.prove(path.join(V4DIR, 'withdraw_v4_final.zkey'), wtns); const ok4 = await snarkjs.groth16.verify(vk4, pr4.publicSignals, pr4.proof);
+      rec('a forged witness proven with the final withdraw_v5 key is rejected by its verification key (the same witness passes the old V4 key)', ok5 !== true && ok4 === true, 'v5 ' + (ok5 === null ? 'error: ' + err5 : ok5) + ', v4 ' + ok4);
+    }
     const honest = newNote(); await poolDeposit(FP, honest); const hr = newAddr();
     const hp = await proofFor(FP, honest, hr);
     await (await FP.connect(relayer).withdraw(hp.pA, hp.pB, hp.pC, hp.root, hp.nullifier, hr, Z, 0n)).wait();

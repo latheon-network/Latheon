@@ -66,7 +66,8 @@ In `MerkleTreeChecker` (shared by `withdraw.circom`, `withdraw_v2`, `withdraw_v3
 - **Consequence:** with a non-binary selector the prover can drive a mux output to any field element and satisfy `root === levelHashes[levels]` for a commitment that was never deposited. A pool's current root is `Poseidon(filledSubtrees[L-1], zeros[L-1])`, both public getters, so its two children are readable and a path can be interpolated to them. The result is **withdrawal without a deposit** — the pool can be drained one denomination at a time.
 - **Reproduced** with a transaction-level proof of concept on a local EVM (an attacker with zero deposits emptied a pool).
 - **Scope:** every pool generation — V5 (`withdraw_v3`) on Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet and the Latheon test chain; V6 (`withdraw_v4`) on the Latheon test chain; the deprecated V3/V4 pools.
-- **Funds affected so far:** none; all pools are testnet-only.
+- **Funds affected so far:** no real funds; all pools are testnet-only.
+- **The freeze is in our interface only.** The pre-V7 pool contracts have no pause: they still accept deposits from any other client and remain forgeable. `deployments.json` marks them `frozen` and `forgeable`; anyone integrating must not deposit into them.
 - **Fix:** V7 (`circuits/withdraw_v5.circom`, `LatheonShieldedPoolV7Native` on `WithdrawVerifierV5`) adds `pathIndices[i] * (1 - pathIndices[i]) === 0` at every level. Nothing else changes; notes keep their format. After the fix the forgery can no longer be proven (witness generation fails) and an honest withdrawal still verifies (`test/native-v7`). Each pool's verifier is immutable, so V7 ships as fresh pools that supersede V5 and V6; the older pools must be treated as forgeable until retired.
 - Details: `docs/dev-ceremony-v5.md`. Found 27 October 2026 by an internal review.
 
@@ -97,6 +98,15 @@ The router (`LatheonDistributionPool`) places ordinary notes in the four fixed p
 ### 8.4 The Latheon test chain: operator trust (testnet)
 
 On the Latheon test chain (`docs/testnet.md`) the pools work as everywhere else, but the chain itself is run by us alone: one sequencer orders transactions and could delay or refuse them; one validator, also ours, asserts the chain's state on Arbitrum Sepolia and nobody else can challenge it yet, so withdrawals from the chain to Arbitrum Sepolia rely on it; the chain owner, the rollup's upgrade rights and the test LTH token are controlled by one development key. The sequencer also sees transactions before they are ordered (as on virtually every rollup today). None of this lets anyone spend a note without its `spendKey` or link a withdrawal to its deposit through the proof, but it does mean availability and the chain's rules depend on us. The pools there are new, so the anonymity set is tiny. Withdrawals can go through the chain's relayer (`docs/testnet.md`), so the user's wallet does not appear in them; the relayer, also run by us, sees the recipient and the client's IP address, can refuse or delay a request (the same proof can then be sent from any wallet), and cannot change the recipient, which the proof binds. Without the relayer, the wallet that sends a withdrawal pays its gas in public. The staged plan for control of a production chain (multisig with a timelock, then a security council, then holder votes) is in `ROADMAP.md`.
+
+### 8.5 Robustness limits of the V7 pools and router (internal review, 27 October 2026)
+
+None of these lets anyone take funds; they are recorded so users and integrators know them, and so the next contract version (and an L2) can close them.
+
+- **One note can cancel a batch.** Anyone who sees a pending `withdrawMany` can resubmit one of its notes on its own. The payout still goes to the same recipient (it is bound to the proof), but the whole batch then reverts with "Note already spent" and has to be sent again without that note. Nothing is lost.
+- **Root history can be pushed out.** A pool keeps its last 100 roots. Someone who makes 100 deposits into one pool between a user's proof and its submission makes that proof stale ("Unknown root"); the attacker can withdraw their own deposits again and pays only gas. The demo and the load test make a new proof automatically (up to three attempts).
+- **Commitments are not range-checked.** `deposit()` accepts a commitment of 0 or one at or above the field size; such a deposit can never be withdrawn and only harms the depositor (and `c` and `c + p` pass the router's duplicate check). The next contract version should require `0 < commitment < p`.
+- **Payout with full gas.** The pool pays the recipient with a plain call that forwards all gas, so a contract recipient can make a withdrawal expensive. Our relayer therefore only pays to addresses without code; a future version should pay with limited gas and without copying return data.
 
 ## 9. Future work
 

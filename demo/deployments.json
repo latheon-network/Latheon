@@ -167,7 +167,9 @@
       "token": "LTH",
       "amount": 100,
       "address": "0xB4035F257793bB7323f9373Af41e5298b04A80dF",
-      "deployBlock": 58
+      "deployBlock": 58,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-50:v6",
@@ -176,7 +178,9 @@
       "token": "LTH",
       "amount": 50,
       "address": "0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C",
-      "deployBlock": 59
+      "deployBlock": 59,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-10:v6",
@@ -185,7 +189,9 @@
       "token": "LTH",
       "amount": 10,
       "address": "0x002B880740926A37da5b6f56faDbFD79400c759d",
-      "deployBlock": 60
+      "deployBlock": 60,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-1:v6",
@@ -194,7 +200,9 @@
       "token": "LTH",
       "amount": 1,
       "address": "0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260",
-      "deployBlock": 61
+      "deployBlock": 61,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-100",
@@ -203,7 +211,9 @@
       "token": "LTH",
       "amount": 100,
       "address": "0xf10AF1771450c528fee0c5435D3E4f4214073aFe",
-      "deployBlock": 18
+      "deployBlock": 18,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-50",
@@ -212,7 +222,9 @@
       "token": "LTH",
       "amount": 50,
       "address": "0x4D9b9624418e2E91a38122D53e2A12eE028194b3",
-      "deployBlock": 19
+      "deployBlock": 19,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-10",
@@ -221,7 +233,9 @@
       "token": "LTH",
       "amount": 10,
       "address": "0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618",
-      "deployBlock": 20
+      "deployBlock": 20,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "latheon-testnet:LTH-1",
@@ -230,7 +244,9 @@
       "token": "LTH",
       "amount": 1,
       "address": "0xD01D19B9D296299619f681b842b3b61C79736F3a",
-      "deployBlock": 21
+      "deployBlock": 21,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "ethereum-sepolia:LTH-100",
@@ -239,7 +255,9 @@
       "token": "LTH",
       "amount": 100,
       "address": "0x851981f6a35EB0D91d927c0e854774f5d0ce6233",
-      "deployBlock": 11842583
+      "deployBlock": 11842583,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "ethereum-sepolia:LTH-50",
@@ -248,7 +266,9 @@
       "token": "LTH",
       "amount": 50,
       "address": "0x09d3D081195304FD83bb79e4b5B97344cE5e89b4",
-      "deployBlock": 11842590
+      "deployBlock": 11842590,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "ethereum-sepolia:LTH-10",
@@ -257,7 +277,9 @@
       "token": "LTH",
       "amount": 10,
       "address": "0x4402b051482B0304A118A4F8A8bb10095127499D",
-      "deployBlock": 11842595
+      "deployBlock": 11842595,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "ethereum-sepolia:LTH-1",
@@ -266,7 +288,9 @@
       "token": "LTH",
       "amount": 1,
       "address": "0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876",
-      "deployBlock": 11842601
+      "deployBlock": 11842601,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "arbitrum-sepolia:LTH-100",
@@ -275,7 +299,9 @@
       "token": "LTH",
       "amount": 100,
       "address": "0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7",
-      "deployBlock": 315679153
+      "deployBlock": 315679153,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "arbitrum-sepolia:LTH-50",
@@ -284,7 +310,9 @@
       "token": "LTH",
       "amount": 50,
       "address": "0xded64ec452C95bA69Fe80d51447cb8c4953E52C0",
-      "deployBlock": 315679454
+      "deployBlock": 315679454,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "arbitrum-sepolia:LTH-10",
@@ -293,7 +321,9 @@
       "token": "LTH",
       "amount": 10,
       "address": "0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5",
-      "deployBlock": 315679601
+      "deployBlock": 315679601,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "arbitrum-sepolia:LTH-1",
@@ -302,7 +332,9 @@
       "token": "LTH",
       "amount": 1,
       "address": "0x4480012096726C670A2C89E05AA37DF7258EF26a",
-      "deployBlock": 315679833
+      "deployBlock": 315679833,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:LTH-100",
@@ -311,7 +343,9 @@
       "token": "LTH",
       "amount": 100,
       "address": "0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C",
-      "deployBlock": 128804492
+      "deployBlock": 128804492,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:LTH-50",
@@ -320,7 +354,9 @@
       "token": "LTH",
       "amount": 50,
       "address": "0x288b8E0281b85118135F7bd55902f7167EAe5169",
-      "deployBlock": 128804841
+      "deployBlock": 128804841,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:LTH-10",
@@ -329,7 +365,9 @@
       "token": "LTH",
       "amount": 10,
       "address": "0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6",
-      "deployBlock": 128805364
+      "deployBlock": 128805364,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:LTH-1",
@@ -338,7 +376,9 @@
       "token": "LTH",
       "amount": 1,
       "address": "0x24a394Fe56464A79A63Adbc57B785d599c3c0074",
-      "deployBlock": 128806055
+      "deployBlock": 128806055,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:USDG-100",
@@ -347,7 +387,9 @@
       "token": "USDG",
       "amount": 100,
       "address": "0x6513862b2153c6AFd56C00B798a859548b0181e7",
-      "deployBlock": 128806906
+      "deployBlock": 128806906,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:USDG-50",
@@ -356,7 +398,9 @@
       "token": "USDG",
       "amount": 50,
       "address": "0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214",
-      "deployBlock": 128807418
+      "deployBlock": 128807418,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:USDG-10",
@@ -365,7 +409,9 @@
       "token": "USDG",
       "amount": 10,
       "address": "0xaA16653312E033623a6CD0D1f7DEFDFc21f30461",
-      "deployBlock": 128808106
+      "deployBlock": 128808106,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:USDG-1",
@@ -374,7 +420,9 @@
       "token": "USDG",
       "amount": 1,
       "address": "0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4",
-      "deployBlock": 128808711
+      "deployBlock": 128808711,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "ethereum-sepolia:legacy-eth-lth",
@@ -385,7 +433,9 @@
       "amount": 100,
       "address": "0x8f64d930813936599f59De29eDb3B4aE38778f75",
       "verifier": "0xc368136323c9d68351222ef5202f6875D8192EF8",
-      "startBlock": 11816700
+      "startBlock": 11816700,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "arbitrum-sepolia:legacy-arb-lth",
@@ -396,7 +446,9 @@
       "amount": 100,
       "address": "0x0fA26142342aA8609fa7AF180DdF91A815A3bE23",
       "verifier": "0xDfCd0A3e6D648DD656AAD45ed8C776b46ABbB4f4",
-      "startBlock": 309568000
+      "startBlock": 309568000,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:legacy-rh-lth",
@@ -407,7 +459,9 @@
       "amount": 100,
       "address": "0xDD991cC7E560681e964f693eF5C5eA7f424318A8",
       "verifier": "0x16b87f399a003E56eA6A680292b7278Df7D7b655",
-      "startBlock": 123709000
+      "startBlock": 123709000,
+      "frozen": true,
+      "forgeable": true
     },
     {
       "id": "robinhood-testnet:legacy-rh-usdg",
@@ -418,7 +472,9 @@
       "amount": 100,
       "address": "0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC",
       "verifier": "0x16b87f399a003E56eA6A680292b7278Df7D7b655",
-      "startBlock": 123734000
+      "startBlock": 123734000,
+      "frozen": true,
+      "forgeable": true
     }
   ],
   "routers": [
@@ -438,7 +494,8 @@
       "native": true,
       "version": "v6",
       "address": "0x93963CF193DD6a961eFEA8311b0834EE31518150",
-      "deployBlock": 62
+      "deployBlock": 62,
+      "frozen": true
     },
     {
       "id": "latheon-testnet:LTH",
@@ -446,35 +503,40 @@
       "token": "LTH",
       "native": true,
       "address": "0x0C3475657D4Bd198efe068dDB064725B6514FB04",
-      "deployBlock": 22
+      "deployBlock": 22,
+      "frozen": true
     },
     {
       "id": "ethereum-sepolia:LTH",
       "network": "ethereum-sepolia",
       "token": "LTH",
       "address": "0xC12095a1e7fAc20E827a93933576469e1122eB61",
-      "deployBlock": 11879141
+      "deployBlock": 11879141,
+      "frozen": true
     },
     {
       "id": "arbitrum-sepolia:LTH",
       "network": "arbitrum-sepolia",
       "token": "LTH",
       "address": "0x284985291A32cf0cfE48F6CA128615983952350e",
-      "deployBlock": 317439163
+      "deployBlock": 317439163,
+      "frozen": true
     },
     {
       "id": "robinhood-testnet:LTH",
       "network": "robinhood-testnet",
       "token": "LTH",
       "address": "0x006da9E656581A7740856aA89c690b3Abd296c30",
-      "deployBlock": 131756119
+      "deployBlock": 131756119,
+      "frozen": true
     },
     {
       "id": "robinhood-testnet:USDG",
       "network": "robinhood-testnet",
       "token": "USDG",
       "address": "0xded64ec452C95bA69Fe80d51447cb8c4953E52C0",
-      "deployBlock": 131766479
+      "deployBlock": 131766479,
+      "frozen": true
     }
   ]
 }
