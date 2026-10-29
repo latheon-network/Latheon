@@ -14,6 +14,7 @@
  * V7 pool (local EVM). Positive: honest proofs at leaf 0, 2^20-1 and mixed indices, with relayer/fee and a max address.
  * Local only. Internal review, not an audit.
  */
+const fs = require('fs');
 const path = require('path');
 const L = require('./lib');
 const { snarkjs, H, P, mod, rnd, files, note, sparsePath, forgePath, inputFor, witness, proveWtns, verify, vkeyOf, recorder, silently } = L;
@@ -51,6 +52,29 @@ async function main() {
       /Assert Failed/.test(genErr) && ok5 === false && ok4 === true && (b5 ? r1 === false : true),
       `gen: ${genErr ? 'assert' : 'NO ERROR'}, v5 ${ok5}, v4 ${ok4}, r1cs ${r1}`);
     return { p5 };
+  }
+
+  // (0) the key itself carries the fix: constraints of the form s * (1 - s) = 0 (A = {1, -s}, B = {s} or swapped) in the
+  // final zkey's coefficient section. Wires 28..47 are pathIndices[0..19] (inputs follow the 5 public signals, spendKey,
+  // viewKey and 20 pathElements; checked against the .sym file when $CIRCOM is set).
+  async function bitWires(name) {
+    const zk = await snarkjs.zKey.exportJson(files(name).zkey);
+    const byC = new Map();
+    for (const c of zk.ccoefs) { if (!byC.has(c.constraint)) byC.set(c.constraint, [{}, {}]); byC.get(c.constraint)[c.matrix][c.signal] = BigInt(c.value); }
+    const isBit = (lin, mono) => { const km = Object.keys(mono), kl = Object.keys(lin);
+      return km.length === 1 && km[0] !== '0' && kl.length === 2 && kl.includes('0') && kl.includes(km[0]) && mod(lin['0'] + lin[km[0]]) === 0n ? Number(km[0]) : null; };
+    const out = [];
+    for (const [A, B] of byC.values()) { const w = isBit(A, B) ?? isBit(B, A); if (w !== null) out.push(w); }
+    return out.sort((a, b) => a - b);
+  }
+  const want = Array.from({ length: 20 }, (_, i) => 28 + i);
+  const bw5 = await bitWires('withdraw_v5'), bw4 = await bitWires('withdraw_v4');
+  t.rec('final withdraw_v5 zkey contains the 20 bit constraints s(1-s)=0 on wires 28..47; the v4 zkey contains none',
+    JSON.stringify(bw5) === JSON.stringify(want) && bw4.length === 0, 'v5: ' + bw5.length + ', v4: ' + bw4.length);
+  if (b5) {
+    const sym = fs.readFileSync(b5.sym, 'utf8').split('\n').map((l) => l.split(',')).filter((x) => x.length === 4);
+    const byWire = new Map(sym.map(([, w, , nm]) => [Number(w), nm]));
+    t.rec('…and wires 28..47 are main.pathIndices[0..19] in the .sym of the fresh build', want.every((w, i) => byWire.get(w) === 'main.pathIndices[' + i + ']'));
   }
 
   // Base: an honest note at some leaf of a small tree.
