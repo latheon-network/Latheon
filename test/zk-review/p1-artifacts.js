@@ -67,6 +67,19 @@ async function main() {
     t.rec('l2-eval-ci artifact was built from commit 129a4c0', art.source.commit === DEPLOYED);
   } else t.skip('l2-eval-ci artifact checks', 'checkout not found at ' + L2 + ' (set L2_EVAL_CI)');
 
+  // 1b. the demo pins the same files (by commit and sha256) and maps V7 pools to withdraw_v5
+  {
+    const demo = fs.readFileSync(path.join(ROOT, 'demo', 'index.html'), 'utf8');
+    const commit = (demo.match(/const CIRCUIT_COMMIT = '([0-9a-f]{40})'/) || [])[1];
+    let ok = commit === DEPLOYED, n = 0;
+    for (const m of demo.matchAll(/circ\('([\w]+)',\s*'([0-9a-f]{64})',\s*'([0-9a-f]{64})'\)/g)) {
+      n++;
+      if (sha256(path.join(BUILD, m[1], m[1] + '.wasm')) !== m[2] || sha256(path.join(BUILD, m[1], m[1] + '_final.zkey')) !== m[3]) ok = false;
+    }
+    t.rec('demo/index.html: circuit files pinned to commit 129a4c0 and every pinned sha256 = the committed file', ok && n === 5, n + ' circuits');
+    t.rec("demo/index.html: V7 pools prove with withdraw_v5 (circuit: v7 ? 'v5' …)", /circuit: v7 \? 'v5' : v6 \? 'v4' : v5 \? 'v3' : 'v2'/.test(demo));
+  }
+
   // 2. vk: file = zkey export = Solidity
   const vks = {};
   for (const [name, sol] of [['withdraw_v3', 'WithdrawVerifierV3.sol'], ['withdraw_v4', 'WithdrawVerifierV4.sol'], ['withdraw_v5', 'WithdrawVerifierV5.sol'], ['disclose', 'DiscloseVerifier.sol']]) {
