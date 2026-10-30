@@ -4,7 +4,9 @@
 
 Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure. Today it is a set of shielded pools on Ethereum-compatible testnets; the long-term goal is an Ethereum L2 with privacy by default. The framework is Arbitrum Orbit, and the first step is running: the Latheon test chain, with test LTH as its gas coin (see [`docs/testnet.md`](./docs/testnet.md) and [`ROADMAP.md`](./ROADMAP.md)). A production chain is not running and has no date.
 
-**Status: experimental public prototype, testnets only** (the Latheon test chain, Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet). The Merkle commitment tree is fully on-chain, so no trusted operator is involved in the deposit-to-withdrawal flow. There is no formal audit yet, and the trusted-setup keys are development keys. See [`STATUS.md`](./STATUS.md) for exactly what is implemented versus planned.
+**Status: experimental public prototype, testnet only** (the Latheon test chain; the earlier deployments on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are deprecated since 27 October 2026 and frozen in our interface). The Merkle commitment tree is fully on-chain, so no trusted operator is involved in the deposit-to-withdrawal flow. There is no formal audit yet, and the trusted-setup keys are development keys. See [`STATUS.md`](./STATUS.md) for exactly what is implemented versus planned.
+
+Follow the work: X [@Latheon_xyz](https://x.com/Latheon_xyz) · Telegram [t.me/Latheon](https://t.me/Latheon) · site [latheon.xyz](https://latheon.xyz).
 
 ---
 
