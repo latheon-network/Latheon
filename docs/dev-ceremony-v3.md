@@ -16,7 +16,7 @@ The matched set is `withdraw_v3.wasm` + `withdraw_v3_final.zkey` + `WithdrawVeri
 
 ```
 6e2fee21fefb1ec06db5ebf0d1fa588b0f8e3a92427894b32bf3521a904dce94  withdraw_v3_final.zkey
-7a305de0efe5e6ca7ef49815fba3448c86f2fc502ed0600adf6adceb896023f2  pot13_final.ptau
+7a305de0efe5e6ca7ef49815fba3448c86f2fc502ed0600adf6adceb896023f2  pot13_final.ptau (not kept, so this key cannot be re-checked against it; the V5 pools that use it are retired)
 20aea3d282af1dbdf46206219c25511b9446e88a04e1068cbdd89d76ee7c6623  withdraw_v3.wasm
 ```
 

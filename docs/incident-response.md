@@ -100,7 +100,7 @@ This stops **everyone**: users cannot deposit or withdraw, the explorer goes sta
 
 When moving a key file, keep it (renamed) until the incident is closed: it is evidence.
 
-**Before typing the deployer key after a suspected service compromise.** `./relayer-cmd.sh fund`, `./faucet-cmd.sh fund` and `fund-ops` run the code in `relayer/` and `faucet/`, the same folders the running services use. If a service may have been compromised, first make sure that code is exactly what is in git, and only then run a command that asks for the deployer key:
+**Before typing the deployer key after a suspected service compromise.** `./relayer-cmd.sh fund`, `./faucet-cmd.sh fund` and `fund-ops` run a fresh copy of the code in `relayer/` and `faucet/` with freshly installed packages; the services mount those folders read-only. If the server itself may have been compromised, first make sure that code is exactly what is in git, and only then run a command that asks for the deployer key:
 
 ```bash
 docker compose stop relayer faucet

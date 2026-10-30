@@ -25,7 +25,7 @@ The matched set is `circuits/build/withdraw_v4/withdraw_v4.wasm` + `withdraw_v4_
 
 ```
 f9514eaa4881a68c5d8be0d6f5088c5ff23beec4085570acba89e0b97ce3deed  withdraw_v4_final.zkey
-6e8b9e9d07aae29873729caf56cdbc718ced8a4523d7a7b5f7a5890e3f290144  pot14_final.ptau (not committed)
+6e8b9e9d07aae29873729caf56cdbc718ced8a4523d7a7b5f7a5890e3f290144  pot14_final.ptau (committed in circuits/ptau/ since 30 October 2026; see dev-ceremony-v5.md to check the key)
 ba1cf9034e40a2cffa6ee3039c014b9630886c9153d64816099c460c0fad9701  withdraw_v4.wasm
 ```
 

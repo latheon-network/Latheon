@@ -26,9 +26,24 @@ The matched set is `circuits/build/withdraw_v5/withdraw_v5.wasm` + `withdraw_v5_
 
 ```
 5466c0421bbdeafa85e2efcbf6e292cdb0b876e5ae21ab3fe5e14d84bd1397de  withdraw_v5_final.zkey
-6e8b9e9d07aae29873729caf56cdbc718ced8a4523d7a7b5f7a5890e3f290144  pot14_final.ptau (shared with withdraw_v4, not committed)
+6e8b9e9d07aae29873729caf56cdbc718ced8a4523d7a7b5f7a5890e3f290144  pot14_final.ptau (shared with withdraw_v4; committed in circuits/ptau/ since 30 October 2026)
 9d8d188ebf8d196cfb3ace1c3c808ff89563bbb6fae9f909da5495ae4b93d667  withdraw_v5.wasm
 ```
+
+## Checking the keys yourself
+
+The phase-1 file is published in `circuits/ptau/pot14_final.ptau` (30 October 2026), so anyone can check the committed keys against the circuits:
+
+```
+circom circuits/withdraw_v5.circom --r1cs -l node_modules -o /tmp   # circom 2.2.3, circomlib 2.0.5
+snarkjs zkey verify /tmp/withdraw_v5.r1cs circuits/ptau/pot14_final.ptau circuits/build/withdraw_v5/withdraw_v5_final.zkey
+```
+
+Both `withdraw_v5_final.zkey` and `withdraw_v4_final.zkey` pass this check ("ZKey Ok!", 30 October 2026). It proves the keys match the circuits and this phase-1 file; it does not prove that the single operator destroyed the randomness of either phase. Notes for whoever reviews the keys:
+
+- **Build versions:** circom 2.2.3 with circomlib 2.0.5 and the compiler's default optimisation; the committed wasm is reproduced byte for byte with these (internal review, 29 October 2026).
+- **gamma = the G2 generator** in every key: the snarkjs default, as in Tornado Cash; no known attack, recorded here so it is not a surprise.
+- Earlier keys: `withdraw_v3` used its own `pot13_final.ptau` (hash in `dev-ceremony-v3.md`), which was not kept, so its key cannot be checked this way; `withdraw_v2` and `disclose` were made in the browser on the public Hermez `powersOfTau28_hez_final_14.ptau` and are built with **circomlib 2.0.2 and `--O1`** (not the 2.0.5 in the repository now), so `snarkjs zkey verify` works for them with that ptau and an r1cs built the same way.
 
 ## What has to happen before any real-money deployment
 

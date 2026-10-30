@@ -145,7 +145,7 @@ This entire track is a solo-founder research prototype, not something we'd curre
 - **Pool capacity and anonymity:** each V5 pool's Merkle tree has depth 8, so a pool holds at most 256 deposits, and it keeps 30 roots, so a proof is refused once 30 more deposits land in the same pool before it is sent. V6/V7 (§4) raise these to 1,048,576 deposits and 100 roots. Pools hold mostly test deposits, so anonymity sets are small today.
 - **Latheon test chain (§2c):** one server, one sequencer and one validator, all run by us; nobody else can challenge its assertions, and its owner powers (chain, rollup upgrades, test LTH) sit with one development key. It can be down or reset. See `docs/testnet.md`.
 - **LTH is a test token** with no monetary value. The owner can mint more (`LatheonToken.mint`, `onlyOwner`).
-- **Trusted setup:** all current key material comes from single-operator setups, not a public multi-party ceremony. Acceptable for testnets only; a real ceremony is required before any real-money deployment. See `docs/dev-ceremony-v3.md`.
+- **Trusted setup:** all current key material comes from single-operator setups, not a public multi-party ceremony. Acceptable for testnets only; a real ceremony is required before any real-money deployment. See `docs/dev-ceremony-v5.md` (current keys; the phase-1 file is published in `circuits/ptau/` so the V6/V7 keys can be checked with `snarkjs zkey verify`), `dev-ceremony-v4.md` and `dev-ceremony-v3.md`.
 
 ## 8. Verification
 
