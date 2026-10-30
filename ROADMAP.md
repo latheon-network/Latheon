@@ -25,7 +25,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 ## NEXT — Public developer testnet (target: 0–3 months)
 
 **Protocol**
-- [x] ~~Expanded contract test coverage, invariant and fuzz testing~~ — done. 27 automated tests, 0 failures, across production and disclosure tracks (plus 19 integration checks with real proofs for V5). See `STATUS.md` §1 and §2a.
+- [x] ~~Expanded contract test coverage, invariant and fuzz testing~~ — done. For the current V7 generation: `test/native-v7` (contracts and real `withdraw_v5` proofs, including the rejected forgery), `test/zk-review` (143 checks), `test/fuzz-v7` (property tests), the demo's browser tests and the relayer's tests in `l2-eval-ci`; earlier generations keep their own suites. Current counts: `STATUS.md` §2c and §4.
 - [ ] Independent review pass on the zero-knowledge circuit. External, funding/partner-dependent.
 
 **Developer experience**
@@ -38,7 +38,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [x] Contributing guide, security policy, threat model.
 - [ ] Good-first-issue backlog (not started).
 
-**Target outcome:** an external developer can use the testnet without direct help from the core team. **6 of 8 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog.**
+**Target outcome:** an external developer can use the testnet without direct help from the core team. **6 of 8 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog. The SDK item is done only for the older pools; its V7 update is open under THEN.**
 
 ---
 
