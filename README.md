@@ -23,6 +23,14 @@ Latheon is an early-stage, open-source project developing privacy-preserving blo
 - **Any amount, via a router:** `contracts/LatheonDistributionPool.sol` is a stateless contract (no owner, no fee) that splits an amount into notes of 100 / 50 / 10 / 1 and deposits them into the four pools in one transaction; `withdrawMany` pays several notes to one address in one transaction (up to 16). The current router is the V7 native router on the Latheon test chain; the routers on the three external testnets are deprecated with their pools. Not independently reviewed. Several notes withdrawn to one address in one transaction are visibly linked to each other. Details: [`docs/distribution-pool-architecture.md`](./docs/distribution-pool-architecture.md), [`docs/distribution-pool-deployments.md`](./docs/distribution-pool-deployments.md).
 - **Selective disclosure:** a depositor can prove to one chosen auditor that they control a specific deposit, without giving that auditor any ability to spend it. The auditor learns which deposit it is (its commitment is public on-chain anyway), but not your keys, your other deposits, or where the funds went. Design: [`docs/selective-disclosure-design.md`](./docs/selective-disclosure-design.md).
 
+## Do not deposit into pre-V7 pools
+
+For anyone integrating with Latheon or calling the contracts directly: **only the V7 pools and the V7 router on the Latheon test chain are current.** Every older pool (V3, V4, V5, V6, on every network, including all pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet) uses a circuit with a known flaw: a forged proof can withdraw from it without a deposit (`THREAT-MODEL.md` §8.0). The freeze is in our interface only; **the contracts have no pause, still accept deposits, and anything deposited there can be emptied by such a proof.**
+
+- Read the flags in [`sdk/deployments.json`](./sdk/deployments.json) (same file as `demo/deployments.json`): pre-V7 pools carry `"frozen": true, "forgeable": true`, pre-V7 routers `"frozen": true`. Never deposit into a flagged entry; such entries are listed only so notes already in them can be withdrawn.
+- The V3 pool on Ethereum Sepolia (`0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C`, table below) is pre-V7 too, and it is the default pool of the old JavaScript SDK's `deposit()`; see the compatibility table in [`sdk/README.md`](./sdk/README.md).
+- `node tools/check-deployments.js` checks the flags and the documents (no network needed).
+
 ## How a pool works
 
 1. **Deposit** a fixed amount (the pool's size). Every deposit in a pool has the same size, and its commitment is inserted into the pool's **on-chain** Merkle tree in the same transaction.
@@ -45,14 +53,14 @@ Full mechanics and limits: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 ## Repository structure
 
 ```
-contracts/   Solidity contracts: token, faucet, pools (V3, V4, V5), distribution router, verifiers, Poseidon hashing
+contracts/   Solidity contracts: token, faucet, pools (V3–V7; only V7 is current), distribution routers, verifiers, Poseidon hashing
 circuits/    circom circuits (withdraw v1/v2/v3, disclose) and compiled proving artifacts in build/
-sdk/         pool and router registry (deployments.json), distribution helpers (distribution.js), reference app (demo-app-v5.html), JavaScript SDK (V3 pool)
+sdk/         pool and router registry (deployments.json), distribution helpers (distribution.js), reference app for the frozen V5 pools (demo-app-v5.html, withdrawals only), JavaScript SDK (V3 pool, see its compatibility table)
 demo/        the live demo (latheon.xyz/demo): index.html and deployments.json
 site/        source of the landing page (latheon.xyz)
 test/        Remix unit tests (V3/V4), Node integration tests with real proofs (v5-integration, distribution),
              browser end-to-end tests for the demo (demo-e2e)
-tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model)
+tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model), check-deployments.js and check-versions.js (offline consistency checks)
 docs/        technical documentation, see docs/README.md
 ```
 

@@ -32,7 +32,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [x] ~~Public faucet~~ — done, live. `LatheonFaucet`, 500 test LTH per address every 24h.
 - [x] ~~Block explorer integration~~ — done. The website shows live deposit counts per network, read from the pool contracts (`nextIndex()`); explorer links on the site and in the demo.
 - [x] ~~Deployment automation and reproducible build instructions~~ — done. See `DEPLOYMENT-CHECKLIST.en.md`.
-- [x] ~~Developer documentation and an initial SDK~~ — done. See `sdk/`, including a real, wallet-connected demo app tested end-to-end.
+- [x] ~~Developer documentation and an initial SDK~~ — done for the V3 pool. See `sdk/`, including a wallet-connected reference app tested end-to-end. The SDK's proof helpers still target V3 (pre-V7, forgeable) and its reference app handles only the frozen V5/V4 pools; what works with V7 today is listed in the compatibility table of `sdk/README.md`. The V7 update is the open item under THEN.
 
 **Open source foundation**
 - [x] Contributing guide, security policy, threat model.
@@ -47,7 +47,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 **This section changed too, following the L1→L2 decision.** The original "Validator testnet" subsection assumed Latheon would need its own validator set — that's no longer the plan. An Ethereum L2 inherits Ethereum's validator security; it doesn't bootstrap its own. That entire subsection is dropped rather than carried forward stale.
 
 **Developer ecosystem**
-- [x] ~~SDK release and example integrations~~ — done, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia).
+- [x] ~~SDK release and example integrations~~ — done for V3/V5 on the external testnets, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia). Not published to npm. Those pools are now frozen, so for V7 this is open again: see the SDK item below.
 - [ ] Genesis Cohort onboarding: builders, integration partners. **The program is paused, not closed: no onboarding is happening and the sign-up form is off the website for now.** (The "validator operators" track is on hold pending clarity on what, if anything, node operation means for the chain — see the VISION section.)
 - [ ] Target: 5+ external developers shipping something on Latheon.
 
@@ -56,9 +56,10 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Public multi-party trusted-setup ceremony. The circuit must be frozen first; new keys mean new verifiers and pools. Required before any real-value deployment (`docs/dev-ceremony-v3.md`).
 - [x] Distribution router for arbitrary deposit amounts (`deposit` and `withdrawMany`): deployed on four testnet token sets and checked by hand, not reviewed independently (`docs/distribution-pool-architecture.md`, `docs/distribution-pool-deployments.md`).
 - [x] Wallet-side note selection and the deposit rounding choice in the demo (exact or rounded down, user's choice; one master key; withdrawal by amount and key). Built and tested on local chains, run live on Ethereum Sepolia. Still open: pool-activity indicators and a planner that proposes several addresses and delays (`docs/distribution-pool-architecture.md`, D2 and D4).
-- [ ] Update the JavaScript SDK for the `spendKey` / `viewKey` split and recipient-bound proofs, targeting V7 (it currently targets the V3 pool).
-- [ ] Retire the frozen pools (V3–V6 and the three external testnets) from the demo and `deployments.json` once their remaining test notes are withdrawn.
+- [ ] Update the JavaScript SDK for V7 (it currently targets the V3 pool; see the compatibility table in `sdk/README.md`). Has today: the router helpers in `sdk/distribution.js` (deposit planning, master key, note selection; the demo uses the same code), the nullifier hash, the zero values and the tree reading for any generation. Missing: `spendKey` / `viewKey` commitments, 20-level Merkle paths in the high-level helper, native-coin deposits, the V7 `withdraw` / `withdrawMany` calls with recipient, relayer and fee, proof generation for `withdraw_v5`, disclosure proofs, reading pools from `deployments.json` and refusing pools marked `frozen` / `forgeable`. Until then the reference for V7 is `demo/index.html`.
+- [ ] Retire the frozen pools (V3–V6 and the three external testnets) from the demo and `deployments.json` once their remaining test notes are withdrawn. What is still inside them can be read with `testnet/legacy-pools-check.sh` in `latheon-network/l2-eval-ci` (read-only). `node tools/check-deployments.js` checks that every pre-V7 entry carries the flags and that no document shows a frozen pool next to a deposit instruction.
 - [ ] Next pool and router version (also the basis for the L2 contracts), from the internal review of 27 October 2026 (`THREAT-MODEL.md` §8.5): require `0 < commitment < p` on deposit, pay the recipient with limited gas and without copying return data, and let `withdrawMany` skip a note someone else already withdrew instead of reverting the whole batch. Open question: a pause for deposits, so a pool with a known flaw can be closed in the contract and not only in our interface; it needs someone allowed to pause (an owner or a timelocked multisig), which today's pools deliberately do not have.
+- [ ] Fix the comments in the next contract version: the NatSpec and header comments of the V7 contracts still name V6 in places (`node tools/check-versions.js` lists them). The deployed V7 contracts are not edited, because their bytecode was built from commit `129a4c0` and any change to the source changes the metadata hash.
 - [ ] Re-measure gas on V7 on the Latheon test chain under controlled conditions (two consecutive withdrawals); see the note in `docs/gas-benchmark.en.md`. The earlier per-network V5 plan is dropped with the external testnets.
 - [ ] Proof-generation timing, partly done: `docs/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the current circuit (`withdraw_v5`), a named device, and phones.
 

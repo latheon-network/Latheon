@@ -370,7 +370,7 @@ const I18N = {
     'faucet.claiming': 'Claiming…', 'faucet.claimed': 'Claimed test {token}.', 'faucet.failed': 'Claim failed: ',
     'tab.deposit': 'Deposit', 'tab.withdraw': 'Withdraw', 'tab.disclose': 'Disclose', 'tab.auditor': "I'm an auditor",
     'dep.h3': 'Deposit', 'dep.lead1': 'Locks', 'dep.lead2': 'into the pool. A <code>spendKey</code> and a <code>viewKey</code> are generated in your browser; only their fingerprint (the commitment) goes on-chain.',
-    'dep.hint': 'Confirm that you saved the note below before making another deposit.', 'dep.failed': 'Deposit failed: ',
+    'dep.hint': 'Confirm that you saved the note below before making another deposit.', 'dep.frozen': 'Deposits into this pool are frozen: it uses the pre-V7 circuit (or is on a deprecated network) and is kept only so existing notes can be withdrawn. Deposit into a V7 pool instead.', 'dep.failed': 'Deposit failed: ',
     'dep.s1': 'Check the token', 'dep.s2': 'Approve the pool to take the amount', 'dep.s3': 'Deposit', 'dep.s4': 'Save your note',
     'x.confirm': 'confirm in wallet', 'x.block': 'waiting for block',
     'dep.decimals': 'Token decimals mismatch: config says {cfg}, chain says {chain}. Aborting before approving anything.',
@@ -450,7 +450,7 @@ const I18N = {
     'faucet.claiming': 'Получаю…', 'faucet.claimed': 'Тестовые {token} получены.', 'faucet.failed': 'Не удалось получить: ',
     'tab.deposit': 'Депозит', 'tab.withdraw': 'Вывод', 'tab.disclose': 'Раскрытие', 'tab.auditor': 'Я аудитор',
     'dep.h3': 'Депозит', 'dep.lead1': 'Блокирует', 'dep.lead2': 'в пуле. Пара <code>spendKey</code> и <code>viewKey</code> создаётся в вашем браузере; в блокчейн попадает только их отпечаток (commitment).',
-    'dep.hint': 'Подтвердите ниже, что сохранили ноту, прежде чем делать следующий депозит.', 'dep.failed': 'Депозит не удался: ',
+    'dep.hint': 'Подтвердите ниже, что сохранили ноту, прежде чем делать следующий депозит.', 'dep.frozen': 'Депозиты в этот пул заморожены: он на схеме до V7 (или в снятой с эксплуатации сети) и оставлен только для вывода уже внесённых нот. Внесите депозит в пул V7.', 'dep.failed': 'Депозит не удался: ',
     'dep.s1': 'Проверить токен', 'dep.s2': 'Разрешить пулу списать сумму', 'dep.s3': 'Внести депозит', 'dep.s4': 'Сохранить ноту',
     'x.confirm': 'подтвердите в кошельке', 'x.block': 'жду блок',
     'dep.decimals': 'Не совпадают знаки токена: в реестре {cfg}, в сети {chain}. Останавливаюсь, ничего не одобрив.',
@@ -530,7 +530,7 @@ const I18N = {
     'faucet.claiming': '正在领取…', 'faucet.claimed': '已领取测试 {token}。', 'faucet.failed': '领取失败：',
     'tab.deposit': '存款', 'tab.withdraw': '取款', 'tab.disclose': '披露', 'tab.auditor': '我是审计方',
     'dep.h3': '存款', 'dep.lead1': '将', 'dep.lead2': '锁入资金池。<code>spendKey</code> 和 <code>viewKey</code> 在您的浏览器中生成；只有它们的指纹（commitment）上链。',
-    'dep.hint': '请先在下方确认已保存凭证，再进行下一笔存款。', 'dep.failed': '存款失败：',
+    'dep.hint': '请先在下方确认已保存凭证，再进行下一笔存款。', 'dep.frozen': '此资金池的存款已冻结：它使用 V7 之前的电路（或位于已弃用的网络上），仅保留用于取出已有凭证。请改向 V7 资金池存款。', 'dep.failed': '存款失败：',
     'dep.s1': '检查代币', 'dep.s2': '授权资金池扣取金额', 'dep.s3': '存款', 'dep.s4': '保存凭证',
     'x.confirm': '请在钱包中确认', 'x.block': '等待出块',
     'dep.decimals': '代币小数位不一致：配置为 {cfg}，链上为 {chain}。在授权任何操作前中止。',
@@ -1127,8 +1127,10 @@ TABS.forEach((tb, i) => {
 
 // ---------- UI wiring ----------
 function syncDepositBtn() {
-  $('depositBtn').disabled = !signer || unsavedNote;
-  $('depositHint').textContent = unsavedNote ? t('dep.hint') : '';
+  // Every pool this reference app handles predates V7 and is marked frozen in deployments.json: withdrawals only.
+  const frozen = !!(currentPool() && (currentPool().frozen || currentPool().forgeable || currentPool().legacy));
+  $('depositBtn').disabled = !signer || unsavedNote || frozen;
+  $('depositHint').textContent = frozen ? t('dep.frozen') : unsavedNote ? t('dep.hint') : '';
 }
 
 $('poolSelect').addEventListener('change', async (e) => {
@@ -1174,7 +1176,9 @@ $('depositBtn').addEventListener('click', async () => {
   const st = Steps('depSteps', ['dep.s1', 'dep.s2', 'dep.s3', 'dep.s4']);
   $('depositResult').innerHTML = '';
   try {
-    const p = currentPool(); await ensureCorrectNetwork(p);
+    const p = currentPool();
+    if (p.frozen || p.forgeable || p.legacy) throw new Error(t('dep.frozen'));
+    await ensureCorrectNetwork(p);
     st.go(0);
     const onchainDecimals = Number(await new ethers.Contract(p.tok.address, ERC20_ABI, provider).decimals());
     if (onchainDecimals !== p.decimals) throw new Error(t('dep.decimals', { cfg: p.decimals, chain: onchainDecimals }));

@@ -1,5 +1,7 @@
 # Distribution router: testnet deployments
 
+> **Deprecated (27 October 2026). Do not deposit through these routers or into the pools below.** They route into V5 pools, whose `withdraw_v3` circuit carries the pre-V7 flaw (withdrawal without a deposit, `THREAT-MODEL.md` §8.0). The routers and pools have no pause and still accept deposits; the demo no longer deposits through them, and they are kept only so existing notes can be withdrawn (`"frozen": true` in `sdk/deployments.json`). The current router is the V7 router on the Latheon test chain: [`testnet.md`](./testnet.md). This page is kept as the record of the deployments.
+
 **Status:** deployed on four testnet token sets and checked by hand with real proofs. **Testnets only, test tokens, no independent review.**
 Contract: `contracts/LatheonDistributionPool.sol` (v2, with `withdrawMany`). Design and tests: `docs/distribution-pool-architecture.md`.
 The router is stateless (no owner, no fee, no upgrade path) and never keeps tokens. The V5 pools it points to are the existing ones and are unchanged.

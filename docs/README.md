@@ -4,7 +4,7 @@
 - [`../STATUS.md`](../STATUS.md): what is live versus planned, labeled honestly.
 - [`../THREAT-MODEL.md`](../THREAT-MODEL.md): what is protected, what is not, and the assumptions.
 - [`testnet.md`](./testnet.md): the Latheon test chain: how to connect, faucet, contract addresses, measured gas, limits.
-- [`deployments-v5.md`](./deployments-v5.md): current pool addresses on the three testnets (machine-readable: [`../sdk/deployments.json`](../sdk/deployments.json)).
+- [`deployments-v5.md`](./deployments-v5.md): addresses of the deprecated V5 pools on the three external testnets (pre-V7, frozen: withdrawals of existing notes only; machine-readable: [`../sdk/deployments.json`](../sdk/deployments.json)). The current V7 addresses are in [`testnet.md`](./testnet.md).
 
 **Design**
 - [`architecture.md`](./architecture.md): overview and current flow.
@@ -15,10 +15,10 @@
 
 **Security**
 - [`withdraw-recipient-binding.md`](./withdraw-recipient-binding.md): the V3/V4 flaw and the V5 fix.
-- [`dev-ceremony-v3.md`](./dev-ceremony-v3.md): how the current development keys were made, and why they are not enough for real value.
+- [`dev-ceremony-v5.md`](./dev-ceremony-v5.md): the development keys of the current circuit (`withdraw_v5`, V7) and the pre-V7 flaw it fixes; earlier keys: [`dev-ceremony-v4.md`](./dev-ceremony-v4.md) (V6), [`dev-ceremony-v3.md`](./dev-ceremony-v3.md) (V5; also why development keys are not enough for real value).
 
 **Operations**
-- [`deploying-v5.md`](./deploying-v5.md): deployment checklist for V5 pools.
+- [`deploying-v5.md`](./deploying-v5.md): deployment checklist for V5 pools (deprecated generation; the steps for the chain's V6/V7 sets are in `latheon-network/l2-eval-ci`, `testnet/latheon`).
 - [`../DEPLOYMENT-CHECKLIST.en.md`](../DEPLOYMENT-CHECKLIST.en.md): the earlier V3 stack.
 - [`gas-benchmark.en.md`](./gas-benchmark.en.md) / [`gas-benchmark.md`](./gas-benchmark.md): gas figures (V3/V4 era; read the update note at the top).
 

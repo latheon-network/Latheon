@@ -1,5 +1,5 @@
-> **Legacy (V4 generation).** These pools were deployed before the recipient-binding fix and are deprecated. Current addresses: [`../deployments-v5.md`](../deployments-v5.md). Kept for history.
-> **Устаревший документ (поколение V4).** Эти пулы развёрнуты до исправления привязки получателя. Актуальные адреса: [`../deployments-v5.md`](../deployments-v5.md).
+> **Legacy (V4 generation).** These pools were deployed before the recipient-binding fix and are deprecated; like every pool before V7 they also carry the flaw in `THREAT-MODEL.md` §8.0, so do not deposit into them. Current addresses (V7, Latheon test chain): [`../testnet.md`](../testnet.md). Kept for history.
+> **Устаревший документ (поколение V4).** Эти пулы развёрнуты до исправления привязки получателя. Как и все пулы до V7, они уязвимы (THREAT-MODEL §8.0): не вносите в них депозиты. Актуальные адреса (V7, тестовая сеть Latheon): [`../testnet.md`](../testnet.md).
 
 # Latheon на Arbitrum Sepolia — актуальные адреса
 

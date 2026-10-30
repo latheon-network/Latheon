@@ -2,7 +2,7 @@
 
 Order of operations for redeploying the contract stack on Ethereum Sepolia. Built from real issues encountered during development — each step includes a "if this goes wrong" note, not just the action itself.
 
-**Current live addresses** (for reference — do not reuse these when deploying new instances):
+**Addresses of the V3 stack on Ethereum Sepolia** (for reference — do not reuse these when deploying new instances). The V3 pool is deprecated and pre-V7: its circuit carries the flaw in `THREAT-MODEL.md` §8.0 and the contract still accepts deposits, so **do not deposit into it**. The current pools are V7 on the Latheon test chain (`docs/testnet.md`).
 
 | Contract | Address |
 |---|---|
