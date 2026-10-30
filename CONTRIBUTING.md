@@ -49,7 +49,7 @@ Changes touching circuits, proof verification, commitments, nullifiers, withdraw
 
 ## Code of conduct
 
-Communicate respectfully and constructively. The goal is reliable, honestly-documented open-source infrastructure — not maximizing contribution counts.
+Communicate respectfully and constructively. The goal is reliable, honestly-documented open-source infrastructure — not maximizing contribution counts. The full code is in [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
 
 ## License
 
