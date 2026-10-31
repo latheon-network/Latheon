@@ -23,6 +23,7 @@
 - [`deploying-v5.md`](./deploying-v5.md): deployment checklist for V5 pools (deprecated generation; the steps for the chain's V6/V7 sets are in `latheon-network/l2-eval-ci`, `testnet/latheon`).
 - [`bridge-withdrawal-procedure.md`](./bridge-withdrawal-procedure.md): withdrawing from the test chain to Arbitrum Sepolia, step by step, and what can go wrong.
 - [`incident-response.md`](./incident-response.md): what to do in an incident on the test chain.
+- Load tests on the test chain (simulations, our own wallets): [`loadtest-2026-10-27.md`](./loadtest-2026-10-27.md) (V6), [`loadtest-2026-10-29-v7.md`](./loadtest-2026-10-29-v7.md) (V7, privacy heuristics), [`loadtest-2026-10-31-throughput.md`](./loadtest-2026-10-31-throughput.md) (throughput: deposits, relayer).
 - [`../DEPLOYMENT-CHECKLIST.en.md`](../DEPLOYMENT-CHECKLIST.en.md): the earlier V3 stack.
 - [`gas-benchmark.en.md`](./gas-benchmark.en.md) / [`gas-benchmark.md`](./gas-benchmark.md): gas figures (V3/V4 era; read the update note at the top).
 
