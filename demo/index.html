@@ -72,6 +72,7 @@ button.small { padding: 6px 12px; font-size: 12.5px; }
 .status.ok { background: rgba(93,202,165,.12); color: var(--teal); }
 .status.err { background: rgba(224,108,117,.12); color: var(--red); }
 .status.info { background: rgba(127,119,221,.12); color: #C3BEF3; }
+.status.warn { background: rgba(246,197,90,.10); color: var(--gold); }
 
 /* tabs */
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
@@ -151,6 +152,17 @@ button.small { padding: 6px 12px; font-size: 12.5px; }
 .verdict li.no::before { content: '✗'; color: var(--red); }
 .verdict li.warn::before { content: '!'; color: var(--gold); }
 .verdict li small { display: block; color: var(--text-muted); font-size: 12.5px; }
+
+/* disclosure report */
+.rep-block { margin-top: 22px; }
+.check-row { display: flex; gap: 8px; align-items: center; font-size: 13.5px; margin: 10px 0 6px; cursor: pointer; }
+.check-row input { width: auto; margin: 0; }
+.rep-wrap { overflow-x: auto; margin-top: 12px; }
+table.rep { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.rep th, table.rep td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; white-space: nowrap; }
+table.rep th { color: var(--text-muted); font-weight: 500; }
+table.rep td.ok { color: var(--teal); } table.rep td.no { color: var(--red); } table.rep td.warn { color: var(--gold); }
+.rep-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 
 /* advanced & log */
 details.adv { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
@@ -374,6 +386,20 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     <ul class="steps" id="dsSteps" aria-live="polite"></ul>
     <div id="discloseStatus" class="status info" style="display:none;"></div>
     <div id="discloseResult"></div>
+    <div class="a-step rep-block" id="reportBlock">
+      <h4 data-i18n="rp.h4">Report for an accountant or auditor: many notes at once</h4>
+      <p class="muted small" data-i18n="rp.lead">Paste notes and master keys, one per line. One proof is made for every note and all of them go into one file that the auditor checks in one step. Only notes you paste are included.</p>
+      <label class="field-label" for="reportInput" data-i18n="rp.field">Notes and master keys, one per line</label>
+      <textarea id="reportInput" placeholder="latheon-master:&lt;chainId&gt;:&lt;router&gt;:&lt;master&gt;&#10;latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off" style="min-height:90px"></textarea>
+      <label class="field-label" for="reportNonceInput" data-i18n="field.nonce">Auditor's one-time code</label>
+      <input id="reportNonceInput" placeholder="A number the auditor gave you" data-i18n-placeholder="field.noncePh" inputmode="numeric" autocomplete="off">
+      <label class="check-row"><input type="checkbox" id="reportKeys"> <span data-i18n="rp.keys">Also show where withdrawn notes went</span></label>
+      <div class="status warn" id="reportKeysWarn" hidden data-i18n="rp.keysWarn">This adds the keys of notes that are already withdrawn, so the auditor can see the recipient, relayer and fee of each withdrawal. Those keys can no longer spend anything, but unlike a proof they are not tied to this auditor: whoever holds them can show them to anyone and can make new disclosures for those notes. Use it for your own accountant, not for strangers. Keys of notes that are not withdrawn are never added.</div>
+      <button id="reportBtn" data-i18n="rp.btn" disabled>Build report</button>
+      <ul class="steps" id="rpSteps" aria-live="polite"></ul>
+      <div id="reportStatus" class="status info" style="display:none;"></div>
+      <div id="reportResult"></div>
+    </div>
     <details class="adv" id="advDisclose">
       <summary data-i18n="adv.disclose">Advanced: load disclosure circuit files manually</summary>
       <div id="discloseFilesStatus" class="status info" data-i18n="dcirc.loading">Loading disclosure circuit…</div>
@@ -394,10 +420,12 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     <div class="a-step">
       <h4><span class="n">2</span><span data-i18n="au.s2">Paste what they sent you</span></h4>
       <textarea id="auditBlockInput" placeholder='{ "pA": [...], "pB": [...], "pC": [...], "pubSignals": [...], "chainId": ... }' spellcheck="false" style="min-height:120px"></textarea>
+      <div class="file-row"><label for="auditFile" data-i18n="au.file">or a report file</label><input type="file" id="auditFile" accept=".json,application/json"></div>
       <button id="auditVerifyBtn" data-i18n="btn.verify" disabled>Verify</button>
       <ul class="steps" id="auSteps" aria-live="polite"></ul>
       <div id="auditStatus" class="status info" style="display:none;"></div>
       <ul class="verdict" id="auditResult"></ul>
+      <div id="auditReport"></div>
     </div>
   </section>
 
@@ -504,6 +532,24 @@ const I18N = {
     'au.pass': 'Verified: the sender controls this specific deposit. You did not receive their keys, their other deposits, or where funds were withdrawn to.',
     'au.fail': 'Not verified. See the details below.',
     'au.passNoCode': 'Proof valid and the deposit exists, but not verified against a code you issued: no code was generated on this page in this session. Only accept it if {code} is the code you gave; otherwise generate a code and ask for a new proof.',
+    'rp.h4': 'Report for an accountant or auditor: many notes at once', 'rp.lead': 'Paste notes and master keys, one per line. One proof is made for every note and all of them go into one file that the auditor checks in one step. Only notes you paste are included.',
+    'rp.field': 'Notes and master keys, one per line', 'rp.keys': 'Also show where withdrawn notes went', 'rp.btn': 'Build report',
+    'rp.keysWarn': 'This adds the keys of notes that are already withdrawn, so the auditor can see the recipient, relayer and fee of each withdrawal. Those keys can no longer spend anything, but unlike a proof they are not tied to this auditor: whoever holds them can show them to anyone and can make new disclosures for those notes. Use it for your own accountant, not for strangers. Keys of notes that are not withdrawn are never added.',
+    'rp.s1': 'Find the notes on chain', 'rp.s2': 'Generate the proofs in your browser', 'rp.s3': 'Check them on-chain (free)',
+    'rp.errEmpty': 'Paste at least one note or master key.', 'rp.errLine': 'Line {n}: {err}', 'rp.errV5': 'Only latheon-v5 notes and master keys can go into a report.',
+    'rp.errMixed': 'All notes in one report must be on the same network.', 'rp.errNotFound': 'A note was not found on chain (commitment {c}). Check that it was deposited and that the network is right.',
+    'rp.errMany': 'A report holds at most {max} notes; split it.', 'rp.errBad': 'A proof did not verify for commitment {c}. The report was not made.',
+    'rp.proving': 'Making proof {i} of {n}…', 'rp.ok': 'Report ready: {n} notes, {total}. Download the file and send it to your auditor.',
+    'rp.okKeys': 'Keys added for {k} withdrawn notes; {u} notes are not withdrawn, their keys were not added.',
+    'rp.boxTitle': 'Send this file to your auditor.', 'rp.boxSub': 'Without the option above it contains no keys, and every proof only works for the code they gave you. They check it in the "I\'m an auditor" tab.',
+    'rp.download': 'Download report', 'rp.none': 'none',
+    'au.file': 'or a report file', 'au.rpTitle': 'Report: {n} notes on {net}', 'au.rpCols': '#|Pool|Amount|Deposited (UTC)|Proof|Code|On chain|Withdrawn|Recipient|Relayer · fee|Withdrawal',
+    'au.rpTotal': 'Valid notes: {ok} of {n}. Deposited in valid notes: {total}.', 'au.rpWithdrawn': 'Withdrawn with the recipient shown: {k} notes, {total}.',
+    'au.rpPass': 'Every note in the report is valid, made for your code and found on chain.', 'au.rpFail': 'Some notes did not pass (marked ✗). Do not accept them.',
+    'au.rpNoCode': 'Every proof is valid and every deposit exists, but not checked against a code you issued: no code was generated on this page in this session. Only accept it if {code} is the code you gave.',
+    'au.rpKeysNote': 'The depositor added the keys of withdrawn notes: the recipient, relayer and fee of those withdrawals are shown. These keys are not tied to your code.',
+    'au.rpCsv': 'Download CSV', 'au.yes': 'yes', 'au.no': 'no', 'au.unknown': '—', 'au.notShown': 'not disclosed', 'au.keyBad': 'keys do not match',
+    'au.errReport': 'Not a valid report file.',
     'log.summary': 'Technical log',
     'mode.dep.fixed': 'One fixed pool',
     'mode.dep.any': 'Any amount',
@@ -650,6 +696,24 @@ const I18N = {
     'au.pass': 'Проверено: отправитель контролирует именно этот депозит. Вы не получили ни его ключей, ни других депозитов, ни адреса, куда выводились средства.',
     'au.fail': 'Не подтверждено. Подробности ниже.',
     'au.passNoCode': 'Доказательство верно и депозит существует, но не сверено с выданным вами кодом: на этой странице в этой сессии код не создавался. Принимайте, только если {code} — код, который вы дали; иначе создайте код и попросите новое доказательство.',
+    'rp.h4': 'Отчёт для бухгалтера или аудитора: много нот сразу', 'rp.lead': 'Вставьте ноты и мастер-ключи, по одному на строку. На каждую ноту строится доказательство, и все они попадают в один файл, который аудитор проверяет за один шаг. В отчёт попадают только вставленные ноты.',
+    'rp.field': 'Ноты и мастер-ключи, по одному на строку', 'rp.keys': 'Также показать, куда ушли выведенные ноты', 'rp.btn': 'Собрать отчёт',
+    'rp.keysWarn': 'В отчёт добавятся ключи уже выведенных нот, чтобы аудитор увидел получателя, релейер и комиссию каждого вывода. Эти ключи больше ничего не могут потратить, но, в отличие от доказательства, они не привязаны к этому аудитору: владелец ключей может показать их кому угодно и создавать новые раскрытия этих нот. Используйте для своего бухгалтера, не для посторонних. Ключи невыведенных нот не добавляются никогда.',
+    'rp.s1': 'Найти ноты в сети', 'rp.s2': 'Построить доказательства в браузере', 'rp.s3': 'Проверить их в сети (бесплатно)',
+    'rp.errEmpty': 'Вставьте хотя бы одну ноту или мастер-ключ.', 'rp.errLine': 'Строка {n}: {err}', 'rp.errV5': 'В отчёт можно добавить только ноты latheon-v5 и мастер-ключи.',
+    'rp.errMixed': 'Все ноты одного отчёта должны быть в одной сети.', 'rp.errNotFound': 'Нота не найдена в сети (коммитмент {c}). Проверьте, что депозит сделан и сеть верная.',
+    'rp.errMany': 'В отчёте не больше {max} нот; разделите его.', 'rp.errBad': 'Доказательство не прошло проверку для коммитмента {c}. Отчёт не создан.',
+    'rp.proving': 'Доказательство {i} из {n}…', 'rp.ok': 'Отчёт готов: {n} нот, {total}. Скачайте файл и отправьте аудитору.',
+    'rp.okKeys': 'Ключи добавлены для {k} выведенных нот; {u} нот не выведены, их ключи не добавлены.',
+    'rp.boxTitle': 'Отправьте этот файл аудитору.', 'rp.boxSub': 'Без опции выше в нём нет ключей, и каждое доказательство работает только для выданного аудитором кода. Он проверит файл во вкладке «Я аудитор».',
+    'rp.download': 'Скачать отчёт', 'rp.none': 'нет',
+    'au.file': 'или файл отчёта', 'au.rpTitle': 'Отчёт: {n} нот в сети {net}', 'au.rpCols': '#|Пул|Сумма|Депозит (UTC)|Доказательство|Код|В сети|Выведена|Получатель|Релейер · комиссия|Вывод',
+    'au.rpTotal': 'Верных нот: {ok} из {n}. Внесено в верных нотах: {total}.', 'au.rpWithdrawn': 'Выведено с указанием получателя: {k} нот, {total}.',
+    'au.rpPass': 'Все ноты отчёта верны, сделаны для вашего кода и найдены в сети.', 'au.rpFail': 'Часть нот не прошла проверку (отмечены ✗). Не принимайте их.',
+    'au.rpNoCode': 'Все доказательства верны и все депозиты существуют, но не сверены с выданным вами кодом: на этой странице в этой сессии код не создавался. Принимайте, только если {code} — код, который вы дали.',
+    'au.rpKeysNote': 'Вкладчик добавил ключи выведенных нот: показаны получатель, релейер и комиссия этих выводов. Эти ключи не привязаны к вашему коду.',
+    'au.rpCsv': 'Скачать CSV', 'au.yes': 'да', 'au.no': 'нет', 'au.unknown': '—', 'au.notShown': 'не раскрыто', 'au.keyBad': 'ключи не совпадают',
+    'au.errReport': 'Это не файл отчёта.',
     'log.summary': 'Технический журнал',
     'mode.dep.fixed': 'Один пул',
     'mode.dep.any': 'Любая сумма',
@@ -796,6 +860,24 @@ const I18N = {
     'au.pass': '已验证：发送方控制这笔特定存款。您没有获得对方的密钥、其他存款或资金去向。',
     'au.fail': '未通过验证。详情见下方。',
     'au.passNoCode': '证明有效且存款存在，但未与您签发的代码核对：本次会话中未在此页面生成代码。仅当 {code} 是您给出的代码时才接受；否则请生成代码并要求新的证明。',
+    'rp.h4': '给会计或审计方的报告：一次多个凭证', 'rp.lead': '粘贴凭证和主密钥，每行一个。每个凭证生成一个证明，全部放入一个文件，审计方一步即可核验。只包含您粘贴的凭证。',
+    'rp.field': '凭证和主密钥，每行一个', 'rp.keys': '同时显示已取出凭证的去向', 'rp.btn': '生成报告',
+    'rp.keysWarn': '这会加入已取出凭证的密钥，让审计方看到每笔取款的收款人、中继和手续费。这些密钥已无法再花费任何资金，但与证明不同，它们不绑定此审计方：持有者可以向任何人出示，并可为这些凭证生成新的披露。请只用于您自己的会计，不要给陌生人。未取出凭证的密钥永远不会加入。',
+    'rp.s1': '在链上查找凭证', 'rp.s2': '在浏览器中生成证明', 'rp.s3': '在链上核验（免费）',
+    'rp.errEmpty': '请至少粘贴一个凭证或主密钥。', 'rp.errLine': '第 {n} 行：{err}', 'rp.errV5': '报告中只能包含 latheon-v5 凭证和主密钥。',
+    'rp.errMixed': '同一份报告中的凭证必须在同一网络上。', 'rp.errNotFound': '链上未找到某个凭证（承诺 {c}）。请确认已存款且网络正确。',
+    'rp.errMany': '一份报告最多 {max} 个凭证，请拆分。', 'rp.errBad': '承诺 {c} 的证明未通过核验，报告未生成。',
+    'rp.proving': '正在生成第 {i} 个证明，共 {n} 个…', 'rp.ok': '报告已生成：{n} 个凭证，{total}。请下载文件并发送给审计方。',
+    'rp.okKeys': '已为 {k} 个已取出凭证加入密钥；{u} 个凭证尚未取出，未加入其密钥。',
+    'rp.boxTitle': '将此文件发送给审计方。', 'rp.boxSub': '未勾选上方选项时文件中没有密钥，每个证明只对审计方给出的代码有效。审计方可在“我是审计方”标签中核验。',
+    'rp.download': '下载报告', 'rp.none': '无',
+    'au.file': '或报告文件', 'au.rpTitle': '报告：{net} 上的 {n} 个凭证', 'au.rpCols': '#|资金池|金额|存款时间 (UTC)|证明|代码|链上|已取出|收款人|中继 · 手续费|取款',
+    'au.rpTotal': '有效凭证：{ok} / {n}。有效凭证存入：{total}。', 'au.rpWithdrawn': '已显示收款人的取款：{k} 个凭证，{total}。',
+    'au.rpPass': '报告中的每个凭证都有效、为您的代码生成，且在链上找到。', 'au.rpFail': '部分凭证未通过（标记 ✗）。请勿接受。',
+    'au.rpNoCode': '所有证明有效且所有存款存在，但未与您签发的代码核对：本次会话中未在此页面生成代码。仅当 {code} 是您给出的代码时才接受。',
+    'au.rpKeysNote': '存款人加入了已取出凭证的密钥：显示了这些取款的收款人、中继和手续费。这些密钥不绑定您的代码。',
+    'au.rpCsv': '下载 CSV', 'au.yes': '是', 'au.no': '否', 'au.unknown': '—', 'au.notShown': '未披露', 'au.keyBad': '密钥不匹配',
+    'au.errReport': '不是有效的报告文件。',
     'log.summary': '技术日志',
     'mode.dep.fixed': '单一定额池',
     'mode.dep.any': '任意金额',
@@ -2229,6 +2311,203 @@ $('discloseBtn').addEventListener('click', async () => {
   finally { btn.disabled = false; }
 });
 
+// ---------- disclosure report: many notes in one file ----------
+// One disclose proof per note, all for the same auditor code, in one JSON file the auditor tab checks in one step.
+// Optional: the keys of notes that are already withdrawn (their nullifier is recorded on chain, so the spendKey can no
+// longer spend), so the auditor can see where each went. Keys of notes that are not withdrawn are never written.
+// Design: docs/disclosure-v2-design.md (layers 1 and 1b).
+const REPORT_TYPE = 'latheon-disclosure-report', REPORT_MAX = 500;
+const WD_IFACE = {
+  v5: new ethers.Interface(['event Withdrawal(address indexed to, uint256 nullifierHash, uint256 timestamp)']),
+  v6: new ethers.Interface(['event Withdrawal(address indexed to, uint256 nullifierHash, address indexed relayer, uint256 fee, uint256 timestamp)']),
+};
+const wdIfaceFor = (pool) => (pool.version === 'v6' || pool.version === 'v7') ? WD_IFACE.v6 : pool.version === 'v5' ? WD_IFACE.v5 : null;
+const fmtUnits = (v, d) => ethers.formatUnits(v, d).replace(/\.0$/, '');
+const utc = (ts) => (ts ? new Date(ts * 1000).toISOString().slice(0, 16).replace('T', ' ') : '');
+function sumsText(list) {   // [{amount, token}] -> "123 LTH, 4 USDG"
+  const by = {}; for (const x of list) by[x.token] = (by[x.token] || 0) + Number(x.amount);
+  const out = Object.entries(by).map(([k, v]) => v + ' ' + k).join(', ');
+  return out || t('rp.none');
+}
+function downloadFile(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+// Deposits of a pool by commitment (cached scan, checked against nextIndex()).
+const depositMaps = new Map();
+async function depositMap(pool) {
+  if (!depositMaps.has(pool.id)) depositMaps.set(pool.id, fetchDeposits(pool, true).then((list) => new Map(list.map((d) => [d.commitment, d]))).catch((e) => { depositMaps.delete(pool.id); throw e; }));
+  return depositMaps.get(pool.id);
+}
+// Withdrawal events of a pool by nullifier hash.
+async function withdrawalMap(pool) {
+  const iface = wdIfaceFor(pool); if (!iface) return new Map();
+  const topic = iface.getEvent('Withdrawal').topicHash, latest = await scanHead(pool.net);
+  const logs = await getLogsAdaptive(logsWithFallback(pool.net, (pr, a, b) => pr.getLogs({ address: pool.address, topics: [topic], fromBlock: a, toBlock: b })), pool.startBlock, latest, 'Withdrawal scan');
+  const m = new Map();
+  for (const lg of logs) { const ev = iface.parseLog(lg); m.set(BigInt(ev.args.nullifierHash), { to: ev.args.to, relayer: ev.args.relayer || null, fee: ev.args.fee != null ? BigInt(ev.args.fee) : 0n, timestamp: Number(ev.args.timestamp), txHash: lg.transactionHash }); }
+  return m;
+}
+// Every line: a latheon-v5 note or a master key. Returns notes with their pool, keys and commitment (no duplicates).
+async function reportNotes(text) {
+  const lines = String(text).split('\n').map((x) => x.trim()).filter(Boolean);
+  if (!lines.length) throw new Error(t('rp.errEmpty'));
+  const notes = new Map();
+  for (let i = 0; i < lines.length; i++) {
+    try {
+      if (lines[i].startsWith('latheon-master:')) {
+        const mk = parseMasterKey(lines[i]);
+        const router = ROUTERS.find((r) => r.net.chainId === mk.chainId && r.address.toLowerCase() === mk.router.toLowerCase());
+        if (!router) throw new Error(t('wa.errRouter', { addr: short(mk.router), chain: mk.chainId }));
+        const maps = await Promise.all(router.pools.map((p) => depositMap(p)));
+        for (let k = 0; k < MASTER_SCAN_LIMIT; k++) {
+          const key = deriveNoteKeys(poseidon4, mk.master, mk.chainId, k), c = computeCommitment(key.spendKey, key.viewKey);
+          const pi = maps.findIndex((m) => m.has(c));
+          if (pi >= 0) notes.set(c, { pool: router.pools[pi], spendKey: key.spendKey, viewKey: key.viewKey, commitment: c });
+        }
+      } else {
+        const note = decodeNote(lines[i]);
+        if (note.kind !== 'v5') throw new Error(t('rp.errV5'));
+        const pool = poolForNote(note), c = computeCommitment(note.spendKey, note.viewKey);
+        notes.set(c, { pool, spendKey: note.spendKey, viewKey: note.viewKey, commitment: c });
+      }
+    } catch (e) { throw new Error(t('rp.errLine', { n: i + 1, err: errText(e) })); }
+  }
+  const list = [...notes.values()];
+  if (!list.length) throw new Error(t('wa.none'));
+  if (list.length > REPORT_MAX) throw new Error(t('rp.errMany', { max: REPORT_MAX }));
+  if (new Set(list.map((n) => n.pool.net.chainId)).size > 1) throw new Error(t('rp.errMixed'));
+  return list;
+}
+$('reportKeys').addEventListener('change', () => { $('reportKeysWarn').hidden = !$('reportKeys').checked; });
+$('reportBtn').addEventListener('click', async () => {
+  const btn = $('reportBtn'); btn.disabled = true; $('reportResult').innerHTML = '';
+  const st = Steps('rpSteps', ['rp.s1', 'rp.s2', 'rp.s3']);
+  try {
+    const nonceText = $('reportNonceInput').value.trim();
+    if (!/^\d+$/.test(nonceText)) throw new Error(t('err.nonce'));
+    const auditorNonce = BigInt(nonceText), withKeys = $('reportKeys').checked;
+    st.go(0);
+    const notes = await reportNotes($('reportInput').value);
+    const net = notes[0].pool.net, rp = readProvider(net);
+    for (const n of notes) {
+      const d = (await depositMap(n.pool)).get(n.commitment);
+      if (!d) throw new Error(t('rp.errNotFound', { c: short(n.commitment.toString()) }));
+      n.leafIndex = d.leafIndex; n.timestamp = d.timestamp;
+    }
+    await mapLimit(notes, 4, (n) => withRetry(() => new ethers.Contract(n.pool.address, POOL_ABI[n.pool.version], rp).nullifierHashes(computeNullifierHash(n.spendKey)), 'checking whether a note is spent').then((x) => { n.spent = !!x; }));
+    st.go(1);
+    const circ = await loadCircuit('disclose'), t0 = performance.now();
+    for (let i = 0; i < notes.length; i++) {
+      setStatus('reportStatus', t('rp.proving', { i: i + 1, n: notes.length }), 'info');
+      const n = notes[i];
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve({
+        commitment: n.commitment.toString(), disclosureTag: computeDisclosureTag(n.viewKey, auditorNonce).toString(), auditorNonce: auditorNonce.toString(),
+        spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() }, circ.wasm, circ.zkey);
+      const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+      n.proof = { pA, pB, pC, pubSignals: pub };
+    }
+    st.extra(1, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+    log('Report: ' + notes.length + ' disclosure proofs in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
+    st.go(2);
+    const verifier = new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, rp);
+    await mapLimit(notes, 4, async (n) => { const ok = await withRetry(() => verifier.verifyProof(n.proof.pA, n.proof.pB, n.proof.pC, n.proof.pubSignals), 'verifying a disclosure'); if (!ok) throw new Error(t('rp.errBad', { c: short(n.commitment.toString()) })); });
+    st.done();
+    const items = notes.sort((a, b) => a.timestamp - b.timestamp || a.leafIndex - b.leafIndex).map((n) => {
+      const it = { pool: n.pool.address, version: n.pool.version, token: n.pool.token, amount: n.pool.amount, commitment: n.commitment.toString(), leafIndex: n.leafIndex, depositTime: n.timestamp, withdrawn: n.spent, proof: n.proof };
+      if (withKeys && n.spent) it.keys = { spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() };   // only withdrawn notes (checked on chain above)
+      return it;
+    });
+    const report = { type: REPORT_TYPE, version: 1, created: new Date().toISOString(), network: net.name, chainId: net.chainId, verifierAddress: net.discloseVerifier,
+      auditorNonce: auditorNonce.toString(), items, totals: { notes: items.length, deposited: sumsText(items), withdrawn: items.filter((x) => x.withdrawn).length } };
+    const text = JSON.stringify(report, null, 1), keyed = items.filter((x) => x.keys).length, unspent = items.filter((x) => !x.withdrawn).length;
+    setStatus('reportStatus', t('rp.ok', { n: items.length, total: report.totals.deposited }) + (withKeys ? ' ' + t('rp.okKeys', { k: keyed, u: unspent }) : ''), 'ok');
+    $('reportResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('rp.boxTitle')) + '</strong><div class="muted small" style="margin-top:4px">' + esc(t('rp.boxSub')) + '</div>' +
+      '<div class="rep-actions"><button id="reportDlBtn" class="small">' + esc(t('rp.download')) + '</button><button id="reportCopyBtn" class="secondary small">' + esc(t('btn.copy')) + '</button></div></div>';
+    const fname = 'latheon-disclosure-' + net.chainId + '-' + report.created.slice(0, 10) + '.json';
+    $('reportDlBtn').addEventListener('click', () => downloadFile(fname, text, 'application/json'));
+    $('reportCopyBtn').addEventListener('click', () => copyText(text, 'what.disclosure'));
+    window.__latheonLastReport = text;   // for the browser tests
+  } catch (e) { st.fail(); setStatus('reportStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; }
+});
+
+// Auditor side of a report: every proof checked by the verifier, the code compared, every deposit found on chain in the
+// pool it names; where keys are given, they must match the commitment, the note must be withdrawn on chain, and the
+// withdrawal (recipient, relayer, fee) is read from the pool's Withdrawal event.
+async function verifyReport(b) {
+  const res = $('auditResult'), box = $('auditReport');
+  if (!b || b.version !== 1 || !Array.isArray(b.items) || !b.items.length || b.items.length > REPORT_MAX || !/^\d+$/.test(String(b.auditorNonce))) throw new Error(t('au.errReport'));
+  const net = Object.values(CONFIG.networks).find((n) => n.chainId === Number(b.chainId));
+  if (!net) throw new Error(t('au.errNet', { id: b.chainId, list: Object.values(CONFIG.networks).map((n) => n.name).join(', ') }));
+  const st = Steps('auSteps', ['au.st1', 'au.st2', 'au.st3']); st.go(0);
+  const rp = readProvider(net), nonce = BigInt(b.auditorNonce), verifier = new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, rp);
+  const rows = b.items.map((x) => ({ x, pool: (ethers.isAddress(String(x.pool)) && findPool(net.chainId, String(x.pool))) || null }));
+  st.go(1);
+  await mapLimit(rows, 4, async (r) => {
+    const x = r.x, p = x.proof || {};
+    if (!Array.isArray(p.pA) || !Array.isArray(p.pB) || !Array.isArray(p.pC) || !Array.isArray(p.pubSignals) || p.pubSignals.length !== 3) { r.valid = false; return; }
+    r.valid = await withRetry(() => verifier.verifyProof(p.pA, p.pB, p.pC, p.pubSignals), 'verifying a disclosure').catch(() => false);
+    r.commitment = BigInt(p.pubSignals[0]); r.nonce = BigInt(p.pubSignals[2]);
+    if (String(r.commitment) !== String(x.commitment)) r.valid = false;
+  });
+  st.go(2);
+  for (const r of rows) {
+    if (!r.pool || r.commitment == null) continue;
+    const d = (await depositMap(r.pool)).get(r.commitment);
+    if (d) { r.found = true; r.timestamp = d.timestamp; }
+  }
+  const keyed = rows.filter((r) => r.x.keys && r.pool && r.found);
+  const wmaps = new Map();
+  for (const r of keyed) {
+    try {
+      const sk = BigInt(r.x.keys.spendKey), vk = BigInt(r.x.keys.viewKey);
+      if (computeCommitment(sk, vk) !== r.commitment) { r.keyBad = true; continue; }
+      const nh = computeNullifierHash(sk);
+      r.spentOnChain = await withRetry(() => new ethers.Contract(r.pool.address, POOL_ABI[r.pool.version], rp).nullifierHashes(nh), 'checking a nullifier');
+      if (!wmaps.has(r.pool.id)) wmaps.set(r.pool.id, await withdrawalMap(r.pool));
+      r.wd = wmaps.get(r.pool.id).get(nh) || null;
+    } catch (e) { r.keyBad = true; }
+  }
+  st.done();
+  const codeOk = (r) => issuedNonce != null ? r.nonce === issuedNonce : r.nonce === nonce;
+  const good = rows.filter((r) => r.valid && r.found && r.nonce === nonce);
+  const cols = t('au.rpCols').split('|');
+  const cell = (cls, html) => '<td class="' + cls + '">' + html + '</td>';
+  const yes = esc(t('au.yes')), no = esc(t('au.no'));
+  const body = rows.map((r, i) => {
+    const pool = r.pool, dec = pool ? pool.decimals : 18, wdKnown = r.wd && !r.keyBad;
+    return '<tr>' + cell('', i + 1) + cell(pool ? '' : 'no', esc(pool ? pool.label : short(String(r.x.pool)))) + cell('', esc(pool ? pool.amount + ' ' + pool.token : '?')) +
+      cell('', esc(utc(r.timestamp))) + cell(r.valid ? 'ok' : 'no', r.valid ? '✓' : '✗') + cell(codeOk(r) ? (issuedNonce != null ? 'ok' : 'warn') : 'no', codeOk(r) ? (issuedNonce != null ? '✓' : '?') : '✗') +
+      cell(r.found ? 'ok' : 'no', r.found ? '✓' : '✗') +
+      cell('', r.x.keys ? (r.keyBad ? esc(t('au.keyBad')) : (r.spentOnChain ? yes : no)) : esc(r.x.withdrawn ? t('au.yes') : t('au.no')) + ' <small>(' + esc(t('au.notShown')) + ')</small>') +
+      cell('', wdKnown ? '<code>' + esc(short(r.wd.to)) + '</code>' : esc(t('au.unknown'))) +
+      cell('', wdKnown ? (r.wd.relayer && r.wd.relayer !== ethers.ZeroAddress ? '<code>' + esc(short(r.wd.relayer)) + '</code> · ' + esc(fmtUnits(r.wd.fee, dec)) : '—') : esc(t('au.unknown'))) +
+      cell('', wdKnown ? '<a href="' + esc(net.explorerUrl + '/tx/' + r.wd.txHash) + '" target="_blank" rel="noopener">' + esc(utc(r.wd.timestamp) || t('note.tx')) + '</a>' : esc(t('au.unknown'))) + '</tr>';
+  }).join('');
+  const withdrawnShown = rows.filter((r) => r.wd && !r.keyBad && r.valid && r.found);
+  box.innerHTML = '<h4 style="margin-top:14px">' + esc(t('au.rpTitle', { n: rows.length, net: net.name })) + '</h4>' +
+    '<div class="rep-wrap"><table class="rep"><thead><tr>' + cols.map((c) => '<th>' + esc(c) + '</th>').join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
+    '<p class="muted small" style="margin-top:8px">' + esc(t('au.rpTotal', { ok: good.length, n: rows.length, total: sumsText(good.map((r) => ({ amount: r.pool.amount, token: r.pool.token }))) })) +
+    (withdrawnShown.length ? ' ' + esc(t('au.rpWithdrawn', { k: withdrawnShown.length, total: sumsText(withdrawnShown.map((r) => ({ amount: r.pool.amount, token: r.pool.token }))) })) : '') + '</p>' +
+    (keyed.length ? '<div class="status warn">' + esc(t('au.rpKeysNote')) + '</div>' : '') +
+    '<div class="rep-actions"><button id="auditCsvBtn" class="secondary small">' + esc(t('au.rpCsv')) + '</button></div>';
+  const csvRows = [['n', 'network', 'pool', 'token', 'amount', 'commitment', 'deposit_utc', 'proof_valid', 'code_matches', 'found_on_chain', 'withdrawn', 'recipient', 'relayer', 'fee', 'withdrawal_tx', 'withdrawal_utc']]
+    .concat(rows.map((r, i) => [i + 1, net.name, r.pool ? r.pool.address : String(r.x.pool), r.pool ? r.pool.token : '', r.pool ? r.pool.amount : '', String(r.x.commitment), utc(r.timestamp),
+      !!r.valid, codeOk(r), !!r.found, r.x.keys ? (r.keyBad ? 'keys do not match' : !!r.spentOnChain) : 'not disclosed',
+      r.wd && !r.keyBad ? r.wd.to : '', r.wd && !r.keyBad && r.wd.relayer ? r.wd.relayer : '', r.wd && !r.keyBad ? fmtUnits(r.wd.fee, r.pool ? r.pool.decimals : 18) : '', r.wd && !r.keyBad ? r.wd.txHash : '', r.wd && !r.keyBad ? utc(r.wd.timestamp) : '']));
+  const csv = csvRows.map((row) => row.map((v) => { const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\n') + '\n';
+  $('auditCsvBtn').addEventListener('click', () => downloadFile('latheon-disclosure-check-' + net.chainId + '.csv', csv, 'text/csv'));
+  window.__latheonLastCsv = csv;   // for the browser tests
+  const allGood = good.length === rows.length;
+  if (allGood && issuedNonce != null && nonce === issuedNonce) setStatus('auditStatus', t('au.rpPass'), 'ok');
+  else if (allGood && issuedNonce == null) setStatus('auditStatus', t('au.rpNoCode', { code: nonce.toString() }), 'info');
+  else setStatus('auditStatus', t('au.rpFail'), 'err');
+  log('Auditor report check: ' + good.length + ' of ' + rows.length + ' notes valid' + (keyed.length ? ', keys for ' + keyed.length : ''));
+}
+$('auditFile').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; $('auditBlockInput').value = await f.text(); });
+
 // ---------- auditor side ----------
 $('genNonceBtn').addEventListener('click', () => {
   // 31 random bytes stay below the BN254 field size.
@@ -2272,6 +2551,8 @@ $('auditVerifyBtn').addEventListener('click', async () => {
   try {
     st.go(0);
     let b; try { b = JSON.parse($('auditBlockInput').value); } catch (e) { throw new Error(t('au.errJson')); }
+    $('auditReport').innerHTML = '';
+    if (b && b.type === REPORT_TYPE) { await verifyReport(b); return; }
     if (!b || !Array.isArray(b.pA) || !Array.isArray(b.pB) || !Array.isArray(b.pC) || !Array.isArray(b.pubSignals) || b.pubSignals.length !== 3)
       throw new Error(t('au.errFields'));
     const net = Object.values(CONFIG.networks).find((n) => n.chainId === Number(b.chainId));
@@ -2316,7 +2597,7 @@ $('auditVerifyBtn').addEventListener('click', async () => {
     populatePoolSelect();
     selectPool((POOLS.filter((p) => !p.frozen && !p.legacy)[0] || POOLS.filter((p) => !p.legacy)[0]).id);
     $('connectBtn').disabled = false; $('checkNoteBtn').disabled = false;
-    $('genNonceBtn').disabled = false; $('auditVerifyBtn').disabled = false;
+    $('genNonceBtn').disabled = false; $('auditVerifyBtn').disabled = false; $('reportBtn').disabled = false;
     log(`Loaded ${POOLS.length} pools on ${Object.keys(CONFIG.networks).length} networks.`);
   } catch (e) { setStatus('poolInfo', t('err.startup') + (e.message || e), 'err'); log('ERROR: ' + (e.message || e)); return; }
   loadCircuit('v3').then(() => { circState.withdraw = ['circ.loaded', 'ok']; setStatus('circuitFilesStatus', t('circ.loaded'), 'ok'); },

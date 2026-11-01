@@ -1,6 +1,6 @@
 # Disclosure v2: user-chosen scope, many notes at once, where the funds went (design, draft)
 
-**Status:** design only, nothing here is built. Testnet project, no audit. Builds on [`selective-disclosure-design.md`](./selective-disclosure-design.md) (v0.1, implemented as `circuits/disclose.circom`).
+**Status:** layers 1 and 1b are built in the demo (report for an accountant or auditor; browser test `test/demo-e2e/disclosure-e2e.js`), not yet released on the site; layers 2 and 3 are design only. Testnet project, no audit. Builds on [`selective-disclosure-design.md`](./selective-disclosure-design.md) (v0.1, implemented as `circuits/disclose.circom`).
 
 ## 1. Why
 
