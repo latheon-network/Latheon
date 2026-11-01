@@ -178,6 +178,8 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     rec('D7. Where the withdrawn notes went: r1 once, r2 three times; the unspent notes show no recipient', rcol.filter((x) => x === short(r1)).length === 1 && rcol.filter((x) => x === short(r2)).length === 3 && rcol.filter((x) => x === '—').length === 2, rcol.join(' '));
     rec('D8. CSV for accounting: 6 rows, recipients, withdrawal transactions', !!v1.csv && v1.csv.trim().split('\n').length === 7 && v1.csv.includes(r1) && v1.csv.includes(r2) && /^n,network,pool,token,amount,commitment/.test(v1.csv), v1.csv ? v1.csv.split('\n')[1].slice(0, 80) : 'no csv');
 
+    await aud.screenshot({ path: SHOTS + '/disclosure-report-table.png', fullPage: true });
+    await page.click('#tab-disclose'); await page.screenshot({ path: SHOTS + '/disclosure-report-built.png', fullPage: true });
     // ---- the same notes without keys: proofs only, no recipients
     const rNo = await buildReport([key, noteA, noteB], code, false);
     const repNo = rNo.text ? JSON.parse(rNo.text) : { items: [] };
