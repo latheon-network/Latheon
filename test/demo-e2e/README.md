@@ -104,3 +104,19 @@ node bridge-e2e.js            # or BRIDGE=/path/to/folder/with/index.html
 
 The stand-ins do not check Merkle proofs and do not reproduce the delay of the real chain. A run against the live test chain
 is still needed and is recorded in `STATUS.md` once done.
+
+## Disclosure report: `disclosure-e2e.js`
+
+The report for an accountant or auditor (`docs/disclosure-v2-design.md`, layers 1 and 1b). One local chain with the V7
+native pools, the V7 router and the real disclosure verifier, a mock wallet, real Groth16 proofs. A router deposit of 161
+(four notes under one master key) and two fixed-pool notes; note A and 61 of the router deposit are withdrawn. 17 checks:
+the warning for the keys option; a report of the master key and both notes (6 notes, 221 LTH, every proof for the
+auditor's code); keys only for the 4 withdrawn notes, never for the unspent ones; the auditor tab (a second page with no
+wallet) accepts the report, shows where each withdrawn note went (recipient, relayer, fee, transaction) and exports CSV;
+without the option the file holds no keys and no recipients are shown; a proof edited to another code, keys swapped between
+notes and a report made for another code are all refused; a line that is not a note is refused with its line number; the
+single-note disclosure still works; RU text; no raw translation keys; no JavaScript errors.
+
+```
+DEMO=/path/to/demo node disclosure-e2e.js
+```
