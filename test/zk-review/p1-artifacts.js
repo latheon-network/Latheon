@@ -10,7 +10,7 @@
  *   - contracts and circuits at the deployed commit 129a4c0 = HEAD; solc 0.8.37 bytecode of the verifiers/pools built
  *     here = the bytecode in the l2-eval-ci artifact (if found)
  * What this CANNOT check: the C-matrix-dependent points (C/L section, IC) and the H points against the circuit — that
- * needs the phase-1 ptau, which is not in the repository (snarkjs zkey verify). See README.
+ * needs the phase-1 ptau (circuits/ptau/pot14_final.ptau, published 30 October 2026) and a circom 2.2.3 binary (snarkjs zkey verify). See README.
  */
 const fs = require('fs');
 const path = require('path');
@@ -140,8 +140,8 @@ async function main() {
 
   // 5. deployed commit = HEAD for contracts and circuits; deployed bytecode reproduced
   try {
-    const diff = git('diff', '--stat', DEPLOYED, 'HEAD', '--', 'contracts', 'circuits').trim();
-    t.rec('contracts/ and circuits/ at the deployed commit 129a4c0 = this checkout', diff === '', diff.split('\n').pop());
+    const diff = git('diff', '--stat', DEPLOYED, 'HEAD', '--', 'contracts', 'circuits', ':(exclude)circuits/ptau').trim();   // the phase-1 ptau was published later (30 October 2026)
+    t.rec('contracts/ and circuits/ (except the later-published ptau) at the deployed commit 129a4c0 = this checkout', diff === '', diff.split('\n').pop());
   } catch (e) { t.skip('129a4c0 vs HEAD', 'commit not in this checkout'); }
   if (art) {
     const srcFiles = Object.keys(art.source.sha256);
