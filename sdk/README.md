@@ -154,7 +154,7 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
 
 ```bash
 npm test                # unit (71 checks, no network, no proofs) + proof (12 checks, real withdraw_v5 / v4 / v3 / disclose proofs)
-npm run test:e2e        # the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
+npm run test:e2e        # 40 checks: the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
 ```
 
 The e2e test compiles `LatheonShieldedPoolV7Native`, `LatheonDistributionPoolV7Native`, `WithdrawVerifierV5` (and the

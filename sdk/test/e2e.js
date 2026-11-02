@@ -117,7 +117,7 @@ async function main() {
   ok('registry from a deployments.json-shaped config: 12 pools, 3 routers, only V7 depositable, verifiers per generation',
     REG.pools.length === 12 && REG.routers.length === 3 && sdk.listPools(REG, { depositable: true }).length === 4 && sdk.listRouters(REG, { depositable: true }).length === 1 && P('v7', 1).verifierAddr === sets.v7.verifier && P('v5', 1).verifierAddr === sets.v5.verifier && P('v5', 1).levels === 8 && P('v6', 1).levels === 20);
   ok('registry: checks of the router against the chain pass for all three (token, pools, denominations, split)', await sdk.checkRouterOnChain(provider, R('v7'), 161n * E18) && await sdk.checkRouterOnChain(provider, R('v6')) && await sdk.checkRouterOnChain(provider, R('v5')));
-  ok('registry: a router entry whose pool differs from the chain is refused by checkRouterOnChain and depositAny', await rejects(async () => sdk.checkRouterOnChain(provider, Object.assign({}, R('v7'), { denominations: D18.slice(0, 3).concat([2n * E18]) })), /denomination 3 differs/) && await rejects(async () => sdk.depositAny(alice, Object.assign({}, R('v7'), { pools: [R('v6').pools[0]].concat(R('v7').pools.slice(1)) }), 161n * E18), /pool 0 differs/));
+  ok('registry: a router entry whose pool differs from the chain is refused by checkRouterOnChain and depositAny', await rejects(async () => sdk.checkRouterOnChain(provider, Object.assign({}, R('v7'), { denominations: D18.slice(0, 3).concat([2n * E18]) })), /denomination 3 on chain differs/) && await rejects(async () => sdk.depositAny(alice, Object.assign({}, R('v7'), { pools: [R('v6').pools[0]].concat(R('v7').pools.slice(1)) }), 161n * E18), /pool 0 on chain differs/));
 
   // preload circuits once (the SDK would load them per call otherwise)
   const circ = { v7: await sdk.loadCircuit('v7'), v6: await sdk.loadCircuit('v6'), v5: await sdk.loadCircuit('v5') };
@@ -159,7 +159,7 @@ async function main() {
   const bound = await sdk.getProofInputsForCommitment(provider, P('v7', 1), dep1.commitment);
   const proofA = await sdk.proveWithdraw(sdk.buildWithdrawInput({ version: 'v7', spendKey: dep1.spendKey, viewKey: dep1.viewKey, pathElements: bound.pathElements, pathIndices: bound.pathIndices, root: bound.root, recipient: to1 }), circ.v7);
   ok('verifyOnChain(): the verifier contract accepts the proof', await sdk.verifyOnChain(provider, P('v7', 1), proofA));
-  ok('withdraw(): the pool refuses the proof for another recipient ("Invalid proof") and for the zero relayer with a fee', await rejects(async () => sdk.withdraw(bob, P('v7', 1), proofA, to2), /Invalid proof/) && await rejects(async () => sdk.withdraw(bob, P('v7', 1), proofA, to1, { fee: 1n }), /Fee without relayer/));
+  ok('withdraw(): the simulation surfaces the pool\'s refusal for another recipient ("Invalid proof") and for a fee without a relayer', await rejects(async () => sdk.withdraw(bob, P('v7', 1), proofA, to2), /Invalid proof/) && await rejects(async () => sdk.withdraw(bob, P('v7', 1), proofA, to1, { fee: 1n }), /Fee without relayer/));
   const wA = await sdk.withdraw(bob, P('v7', 1), proofA, to1);
   ok('withdraw(): the same proof pays its own recipient', !!wA.txHash && (await bal(to1)) === 101n * E18);
 
@@ -167,6 +167,7 @@ async function main() {
   console.log('\nV7 pool: stale root retry (100 deposits after the scan)');
   const pool1 = P('v7', 1);
   const depS = await sdk.deposit(alice, pool1);
+  const depS2 = await sdk.deposit(alice, pool1);   // a second note from before the 100 deposits, for the give-up check
   const blockBefore = await provider.getBlockNumber();
   const p1c = new ethers.Contract(pool1.address, sdk.POOL_ABI.v7, deployer);
   for (let i = 0; i < 100; i++) await (await p1c.deposit(sdk.randomFieldElement(), { value: E18 })).wait();
@@ -176,7 +177,8 @@ async function main() {
   const toS = fresh();
   const wS = await sdk.withdrawNote(bob, pool1, depS.note, toS, opts('v7', { scanOpts, log: (m) => { logs.push(m); if (/proving again/.test(m)) delete scanOpts.toBlock; } }));
   ok('withdrawNote(): "Unknown root" after the scan is retried with a fresh scan and succeeds', (await bal(toS)) === E18 && logs.some((m) => /proving again/.test(m)) && wS.leafIndex === 1);
-  ok('… without a fresh scan it gives up after ROOT_RETRIES attempts', await rejects(async () => sdk.withdrawNote(bob, pool1, (await sdk.deposit(alice, pool1)).note, toS, opts('v7', { scanOpts: { toBlock: blockBefore } })), /incomplete|Unknown root/) && sdk.ROOT_RETRIES === 3);
+  const logs2 = [];
+  ok('… without a fresh scan it gives up after ROOT_RETRIES attempts ("Unknown root")', await rejects(async () => sdk.withdrawNote(bob, pool1, depS2.note, toS, opts('v7', { scanOpts: { toBlock: blockBefore }, log: (m) => logs2.push(m) })), /Unknown root/) && logs2.filter((m) => /proving again/.test(m)).length === sdk.ROOT_RETRIES - 1 && sdk.ROOT_RETRIES === 3);
 
   // through a relayer (a Provider is enough)
   console.log('\nV7 pool: through the relayer');
@@ -246,7 +248,9 @@ async function main() {
     const wm2 = await sdk.withdrawByAmount(bob, router, mk, 61, toM, opts(v));
     ok(`${v} router: findNotes() (50 + 10 + 1) and withdrawByAmount(61) with withdrawMany${v === 'v5' ? '(items, recipient)' : '(items with fee, recipient, relayer)'}`, f.unspent.length === 3 && wm2.txHashes.length === 1 && (await bal(toM)) === 61n * E18);
   }
-  ok('V5 withdrawal input refuses a relayer fee (no such public input)', await rejects(async () => sdk.withdrawNote(bob, P('v5', 1), sdk.generateNote(P('v5', 1)).note, fresh(), opts('v5', { fee: 1n, relayer: feeTaker })), /V5 proofs have no relayer/));
+  const n5 = sdk.generateNote(P('v5', 1));
+  await (await new ethers.Contract(P('v5', 1).address, sdk.POOL_ABI.v5, alice).deposit(n5.commitment, { value: E18 })).wait();
+  ok('V5 withdrawal input refuses a relayer fee (no such public input)', await rejects(async () => sdk.withdrawNote(bob, P('v5', 1), n5.note, fresh(), opts('v5', { fee: 1n, relayer: feeTaker })), /V5 proofs have no relayer/));
 
   server.close();
   console.log(fails ? '\n' + fails + ' of ' + n + ' FAILED' : '\nALL ' + n + ' CHECKS PASSED');

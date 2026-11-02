@@ -76,6 +76,7 @@ async function verifyOnChain(provider, pool, proof) {
  *   V7 / V6: withdraw(pA, pB, pC, root, nullifierHash, recipient, relayer, fee)
  *   V5:      withdraw(pA, pB, pC, root, nullifierHash, recipient)
  * `recipient`, `relayer` and `fee` must be the ones the proof was made for (the contract checks the public signals).
+ * Simulated first (opts.simulate = false skips it), so a refusal names its reason without spending gas.
  */
 async function withdraw(signer, pool, proof, recipient, opts = {}) {
   if (!isSigner(signer)) throw new Error('withdraw needs an ethers Signer (or use relayWithdraw)');
@@ -83,9 +84,11 @@ async function withdraw(signer, pool, proof, recipient, opts = {}) {
   const [root, nullifierHash] = proof.pubSignals;
   const to = getAddress(recipient);
   const overrides = Object.assign(await feeOverrides(signer.provider), opts.overrides || {});
-  const tx = pool.feeVersion
-    ? await c.withdraw(proof.pA, proof.pB, proof.pC, root, nullifierHash, to, opts.relayer || ZeroAddress, opts.fee !== undefined ? BigInt(opts.fee) : 0n, overrides)
-    : await c.withdraw(proof.pA, proof.pB, proof.pC, root, nullifierHash, to, overrides);
+  const args = pool.feeVersion
+    ? [proof.pA, proof.pB, proof.pC, root, nullifierHash, to, opts.relayer || ZeroAddress, opts.fee !== undefined ? BigInt(opts.fee) : 0n]
+    : [proof.pA, proof.pB, proof.pC, root, nullifierHash, to];
+  if (opts.simulate !== false) await c.withdraw.staticCall(...args);   // surfaces the pool's reason ("Invalid proof", "Unknown root", …) before any gas is spent
+  const tx = await c.withdraw(...args, overrides);
   const receipt = await tx.wait();
   return { txHash: receipt.hash, receipt };
 }
