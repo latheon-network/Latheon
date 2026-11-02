@@ -439,7 +439,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <div class="stage">
         <svg id="tree" viewBox="0 0 640 300" role="img" aria-label="Merkle tree of deposits"></svg>
         <div class="caption" id="caption" aria-live="polite"></div>
-        <div class="stage-note" data-i18n="how.note">simulation · illustrative hashes, not Poseidon · real pools hold 256 deposits</div>
+        <div class="stage-note" data-i18n="how.note">simulation · illustrative hashes, not Poseidon · a real V7 pool holds 1,048,576 deposits</div>
       </div>
     </div>
   </div>
@@ -467,16 +467,16 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     <div class="big-row reveal">
       <div class="big"><b>4</b><span data-i18n="pools.n1">V7 pools (current)</span></div>
       <div class="big"><b>1</b><span data-i18n="pools.n2">our test chain</span></div>
-      <div class="big"><b>2</b><span data-i18n="pools.n3">tokens: LTH, USDG</span></div>
+      <div class="big"><b>1</b><span data-i18n="pools.n3">token: test LTH</span></div>
       <div class="big"><b>3</b><span data-i18n="pools.n4">deprecated testnets</span></div>
     </div>
     <p class="honest reveal" data-i18n="pools.honest"><strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.</p>
-    <p class="gas-note reveal" data-i18n="pools.gasNote">Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.</p>
+    <p class="gas-note reveal" data-i18n="pools.gasNote">Honest gas note: measured on our test chain with V7 (27 October 2026), a router deposit of 2 notes used 1,749,602 gas for execution and 12,219,550 in total; a withdrawal of both notes with a relayer fee, 625,896 and 35,912,159. Most of the total is the charge for publishing data to the parent chain (Arbitrum Sepolia), so it depends on that chain, not on our contracts. Details in STATUS.md.</p>
     <button class="btn btn-ghost" id="showPools" aria-expanded="false" aria-controls="poolTable">Show contract addresses</button>
     <div class="pool-table" id="poolTable">
       <div class="net-tabs" id="netTabs" role="tablist" aria-label="Network"></div>
       <div id="poolRows"></div>
-      <p class="legacy-note" data-i18n="pools.legacy"><strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits and kept only so existing notes can be withdrawn. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.</p>
+      <p class="legacy-note" data-i18n="pools.legacy"><strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only so existing notes can be withdrawn. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.</p>
     </div>
   </div>
 </section>
@@ -562,7 +562,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'hero.ctaHow': 'See how it works', 'hero.ctaDemo': '<span class="dot"></span>Try the live demo',
       'hero.fine': '<b>●</b> Public prototype · testnets only · no independent audit yet', 'hero.scroll': 'SCROLL ↓',
       'how.eyebrow': 'How it works', 'how.h2': 'Three steps. Try them.', 'how.p': 'A small simulation of one pool. Nothing touches a chain.',
-      'how.note': 'simulation · illustrative hashes, not Poseidon · real pools hold 256 deposits',
+      'how.note': 'simulation · illustrative hashes, not Poseidon · a real V7 pool holds 1,048,576 deposits',
       'step1.t': 'Deposit', 'step1.d': 'Lock a fixed amount. Your deposit joins the others in the tree.',
       'step2.t': 'Withdraw', 'step2.d': 'Prove you own one of the deposits, without saying which.',
       'step3.t': 'Disclose', 'step3.d': 'Show one auditor that this deposit is yours. They still can\'t spend it.',
@@ -576,7 +576,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': 'yours', 'tag.auditor': 'auditor sees this one', 'tree.root': 'root',
       'status.eyebrow': 'Status', 'status.h2': 'What works, what we fixed, what\'s open', 'status.p': 'Click a line for details and the source.',
       'col.live': 'Works on testnets', 'col.fixed': 'Fixed', 'col.open': 'Still open',
-      'st.pools.t': '4 V7 pools on our test chain', 'st.pools.d': 'The current generation (circuit withdraw_v5) on the Latheon test chain, paid in its own coin, test LTH. The older V5/V6 pools there and the V5 pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are frozen for deposits and kept only for withdrawals.', 'st.path.t': 'Withdrawal without a deposit (before V7)', 'st.path.d': 'In every circuit before V7 one value in the Merkle path was not limited to 0 or 1, so a crafted proof could withdraw from a pool without any deposit. Found in an internal review and reproduced locally with test tokens; no real funds were involved. Fixed in V7 (withdraw_v5); older pools are frozen for deposits.',
+      'st.pools.t': '4 V7 pools on our test chain', 'st.pools.d': 'The current generation (circuit withdraw_v5) on the Latheon test chain, paid in its own coin, test LTH. The older V5/V6 pools there and the V5 pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only for withdrawals.', 'st.path.t': 'Withdrawal without a deposit (before V7)', 'st.path.d': 'In every circuit before V7 one value in the Merkle path was not limited to 0 or 1, so a crafted proof could withdraw from a pool without any deposit. Found in an internal review and reproduced locally with test tokens; no real funds were involved. Fixed in V7 (withdraw_v5); older pools are frozen for deposits.',
       'st.router.t': 'Distribution router: any amount, one transaction', 'st.router.d': 'Splits an amount into 100 / 50 / 10 / 1 notes and deposits them in one transaction; <code>withdrawMany</code> collects several notes in one. No owner, no fee, holds no funds. Checked by hand with real proofs; the current router is V7 on our test chain, the routers on the three external testnets are deprecated. No independent review. It pays one address, so it is convenience, not privacy.',
       'st.bind.t': 'Recipient bound to the proof', 'st.bind.d': 'The receiving address is part of the withdraw proof and cannot be swapped in transit.',
       'st.tree.t': 'On-chain Merkle tree', 'st.tree.d': 'Updated by the contract on every deposit. Up to 1,048,576 deposits per V7 pool (256 in the old V5 pools).',
@@ -587,12 +587,12 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': 'Small anonymity set', 'st.anon.d': 'Pools hold mostly our own test deposits.',
       'st.bridge.t': 'Bridge privacy', 'st.bridge.d': 'Moving funds between L1 and L2 is not private yet.',
       'st.meta.t': 'Public metadata', 'st.meta.d': 'Timing and gas of each transaction are visible.',
-      'pools.eyebrow': 'Deployed', 'pools.h2': 'Live on our own test chain', 'pools.n1': 'V7 pools (current)', 'pools.n2': 'our test chain', 'pools.n3': 'tokens: LTH, USDG',
+      'pools.eyebrow': 'Deployed', 'pools.h2': 'Live on our own test chain', 'pools.n1': 'V7 pools (current)', 'pools.n2': 'our test chain', 'pools.n3': 'token: test LTH',
       'pools.n4': 'deprecated testnets', 'pools.router': 'Router',
       'pools.honest': '<strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.',
-      'pools.gasNote': 'Honest gas note: gas units differ by network and have changed over time. Our latest single on-chain withdrawals on V5: Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197 (LTH) and 306,346 (USDG). We cannot yet explain the Ethereum figure, so we make no claim that L2 uses more or fewer gas units than L1; fees depend on gas price. A controlled re-measurement is planned.',
+      'pools.gasNote': 'Honest gas note: measured on our test chain with V7 (27 October 2026), a router deposit of 2 notes used 1,749,602 gas for execution and 12,219,550 in total; a withdrawal of both notes with a relayer fee, 625,896 and 35,912,159. Most of the total is the charge for publishing data to the parent chain (Arbitrum Sepolia), so it depends on that chain, not on our contracts. Details in STATUS.md.',
       'pools.show': 'Show contract addresses', 'pools.hide': 'Hide contract addresses', 'pools.copy': 'copy', 'pools.view': 'view ↗', 'pools.copied': 'Copied {what}',
-      'pools.legacy': '<strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits and kept only so existing notes can be withdrawn. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.',
+      'pools.legacy': '<strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only so existing notes can be withdrawn. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.',
       'final.h2': 'Try it on a testnet.', 'final.demo': 'Open the live demo', 'final.code': 'Read the code',
       'footer.text': 'Latheon · solo project, built with AI-assisted development'
     },
@@ -604,7 +604,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'hero.ctaHow': 'Как это работает', 'hero.ctaDemo': '<span class="dot"></span>Попробовать живое демо',
       'hero.fine': '<b>●</b> Публичный прототип · только тестовые сети · независимого аудита пока нет', 'hero.scroll': 'ЛИСТАЙТЕ ↓',
       'how.eyebrow': 'Как это работает', 'how.h2': 'Три шага. Попробуйте.', 'how.p': 'Небольшая симуляция одного пула. В блокчейн ничего не уходит.',
-      'how.note': 'симуляция · условные хеши, не Poseidon · настоящий пул вмещает 256 депозитов',
+      'how.note': 'симуляция · условные хеши, не Poseidon · настоящий пул V7 вмещает 1 048 576 депозитов',
       'step1.t': 'Депозит', 'step1.d': 'Внесите фиксированную сумму. Ваш депозит встаёт в дерево рядом с другими.',
       'step2.t': 'Вывод', 'step2.d': 'Докажите, что вам принадлежит один из депозитов, не говоря какой.',
       'step3.t': 'Раскрытие', 'step3.d': 'Покажите одному аудитору, что этот депозит ваш. Потратить его он всё равно не сможет.',
@@ -618,7 +618,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': 'ваш', 'tag.auditor': 'аудитор видит этот', 'tree.root': 'корень',
       'status.eyebrow': 'Статус', 'status.h2': 'Что работает, что исправили, что открыто', 'status.p': 'Нажмите на строку, чтобы увидеть подробности и источник.',
       'col.live': 'Работает в тестовых сетях', 'col.fixed': 'Исправлено', 'col.open': 'Пока открыто',
-      'st.pools.t': '4 пула V7 в нашей тестовой сети', 'st.pools.d': 'Текущее поколение (схема withdraw_v5) в тестовой сети Latheon, на её родной монете, тестовом LTH. Старые пулы V5/V6 там же и пулы V5 в Ethereum Sepolia, Arbitrum Sepolia и Robinhood Chain Testnet заморожены для депозитов и оставлены только для вывода.', 'st.path.t': 'Вывод без депозита (до V7)', 'st.path.d': 'Во всех схемах до V7 одно значение в пути дерева Меркла не было ограничено нулём или единицей, поэтому поддельное доказательство позволяло вывести средства из пула без депозита. Найдено внутренней проверкой и воспроизведено локально на тестовых токенах; реальные средства не затронуты. Исправлено в V7 (withdraw_v5); старые пулы заморожены для депозитов.',
+      'st.pools.t': '4 пула V7 в нашей тестовой сети', 'st.pools.d': 'Текущее поколение (схема withdraw_v5) в тестовой сети Latheon, на её родной монете, тестовом LTH. Старые пулы V5/V6 там же и пулы V5 в Ethereum Sepolia, Arbitrum Sepolia и Robinhood Chain Testnet заморожены для депозитов в нашем интерфейсе (сами контракты депозиты принимают, не вносите туда средства) и оставлены только для вывода.', 'st.path.t': 'Вывод без депозита (до V7)', 'st.path.d': 'Во всех схемах до V7 одно значение в пути дерева Меркла не было ограничено нулём или единицей, поэтому поддельное доказательство позволяло вывести средства из пула без депозита. Найдено внутренней проверкой и воспроизведено локально на тестовых токенах; реальные средства не затронуты. Исправлено в V7 (withdraw_v5); старые пулы заморожены для депозитов.',
       'st.router.t': 'Роутер распределения: любая сумма, одна транзакция', 'st.router.d': 'Делит сумму на ноты 100 / 50 / 10 / 1 и вносит их одной транзакцией; <code>withdrawMany</code> выводит несколько нот одной. Без владельца и комиссии, средств не хранит. Проверен вручную с настоящими доказательствами; текущий роутер — V7 в нашей тестовой сети, роутеры в трёх внешних сетях сняты с эксплуатации. Независимой проверки нет. Платит на один адрес: это удобство, а не приватность.',
       'st.bind.t': 'Получатель привязан к доказательству', 'st.bind.d': 'Адрес получателя входит в доказательство вывода, и подменить его по дороге нельзя.',
       'st.tree.t': 'Дерево Меркла в блокчейне', 'st.tree.d': 'Контракт обновляет его при каждом депозите. До 1 048 576 депозитов на пул V7 (256 в старых пулах V5).',
@@ -629,12 +629,12 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': 'Маленькое анонимное множество', 'st.anon.d': 'В пулах в основном наши собственные тестовые депозиты.',
       'st.bridge.t': 'Приватность моста', 'st.bridge.d': 'Перевод средств между L1 и L2 пока не приватен.',
       'st.meta.t': 'Публичные метаданные', 'st.meta.d': 'Время и газ каждой транзакции видны всем.',
-      'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в нашей собственной тестовой сети', 'pools.n1': 'пула V7 (текущие)', 'pools.n2': 'наша тестовая сеть', 'pools.n3': 'токена: LTH, USDG',
+      'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в нашей собственной тестовой сети', 'pools.n1': 'пула V7 (текущие)', 'pools.n2': 'наша тестовая сеть', 'pools.n3': 'токен: тестовый LTH',
       'pools.n4': 'снятые с эксплуатации сети', 'pools.router': 'Роутер',
       'pools.honest': '<strong>Честно:</strong> в пулах в основном наши собственные тестовые депозиты, поэтому толпа, в которой вы прячетесь, почти пуста. Механика работает и проверяется в блокчейне; для настоящей приватности нужны настоящие пользователи.',
-      'pools.gasNote': 'Честно о газе: число единиц газа различается по сетям и меняется со временем. Наши последние одиночные выводы в блокчейне на V5: Ethereum Sepolia 419 919 · Arbitrum Sepolia 276 769 · Robinhood Chain 297 197 (LTH) и 306 346 (USDG). Цифру Ethereum мы пока не можем объяснить, поэтому не утверждаем, что L2 тратит больше или меньше единиц газа, чем L1; комиссия зависит от цены газа. Контролируемый перемер запланирован.',
+      'pools.gasNote': 'Честно о газе: на нашей тестовой сети с V7 (27 октября 2026) депозит двух нот через роутер потратил 1 749 602 газа на исполнение и 12 219 550 всего; вывод обеих нот с комиссией релейера — 625 896 и 35 912 159. Большая часть общего числа — плата за публикацию данных в родительскую сеть (Arbitrum Sepolia), она зависит от этой сети, а не от наших контрактов. Подробности в STATUS.md.',
       'pools.show': 'Показать адреса контрактов', 'pools.hide': 'Скрыть адреса контрактов', 'pools.copy': 'копировать', 'pools.view': 'смотреть ↗', 'pools.copied': 'Скопировано: {what}',
-      'pools.legacy': '<strong>О безопасности:</strong> внутренняя проверка нашла в схеме всех пулов до V7 ошибку — поддельное доказательство позволяло вывести средства без депозита. Мы подтвердили её тестом и исправили; текущие пулы — V7 (<code>withdraw_v5</code>). Старые пулы (V3–V6 и пулы в трёх внешних тестовых сетях) заморожены для депозитов и оставлены только для вывода уже внесённых нот. Только тестовая сеть — реальные средства никогда не были под угрозой. Подробности в STATUS.md и THREAT-MODEL.md.',
+      'pools.legacy': '<strong>О безопасности:</strong> внутренняя проверка нашла в схеме всех пулов до V7 ошибку — поддельное доказательство позволяло вывести средства без депозита. Мы подтвердили её тестом и исправили; текущие пулы — V7 (<code>withdraw_v5</code>). Старые пулы (V3–V6 и пулы в трёх внешних тестовых сетях) заморожены для депозитов в нашем интерфейсе (сами контракты депозиты принимают, не вносите туда средства) и оставлены только для вывода уже внесённых нот. Только тестовая сеть — реальные средства никогда не были под угрозой. Подробности в STATUS.md и THREAT-MODEL.md.',
       'final.h2': 'Попробуйте в тестовой сети.', 'final.demo': 'Открыть живое демо', 'final.code': 'Читать код',
       'footer.text': 'Latheon · соло-проект, созданный с помощью ИИ-разработки'
     },
@@ -646,7 +646,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'hero.ctaHow': '了解工作原理', 'hero.ctaDemo': '<span class="dot"></span>体验实时演示',
       'hero.fine': '<b>●</b> 公开原型 · 仅限测试网 · 尚无独立审计', 'hero.scroll': '向下滚动 ↓',
       'how.eyebrow': '工作原理', 'how.h2': '三个步骤，亲自试试。', 'how.p': '一个资金池的小型模拟，不涉及任何链上操作。',
-      'how.note': '模拟 · 示意哈希，非 Poseidon · 真实资金池可容纳 256 笔存款',
+      'how.note': '模拟 · 示意哈希，非 Poseidon · 真实 V7 资金池可容纳 1,048,576 笔存款',
       'step1.t': '存款', 'step1.d': '锁入固定金额。您的存款与其他存款一起加入树中。',
       'step2.t': '取款', 'step2.d': '证明其中一笔存款属于您，但不透露是哪一笔。',
       'step3.t': '披露', 'step3.d': '向一位审计方证明这笔存款属于您。对方仍无法动用它。',
@@ -660,7 +660,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'tag.yours': '您的', 'tag.auditor': '审计方看到的是这一笔', 'tree.root': '根',
       'status.eyebrow': '状态', 'status.h2': '哪些已可用，哪些已修复，哪些仍待解决', 'status.p': '点击任一行查看详情和来源。',
       'col.live': '已在测试网运行', 'col.fixed': '已修复', 'col.open': '仍待解决',
-      'st.pools.t': '我们测试链上的 4 个 V7 资金池', 'st.pools.d': 'Latheon 测试链上的当前一代（电路 withdraw_v5），使用其原生币测试 LTH。该链上较旧的 V5/V6 资金池，以及 Ethereum Sepolia、Arbitrum Sepolia 和 Robinhood Chain Testnet 上的 V5 资金池已冻结存款，仅保留用于取款。', 'st.path.t': '无需存款即可取款（V7 之前）', 'st.path.d': '在 V7 之前的所有电路中，默克尔路径中的一个值没有被限制为 0 或 1，因此精心构造的证明可以在没有任何存款的情况下从资金池取款。由内部审查发现，并在本地用测试代币复现；未涉及真实资金。已在 V7（withdraw_v5）中修复；旧资金池已冻结存款。',
+      'st.pools.t': '我们测试链上的 4 个 V7 资金池', 'st.pools.d': 'Latheon 测试链上的当前一代（电路 withdraw_v5），使用其原生币测试 LTH。该链上较旧的 V5/V6 资金池，以及 Ethereum Sepolia、Arbitrum Sepolia 和 Robinhood Chain Testnet 上的 V5 资金池已在我们的界面中冻结存款（合约本身仍接受存款，请勿存入），仅保留用于取款。', 'st.path.t': '无需存款即可取款（V7 之前）', 'st.path.d': '在 V7 之前的所有电路中，默克尔路径中的一个值没有被限制为 0 或 1，因此精心构造的证明可以在没有任何存款的情况下从资金池取款。由内部审查发现，并在本地用测试代币复现；未涉及真实资金。已在 V7（withdraw_v5）中修复；旧资金池已冻结存款。',
       'st.router.t': '分配路由合约：任意金额，一笔交易', 'st.router.d': '把金额拆分为 100 / 50 / 10 / 1 的票据并在一笔交易中存入；<code>withdrawMany</code> 可在一笔交易中提取多张票据。无所有者、无手续费、不持有资金。已用真实证明手动验证；当前路由合约为我们测试链上的 V7，三个外部测试网上的路由合约已弃用。尚无独立审查。它付给同一个地址，因此方便但不隐私。',
       'st.bind.t': '接收地址与证明绑定', 'st.bind.d': '接收地址是取款证明的一部分，传输途中无法被替换。',
       'st.tree.t': '链上 Merkle 树', 'st.tree.d': '每次存款时由合约更新。每个 V7 资金池最多可容纳 1,048,576 笔存款（旧 V5 资金池为 256 笔）。',
@@ -671,12 +671,12 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': '匿名集很小', 'st.anon.d': '资金池中主要是我们自己的测试存款。',
       'st.bridge.t': '跨链桥隐私', 'st.bridge.d': '在 L1 和 L2 之间转移资金目前还不具备隐私。',
       'st.meta.t': '元数据公开', 'st.meta.d': '每笔交易的时间和 Gas 对所有人可见。',
-      'pools.eyebrow': '已部署', 'pools.h2': '在我们自己的测试链上运行', 'pools.n1': 'V7 资金池（当前）', 'pools.n2': '我们的测试链', 'pools.n3': '代币：LTH、USDG',
+      'pools.eyebrow': '已部署', 'pools.h2': '在我们自己的测试链上运行', 'pools.n1': 'V7 资金池（当前）', 'pools.n2': '我们的测试链', 'pools.n3': '代币：测试 LTH',
       'pools.n4': '已弃用的测试网', 'pools.router': '路由',
       'pools.honest': '<strong>坦诚说明：</strong>资金池中主要是我们自己的测试存款，因此您所隐藏其中的人群几乎是空的。机制可用且可在链上验证；真正的隐私需要真实用户。',
-      'pools.gasNote': '关于 Gas 的坦诚说明：各网络的 Gas 消耗量不同，且会随时间变化。我们在 V5 上最近一次链上取款的单次数据：Ethereum Sepolia 419,919 · Arbitrum Sepolia 276,769 · Robinhood Chain 297,197（LTH）和 306,346（USDG）。我们暂时无法解释 Ethereum 的数值，因此不声称 L2 的 Gas 消耗量高于或低于 L1；费用取决于 Gas 价格。计划进行受控重测。',
+      'pools.gasNote': '关于 Gas 的坦诚说明：在我们的测试链上使用 V7 实测（2026 年 10 月 27 日），通过路由存入 2 个凭证的执行 Gas 为 1,749,602，总计 12,219,550；带中继费取出这两个凭证为 625,896 和 35,912,159。总量的大部分是向父链（Arbitrum Sepolia）发布数据的费用，取决于该链而非我们的合约。详见 STATUS.md。',
       'pools.show': '显示合约地址', 'pools.hide': '隐藏合约地址', 'pools.copy': '复制', 'pools.view': '查看 ↗', 'pools.copied': '已复制 {what}',
-      'pools.legacy': '<strong>安全说明：</strong>一次内部审查发现所有 V7 之前的电路存在缺陷——精心构造的证明可在未存款的情况下取款。我们已通过测试确认并修复；当前资金池为 V7（<code>withdraw_v5</code>）。较旧的资金池（V3–V6 以及三个外部测试网上的资金池）已冻结存款，仅保留用于取出已有凭证。仅测试网——真实资金从未面临风险。详见 STATUS.md 和 THREAT-MODEL.md。',
+      'pools.legacy': '<strong>安全说明：</strong>一次内部审查发现所有 V7 之前的电路存在缺陷——精心构造的证明可在未存款的情况下取款。我们已通过测试确认并修复；当前资金池为 V7（<code>withdraw_v5</code>）。较旧的资金池（V3–V6 以及三个外部测试网上的资金池）已在我们的界面中冻结存款（合约本身仍接受存款，请勿存入），仅保留用于取出已有凭证。仅测试网——真实资金从未面临风险。详见 STATUS.md 和 THREAT-MODEL.md。',
       'final.h2': '在测试网上试试。', 'final.demo': '打开实时演示', 'final.code': '阅读代码',
       'footer.text': 'Latheon · 个人项目，借助 AI 辅助开发构建'
     }

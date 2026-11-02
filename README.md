@@ -84,6 +84,10 @@ docs/        technical documentation, see docs/README.md
 - `node test/demo-e2e/rpc-robust.js`: the demo's log scanning against fake endpoints modelled on real ones (whole range in one request, range caps, rate limits, pruned nodes, an endpoint that is down), and that the reference app carries the same code (13 checks, no network, no packages).
 - `node test/demo-e2e/landing-e2e.js`: the website's live deposit counters (9 checks, Playwright).
 - `test/demo-e2e`: browser tests of the demo on local chains (reference scripts; see its README).
+- `cd test/native-v7 && npm install && npm test`: the V7 pools and router with real `withdraw_v5` proofs, including a check that the pre-V7 forgery can no longer be proven (71 checks in the internal review of 1–2 November 2026).
+- `DEMO=demo node test/demo-e2e/disclosure-e2e.js`: the disclosure report for an accountant or auditor in a real browser (one V7 chain, the real disclosure verifier): building it, the auditor's check, tampering, repeated notes, network errors, CSV.
+- `cd test/zk-review && npm install && npm test`: the internal review of the circuits (not an audit): forgery reproduced on every pre-V7 circuit, `withdraw_v5` negative and positive cases, artifact consistency; a few steps need a circom 2.2.3 binary (`CIRCOM=…`).
+- `cd test/fuzz-v7 && npm install && npm test`: random sequences of deposits and withdrawals against the V7 contracts with invariants; run it on anvil (ganache can drop a mined block under this load and report a false failure).
 - Remix unit tests for V3/V4 are in `test/` (open them in Remix; no local setup).
 - `tools/zk-toolkit.html` (serve it over `http://`, not `file://`) runs trusted setup and proof generation in the browser. Circuit sources are in `circuits/` and can be tried at [zkrepl.dev](https://zkrepl.dev).
 - V3 contracts and the four distribution routers are verified on Sourcify; check the explorer for the status of each V5 contract.

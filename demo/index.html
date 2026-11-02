@@ -418,8 +418,8 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
       <div class="nonce-out"><button id="genNonceBtn" class="secondary small" disabled>Generate code</button><code id="nonceOut" hidden></code><button id="copyNonceBtn" class="secondary small" data-i18n="btn.copy" hidden>Copy</button></div>
     </div>
     <div class="a-step">
-      <h4><span class="n">2</span><span data-i18n="au.s2">Paste what they sent you</span></h4>
-      <textarea id="auditBlockInput" placeholder='{ "pA": [...], "pB": [...], "pC": [...], "pubSignals": [...], "chainId": ... }' spellcheck="false" style="min-height:120px"></textarea>
+      <h4><span class="n">2</span><span data-i18n="au.s2" id="auditBlockLabel">Paste what they sent you</span></h4>
+      <textarea id="auditBlockInput" aria-labelledby="auditBlockLabel" placeholder='{ "pA": [...], "pB": [...], "pC": [...], "pubSignals": [...], "chainId": ... }' spellcheck="false" style="min-height:120px"></textarea>
       <div class="file-row"><label for="auditFile" data-i18n="au.file">or a report file</label><input type="file" id="auditFile" accept=".json,application/json"></div>
       <button id="auditVerifyBtn" data-i18n="btn.verify" disabled>Verify</button>
       <ul class="steps" id="auSteps" aria-live="polite"></ul>
@@ -548,6 +548,10 @@ const I18N = {
     'au.rpPass': 'Every note in the report is valid, made for your code and found on chain.', 'au.rpFail': 'Some notes did not pass (marked ✗). Do not accept them.',
     'au.rpNoCode': 'Every proof is valid and every deposit exists, but not checked against a code you issued: no code was generated on this page in this session. Only accept it if {code} is the code you gave.',
     'au.rpKeysNote': 'The depositor added the keys of withdrawn notes: the recipient, relayer and fee of those withdrawals are shown. These keys are not tied to your code.',
+    'au.rpDup': 'The report repeats a note (marked “repeat”). Repeats are not counted. Do not accept this report; ask for a new one.', 'au.dup': 'repeat',
+    'au.rpNet': 'Some checks could not be made because the network did not answer (marked ?). This is not a verdict on the notes. Check again.', 'au.retry': 'Check again',
+    'au.keyErr': 'could not check (network)', 'au.claimed': 'claimed {v}, not verified', 'au.frozen': 'frozen pre-V7 pool, forgeable (STATUS §7)',
+    'rp.okKeysSkip': 'Keys not added for {s} notes marked withdrawn: their withdrawal event could not be found, so it was not confirmed twice.',
     'au.rpCsv': 'Download CSV', 'au.yes': 'yes', 'au.no': 'no', 'au.unknown': '—', 'au.notShown': 'not disclosed', 'au.keyBad': 'keys do not match',
     'au.errReport': 'Not a valid report file.',
     'log.summary': 'Technical log',
@@ -712,6 +716,10 @@ const I18N = {
     'au.rpPass': 'Все ноты отчёта верны, сделаны для вашего кода и найдены в сети.', 'au.rpFail': 'Часть нот не прошла проверку (отмечены ✗). Не принимайте их.',
     'au.rpNoCode': 'Все доказательства верны и все депозиты существуют, но не сверены с выданным вами кодом: на этой странице в этой сессии код не создавался. Принимайте, только если {code} — код, который вы дали.',
     'au.rpKeysNote': 'Вкладчик добавил ключи выведенных нот: показаны получатель, релейер и комиссия этих выводов. Эти ключи не привязаны к вашему коду.',
+    'au.rpDup': 'В отчёте повторяется нота (отмечено «повтор»). Повторы не засчитаны. Не принимайте этот отчёт, попросите новый.', 'au.dup': 'повтор',
+    'au.rpNet': 'Часть проверок не удалась: сеть не ответила (отмечено ?). Это не вывод о нотах. Проверьте ещё раз.', 'au.retry': 'Проверить ещё раз',
+    'au.keyErr': 'не проверено (сеть)', 'au.claimed': 'заявлено: {v}, не проверено', 'au.frozen': 'замороженный пул до V7, подделываемый (STATUS §7)',
+    'rp.okKeysSkip': 'Ключи не добавлены для {s} нот, отмеченных выведенными: событие вывода не найдено, второго подтверждения нет.',
     'au.rpCsv': 'Скачать CSV', 'au.yes': 'да', 'au.no': 'нет', 'au.unknown': '—', 'au.notShown': 'не раскрыто', 'au.keyBad': 'ключи не совпадают',
     'au.errReport': 'Это не файл отчёта.',
     'log.summary': 'Технический журнал',
@@ -876,6 +884,10 @@ const I18N = {
     'au.rpPass': '报告中的每个凭证都有效、为您的代码生成，且在链上找到。', 'au.rpFail': '部分凭证未通过（标记 ✗）。请勿接受。',
     'au.rpNoCode': '所有证明有效且所有存款存在，但未与您签发的代码核对：本次会话中未在此页面生成代码。仅当 {code} 是您给出的代码时才接受。',
     'au.rpKeysNote': '存款人加入了已取出凭证的密钥：显示了这些取款的收款人、中继和手续费。这些密钥不绑定您的代码。',
+    'au.rpDup': '报告中有重复的凭证（标记为“重复”）。重复项不计入。请勿接受此报告，请要求重新生成。', 'au.dup': '重复',
+    'au.rpNet': '部分检查因网络无响应而未完成（标记 ?）。这不是对凭证的结论。请再检查一次。', 'au.retry': '再检查一次',
+    'au.keyErr': '未能检查（网络）', 'au.claimed': '声称：{v}，未验证', 'au.frozen': '已冻结的 V7 前资金池，可被伪造（STATUS §7）',
+    'rp.okKeysSkip': '{s} 个标记为已取出的凭证未加入密钥：未找到其取出事件，未获得第二次确认。',
     'au.rpCsv': '下载 CSV', 'au.yes': '是', 'au.no': '否', 'au.unknown': '—', 'au.notShown': '未披露', 'au.keyBad': '密钥不匹配',
     'au.errReport': '不是有效的报告文件。',
     'log.summary': '技术日志',
@@ -1562,6 +1574,12 @@ async function mapLimit(items, limit, fn) {
   return out;
 }
 // rpc-robust:end
+// A deposit's gas depends on which tree slots it writes, and another deposit landing first can change that: send with
+// 30 % over the estimate (measured on a local chain, docs/loadtest-2026-10-31-throughput.md). Only the gas used is paid.
+async function sendWithGasMargin(contract, method, args, overrides) {
+  const est = await contract[method].estimateGas(...args, overrides || {});
+  return contract[method](...args, Object.assign({}, overrides, { gasLimit: est * 13n / 10n }));
+}
 
 // ---------- deposit scan, cached per (chain, contract) ----------
 const CACHE_PREFIX = 'latheon-cache-v5-';
@@ -1774,7 +1792,7 @@ $('depositBtn').addEventListener('click', async () => {
     }
     st.go(2, t('x.confirm'));
     log('Depositing…');
-    const tx = await new ethers.Contract(p.address, POOL_ABI[p.version], signer).deposit(commitment, p.native ? { value: p.denomination } : {});
+    const tx = await sendWithGasMargin(new ethers.Contract(p.address, POOL_ABI[p.version], signer), 'deposit', [commitment], p.native ? { value: p.denomination } : {});
     log('Deposit tx: ' + tx.hash);
     st.extra(2, t('x.block'));
     const rc = await tx.wait();
@@ -2067,7 +2085,7 @@ $('daDepositBtn').addEventListener('click', async () => {
       st.extra(1, '');
     }
     st.go(2, t('x.confirm'));
-    const tx = await new ethers.Contract(router.address, ROUTER_ABI, signer).deposit(plan.amount, commitments, native ? { value: plan.amount } : {});
+    const tx = await sendWithGasMargin(new ethers.Contract(router.address, ROUTER_ABI, signer), 'deposit', [plan.amount, commitments], native ? { value: plan.amount } : {});
     log('Router deposit tx: ' + tx.hash); st.extra(2, t('x.block'));
     const rc = await tx.wait(); st.extra(2, '');
     log('Router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
@@ -2389,6 +2407,7 @@ $('reportBtn').addEventListener('click', async () => {
     if (!/^\d+$/.test(nonceText)) throw new Error(t('err.nonce'));
     const auditorNonce = BigInt(nonceText), withKeys = $('reportKeys').checked;
     st.go(0);
+    depositMaps.clear();   // each report scans blocks added since the last one (the scan cache is incremental)
     const notes = await reportNotes($('reportInput').value);
     const net = notes[0].pool.net, rp = readProvider(net);
     for (const n of notes) {
@@ -2397,6 +2416,15 @@ $('reportBtn').addEventListener('click', async () => {
       n.leafIndex = d.leafIndex; n.timestamp = d.timestamp;
     }
     await mapLimit(notes, 4, (n) => withRetry(() => new ethers.Contract(n.pool.address, POOL_ABI[n.pool.version], rp).nullifierHashes(computeNullifierHash(n.spendKey)), 'checking whether a note is spent').then((x) => { n.spent = !!x; }));
+    // Keys of a withdrawn note go into the file only when two signals agree: the pool's nullifier flag and a Withdrawal
+    // event with that nullifier. A wrong answer here would put the keys of an unspent note, i.e. the money, in the file.
+    if (withKeys) {
+      const wm = new Map();
+      for (const n of notes.filter((x) => x.spent)) {
+        try { if (!wm.has(n.pool.id)) wm.set(n.pool.id, await withdrawalMap(n.pool)); n.wdConfirmed = wm.get(n.pool.id).has(computeNullifierHash(n.spendKey)); }
+        catch (e) { n.wdConfirmed = false; log('Withdrawal scan failed, keys not added: ' + errText(e)); }
+      }
+    }
     st.go(1);
     const circ = await loadCircuit('disclose'), t0 = performance.now();
     for (let i = 0; i < notes.length; i++) {
@@ -2416,13 +2444,14 @@ $('reportBtn').addEventListener('click', async () => {
     st.done();
     const items = notes.sort((a, b) => a.timestamp - b.timestamp || a.leafIndex - b.leafIndex).map((n) => {
       const it = { pool: n.pool.address, version: n.pool.version, token: n.pool.token, amount: n.pool.amount, commitment: n.commitment.toString(), leafIndex: n.leafIndex, depositTime: n.timestamp, withdrawn: n.spent, proof: n.proof };
-      if (withKeys && n.spent) it.keys = { spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() };   // only withdrawn notes (checked on chain above)
+      if (withKeys && n.spent && n.wdConfirmed) it.keys = { spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() };   // only withdrawn notes, confirmed twice above
       return it;
     });
     const report = { type: REPORT_TYPE, version: 1, created: new Date().toISOString(), network: net.name, chainId: net.chainId, verifierAddress: net.discloseVerifier,
       auditorNonce: auditorNonce.toString(), items, totals: { notes: items.length, deposited: sumsText(items), withdrawn: items.filter((x) => x.withdrawn).length } };
     const text = JSON.stringify(report, null, 1), keyed = items.filter((x) => x.keys).length, unspent = items.filter((x) => !x.withdrawn).length;
-    setStatus('reportStatus', t('rp.ok', { n: items.length, total: report.totals.deposited }) + (withKeys ? ' ' + t('rp.okKeys', { k: keyed, u: unspent }) : ''), 'ok');
+    const skipped = withKeys ? notes.filter((n) => n.spent && !n.wdConfirmed).length : 0;
+    setStatus('reportStatus', t('rp.ok', { n: items.length, total: report.totals.deposited }) + (withKeys ? ' ' + t('rp.okKeys', { k: keyed, u: unspent }) : '') + (skipped ? ' ' + t('rp.okKeysSkip', { s: skipped }) : ''), skipped ? 'warn' : 'ok');
     $('reportResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('rp.boxTitle')) + '</strong><div class="muted small" style="margin-top:4px">' + esc(t('rp.boxSub')) + '</div>' +
       '<div class="rep-actions"><button id="reportDlBtn" class="small">' + esc(t('rp.download')) + '</button><button id="reportCopyBtn" class="secondary small">' + esc(t('btn.copy')) + '</button></div></div>';
     const fname = 'latheon-disclosure-' + net.chainId + '-' + report.created.slice(0, 10) + '.json';
@@ -2437,74 +2466,103 @@ $('reportBtn').addEventListener('click', async () => {
 // pool it names; where keys are given, they must match the commitment, the note must be withdrawn on chain, and the
 // withdrawal (recipient, relayer, fee) is read from the pool's Withdrawal event.
 async function verifyReport(b) {
-  const res = $('auditResult'), box = $('auditReport');
+  const box = $('auditReport');
   if (!b || b.version !== 1 || !Array.isArray(b.items) || !b.items.length || b.items.length > REPORT_MAX || !/^\d+$/.test(String(b.auditorNonce))) throw new Error(t('au.errReport'));
   const net = Object.values(CONFIG.networks).find((n) => n.chainId === Number(b.chainId));
   if (!net) throw new Error(t('au.errNet', { id: b.chainId, list: Object.values(CONFIG.networks).map((n) => n.name).join(', ') }));
   const st = Steps('auSteps', ['au.st1', 'au.st2', 'au.st3']); st.go(0);
+  depositMaps.clear();   // a deposit made after this tab was opened must still be found
   const rp = readProvider(net), nonce = BigInt(b.auditorNonce), verifier = new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, rp);
-  const rows = b.items.map((x) => ({ x, pool: (ethers.isAddress(String(x.pool)) && findPool(net.chainId, String(x.pool))) || null }));
+  const rows = b.items.map((x) => ({ x: x || {}, pool: (x && ethers.isAddress(String(x.pool)) && findPool(net.chainId, String(x.pool))) || null }));
   st.go(1);
+  // valid: true / false / null (the network did not answer: no verdict)
   await mapLimit(rows, 4, async (r) => {
-    const x = r.x, p = x.proof || {};
+    const p = r.x.proof || {};
     if (!Array.isArray(p.pA) || !Array.isArray(p.pB) || !Array.isArray(p.pC) || !Array.isArray(p.pubSignals) || p.pubSignals.length !== 3) { r.valid = false; return; }
-    r.valid = await withRetry(() => verifier.verifyProof(p.pA, p.pB, p.pC, p.pubSignals), 'verifying a disclosure').catch(() => false);
-    r.commitment = BigInt(p.pubSignals[0]); r.nonce = BigInt(p.pubSignals[2]);
-    if (String(r.commitment) !== String(x.commitment)) r.valid = false;
+    try { r.commitment = BigInt(p.pubSignals[0]); r.nonce = BigInt(p.pubSignals[2]); } catch (e) { r.valid = false; return; }
+    try { r.valid = !!(await withRetry(() => verifier.verifyProof(p.pA, p.pB, p.pC, p.pubSignals), 'verifying a disclosure')); }
+    catch (e) { if (['CALL_EXCEPTION', 'INVALID_ARGUMENT', 'BAD_DATA'].includes(e && e.code)) r.valid = false; else { r.valid = null; r.netErr = true; } }
+    if (String(r.commitment) !== String(r.x.commitment)) r.valid = false;
   });
+  // The same note twice proves nothing new: only its first row counts.
+  const seen = new Set();
+  for (const r of rows) { if (r.commitment == null) continue; const k = r.commitment.toString(); if (seen.has(k)) r.dup = true; else seen.add(k); }
   st.go(2);
   for (const r of rows) {
-    if (!r.pool || r.commitment == null) continue;
-    const d = (await depositMap(r.pool)).get(r.commitment);
-    if (d) { r.found = true; r.timestamp = d.timestamp; }
+    if (!r.pool || r.commitment == null || r.dup) continue;
+    try { const d = (await depositMap(r.pool)).get(r.commitment); r.found = !!d; if (d) r.timestamp = d.timestamp; }
+    catch (e) { r.found = null; r.netErr = true; }
   }
-  const keyed = rows.filter((r) => r.x.keys && r.pool && r.found);
+  const keyed = rows.filter((r) => r.x.keys && r.pool && r.found && !r.dup);
   const wmaps = new Map();
   for (const r of keyed) {
+    let sk, vk;
+    try { sk = BigInt(r.x.keys.spendKey); vk = BigInt(r.x.keys.viewKey); } catch (e) { r.keyBad = true; continue; }
+    if (computeCommitment(sk, vk) !== r.commitment) { r.keyBad = true; continue; }
     try {
-      const sk = BigInt(r.x.keys.spendKey), vk = BigInt(r.x.keys.viewKey);
-      if (computeCommitment(sk, vk) !== r.commitment) { r.keyBad = true; continue; }
       const nh = computeNullifierHash(sk);
-      r.spentOnChain = await withRetry(() => new ethers.Contract(r.pool.address, POOL_ABI[r.pool.version], rp).nullifierHashes(nh), 'checking a nullifier');
+      r.spentOnChain = !!(await withRetry(() => new ethers.Contract(r.pool.address, POOL_ABI[r.pool.version], rp).nullifierHashes(nh), 'checking a nullifier'));
       if (!wmaps.has(r.pool.id)) wmaps.set(r.pool.id, await withdrawalMap(r.pool));
       r.wd = wmaps.get(r.pool.id).get(nh) || null;
-    } catch (e) { r.keyBad = true; }
+    } catch (e) { r.keyErr = true; r.netErr = true; }
   }
   st.done();
   const codeOk = (r) => issuedNonce != null ? r.nonce === issuedNonce : r.nonce === nonce;
-  const good = rows.filter((r) => r.valid && r.found && r.nonce === nonce);
+  const good = rows.filter((r) => r.valid === true && r.found === true && r.nonce === nonce && !r.dup && r.pool);
   const cols = t('au.rpCols').split('|');
   const cell = (cls, html) => '<td class="' + cls + '">' + html + '</td>';
+  const mark = (v) => v === true ? ['ok', '✓'] : v === false ? ['no', '✗'] : ['warn', '?'];
   const yes = esc(t('au.yes')), no = esc(t('au.no'));
+  const gen = (pool) => String(pool.version || '').toUpperCase();
+  const poolLabel = (pool) => pool.label + (/^V\d/.test(pool.label) ? '' : ' (' + gen(pool) + ')');
+  const wdText = (r) => r.x.keys ? (r.keyBad ? t('au.keyBad') : r.keyErr ? t('au.keyErr') : null) : t('au.claimed', { v: r.x.withdrawn ? t('au.yes') : t('au.no') });
   const body = rows.map((r, i) => {
-    const pool = r.pool, dec = pool ? pool.decimals : 18, wdKnown = r.wd && !r.keyBad;
-    return '<tr>' + cell('', i + 1) + cell(pool ? '' : 'no', esc(pool ? pool.label : short(String(r.x.pool)))) + cell('', esc(pool ? pool.amount + ' ' + pool.token : '?')) +
-      cell('', esc(utc(r.timestamp))) + cell(r.valid ? 'ok' : 'no', r.valid ? '✓' : '✗') + cell(codeOk(r) ? (issuedNonce != null ? 'ok' : 'warn') : 'no', codeOk(r) ? (issuedNonce != null ? '✓' : '?') : '✗') +
-      cell(r.found ? 'ok' : 'no', r.found ? '✓' : '✗') +
-      cell('', r.x.keys ? (r.keyBad ? esc(t('au.keyBad')) : (r.spentOnChain ? yes : no)) : esc(r.x.withdrawn ? t('au.yes') : t('au.no')) + ' <small>(' + esc(t('au.notShown')) + ')</small>') +
+    const pool = r.pool, dec = pool ? pool.decimals : 18, wdKnown = r.wd && !r.keyBad && !r.keyErr;
+    const [vc, vs] = mark(r.valid), [fc, fs] = r.dup ? ['no', '✗'] : mark(r.found);
+    const wdCell = r.dup ? esc(t('au.dup')) : r.x.keys && !r.keyBad && !r.keyErr ? (r.spentOnChain ? yes : no) : '<small>' + esc(wdText(r)) + '</small>';
+    return '<tr>' + cell('', i + 1) +
+      cell(pool ? (pool.frozen ? 'warn' : '') : 'no', pool ? esc(poolLabel(pool)) + (pool.frozen ? '<br><small>' + esc(t('au.frozen')) + '</small>' : '') : esc(t('au.unknown'))) +
+      cell('', esc(pool ? pool.amount + ' ' + pool.token : '?')) +
+      cell('', esc(utc(r.timestamp))) + cell(vc, vs) + cell(codeOk(r) ? (issuedNonce != null ? 'ok' : 'warn') : 'no', codeOk(r) ? (issuedNonce != null ? '✓' : '?') : '✗') +
+      cell(fc, fs) + cell(r.dup ? 'no' : '', wdCell) +
       cell('', wdKnown ? '<code>' + esc(short(r.wd.to)) + '</code>' : esc(t('au.unknown'))) +
       cell('', wdKnown ? (r.wd.relayer && r.wd.relayer !== ethers.ZeroAddress ? '<code>' + esc(short(r.wd.relayer)) + '</code> · ' + esc(fmtUnits(r.wd.fee, dec)) : '—') : esc(t('au.unknown'))) +
       cell('', wdKnown ? '<a href="' + esc(net.explorerUrl + '/tx/' + r.wd.txHash) + '" target="_blank" rel="noopener">' + esc(utc(r.wd.timestamp) || t('note.tx')) + '</a>' : esc(t('au.unknown'))) + '</tr>';
   }).join('');
-  const withdrawnShown = rows.filter((r) => r.wd && !r.keyBad && r.valid && r.found);
+  const withdrawnShown = good.filter((r) => r.wd && !r.keyBad && !r.keyErr);
+  const otherVerifier = b.verifierAddress && String(b.verifierAddress).toLowerCase() !== net.discloseVerifier.toLowerCase();
+  const dups = rows.filter((r) => r.dup).length, netErrs = rows.filter((r) => r.netErr).length;
   box.innerHTML = '<h4 style="margin-top:14px">' + esc(t('au.rpTitle', { n: rows.length, net: net.name })) + '</h4>' +
     '<div class="rep-wrap"><table class="rep"><thead><tr>' + cols.map((c) => '<th>' + esc(c) + '</th>').join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
     '<p class="muted small" style="margin-top:8px">' + esc(t('au.rpTotal', { ok: good.length, n: rows.length, total: sumsText(good.map((r) => ({ amount: r.pool.amount, token: r.pool.token }))) })) +
     (withdrawnShown.length ? ' ' + esc(t('au.rpWithdrawn', { k: withdrawnShown.length, total: sumsText(withdrawnShown.map((r) => ({ amount: r.pool.amount, token: r.pool.token }))) })) : '') + '</p>' +
+    (otherVerifier ? '<div class="status warn">' + esc(t('au.otherVerifier')) + ' ' + esc(String(b.verifierAddress)) + '</div>' : '') +
     (keyed.length ? '<div class="status warn">' + esc(t('au.rpKeysNote')) + '</div>' : '') +
-    '<div class="rep-actions"><button id="auditCsvBtn" class="secondary small">' + esc(t('au.rpCsv')) + '</button></div>';
-  const csvRows = [['n', 'network', 'pool', 'token', 'amount', 'commitment', 'deposit_utc', 'proof_valid', 'code_matches', 'found_on_chain', 'withdrawn', 'recipient', 'relayer', 'fee', 'withdrawal_tx', 'withdrawal_utc']]
-    .concat(rows.map((r, i) => [i + 1, net.name, r.pool ? r.pool.address : String(r.x.pool), r.pool ? r.pool.token : '', r.pool ? r.pool.amount : '', String(r.x.commitment), utc(r.timestamp),
-      !!r.valid, codeOk(r), !!r.found, r.x.keys ? (r.keyBad ? 'keys do not match' : !!r.spentOnChain) : 'not disclosed',
-      r.wd && !r.keyBad ? r.wd.to : '', r.wd && !r.keyBad && r.wd.relayer ? r.wd.relayer : '', r.wd && !r.keyBad ? fmtUnits(r.wd.fee, r.pool ? r.pool.decimals : 18) : '', r.wd && !r.keyBad ? r.wd.txHash : '', r.wd && !r.keyBad ? utc(r.wd.timestamp) : '']));
-  const csv = csvRows.map((row) => row.map((v) => { const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\n') + '\n';
+    '<div class="rep-actions"><button id="auditCsvBtn" class="secondary small">' + esc(t('au.rpCsv')) + '</button>' +
+    (netErrs ? '<button id="auditRetryBtn" class="small">' + esc(t('au.retry')) + '</button>' : '') + '</div>';
+  // CSV: only values this page checked or took from its own config; a cell a spreadsheet would read as a formula is quoted.
+  const csvRows = [['n', 'network', 'pool', 'generation', 'pool_frozen', 'token', 'amount', 'commitment', 'deposit_utc', 'proof_valid', 'code_matches', 'found_on_chain', 'repeat', 'withdrawn', 'recipient', 'relayer', 'fee', 'withdrawal_tx', 'withdrawal_utc']]
+    .concat(rows.map((r, i) => {
+      const wdKnown = r.wd && !r.keyBad && !r.keyErr, tri = (v) => v === true ? 'true' : v === false ? 'false' : 'not checked (network)';
+      return [i + 1, net.name, r.pool ? r.pool.address : '', r.pool ? gen(r.pool) : '', r.pool ? !!r.pool.frozen : '', r.pool ? r.pool.token : '', r.pool ? r.pool.amount : '',
+        r.commitment != null ? r.commitment.toString() : '', utc(r.timestamp), tri(r.valid), codeOk(r), r.dup ? 'false' : tri(r.found), !!r.dup,
+        r.x.keys ? (r.keyBad ? 'keys do not match' : r.keyErr ? 'not checked (network)' : !!r.spentOnChain) : 'claimed ' + (r.x.withdrawn ? 'yes' : 'no') + ', not verified',
+        wdKnown ? r.wd.to : '', wdKnown && r.wd.relayer ? r.wd.relayer : '', wdKnown ? fmtUnits(r.wd.fee, r.pool ? r.pool.decimals : 18) : '', wdKnown ? r.wd.txHash : '', wdKnown ? utc(r.wd.timestamp) : ''];
+    }));
+  const csvCell = (v) => { let s = String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const csv = csvRows.map((row) => row.map(csvCell).join(',')).join('\n') + '\n';
   $('auditCsvBtn').addEventListener('click', () => downloadFile('latheon-disclosure-check-' + net.chainId + '.csv', csv, 'text/csv'));
+  if (netErrs) $('auditRetryBtn').addEventListener('click', () => $('auditVerifyBtn').click());
   window.__latheonLastCsv = csv;   // for the browser tests
+  const failed = rows.some((r) => r.valid === false || r.found === false || !r.pool || r.keyBad || (r.nonce != null && !codeOk(r)));
   const allGood = good.length === rows.length;
-  if (allGood && issuedNonce != null && nonce === issuedNonce) setStatus('auditStatus', t('au.rpPass'), 'ok');
+  if (dups) setStatus('auditStatus', t('au.rpDup'), 'err');
+  else if (failed) setStatus('auditStatus', t('au.rpFail'), 'err');
+  else if (netErrs) setStatus('auditStatus', t('au.rpNet'), 'warn');
+  else if (allGood && issuedNonce != null && nonce === issuedNonce) setStatus('auditStatus', t('au.rpPass'), 'ok');
   else if (allGood && issuedNonce == null) setStatus('auditStatus', t('au.rpNoCode', { code: nonce.toString() }), 'info');
   else setStatus('auditStatus', t('au.rpFail'), 'err');
-  log('Auditor report check: ' + good.length + ' of ' + rows.length + ' notes valid' + (keyed.length ? ', keys for ' + keyed.length : ''));
+  log('Auditor report check: ' + good.length + ' of ' + rows.length + ' notes valid' + (keyed.length ? ', keys for ' + keyed.length : '') + (dups ? ', ' + dups + ' repeated' : '') + (netErrs ? ', ' + netErrs + ' not checked (network)' : ''));
 }
 $('auditFile').addEventListener('change', async (e) => { const f = e.target.files[0]; if (!f) return; $('auditBlockInput').value = await f.text(); });
 

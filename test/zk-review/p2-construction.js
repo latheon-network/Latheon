@@ -169,8 +169,8 @@ contract Probe { function h(uint256 a, uint256 b) external pure returns (uint256
       t.rec(`${name}: zkey records ${nC} phase-2 contribution(s): ${names.join(', ')}; last recorded delta = the key's delta_1`,
         nC >= 1 && d1[0] === String(hdr.vk_delta_1[0]) && d1[1] === String(hdr.vk_delta_1[1]));
     }
-    t.rec('no phase-1 ptau in the repository (snarkjs zkey verify cannot be run from the repo alone)',
-      !require('child_process').execFileSync('git', ['-C', ROOT, 'ls-files'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().split('\n').some((f) => f.endsWith('.ptau')));
+    t.rec('the phase-1 ptau is in the repository (circuits/ptau/pot14_final.ptau), so snarkjs zkey verify can be run from the repo',
+      require('child_process').execFileSync('git', ['-C', ROOT, 'ls-files'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().split('\n').some((f) => f === 'circuits/ptau/pot14_final.ptau'));
   } finally { ch.close(); }
 
   const fails = t.done();

@@ -5,6 +5,7 @@
 const fs = require('fs'), path = require('path'), R = path.resolve(__dirname, '..', '..');
 let chromium; try { ({ chromium } = require('playwright')); } catch (e) { ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/usr/lib/node_modules/playwright')); }
 const cfg = JSON.parse(fs.readFileSync(R + '/demo/deployments.json', 'utf8'));
+const { cspLanding } = require('../../tools/make-headers.js');
 const nextIdx = {}; cfg.pools.filter(p => p.version === 'v5' || p.version === 'v5-native' || p.version === 'v6-native' || p.version === 'v7-native').forEach((p, i) => nextIdx[p.address.toLowerCase()] = i % 4);
 (async () => {
   const results = []; const rec = (n, ok, note) => { results.push(ok); console.log((ok ? 'PASS ' : 'FAIL ') + n + (note ? '   [' + note + ']' : '')); };
@@ -14,7 +15,7 @@ const nextIdx = {}; cfg.pools.filter(p => p.version === 'v5' || p.version === 'v
     const seen = { explorer: 0 };
     await page.route('**/*', async (route) => {
       const u = route.request().url();
-      if (u === 'https://latheon.test/') return route.fulfill({ status: 200, contentType: 'text/html', body: fs.readFileSync(R + '/site/index.html', 'utf8') });
+      if (u === 'https://latheon.test/') { const html = fs.readFileSync(R + '/site/index.html', 'utf8'); return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'content-security-policy': cspLanding(html, cfg) }, body: html }); }   // served with the CSP of site/_headers
       if (u === 'https://latheon.test/demo/deployments.json') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cfg) });
       if (u.startsWith('https://latheon.test/')) { const f = R + '/site/' + u.split('/').pop(); return fs.existsSync(f) ? route.fulfill({ status: 200, body: fs.readFileSync(f) }) : route.fulfill({ status: 404, body: '' }); }
       const net = Object.values(cfg.networks).find(n => u.replace(/\/$/, '') === n.rpcUrl.replace(/\/$/, ''));
