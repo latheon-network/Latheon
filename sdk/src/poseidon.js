@@ -1,60 +1,47 @@
-const circomlibjs = require("circomlibjs");
-const { LEVELS } = require("./constants");
+'use strict';
+/*
+ * Poseidon hashes exactly as the circuits and PoseidonT3.sol compute them (poseidon-lite, the same library the demo
+ * uses; its output equals circomlibjs's). Everything here is synchronous and takes/returns BigInt.
+ */
+const { poseidon2, poseidon4 } = require('poseidon-lite');
+const { randomBytes, hexlify } = require('ethers');
+const { FIELD_SIZE, levelsOf } = require('./constants');
 
-let poseidonInstance = null;
+/** Poseidon(a, b): PoseidonT3.hash([a, b]) on chain. */
+function hash2(a, b) { return poseidon2([BigInt(a), BigInt(b)]); }
+
+/** Poseidon over four inputs (master-key note derivation, sdk/distribution.js deriveNoteKeys). */
+function hash4(a, b, c, d) { return poseidon4([BigInt(a), BigInt(b), BigInt(c), BigInt(d)]); }
 
 /**
- * Poseidon(2) hasher, matching the exact hash used on-chain by PoseidonT3.sol
- * and by circuits/withdraw.circom. Lazily initialized — circomlibjs's
- * Poseidon build is async (it compiles a WASM circuit internally).
+ * Commitment of a note (V4 and later, including V7): Poseidon(Poseidon(spendKey, viewKey), 0).
+ * Matches circuits/withdraw_v5.circom (innerHasher, commitmentHasher).
  */
-async function getPoseidon() {
-  if (!poseidonInstance) {
-    poseidonInstance = await circomlibjs.buildPoseidon();
-  }
-  return poseidonInstance;
-}
+function computeCommitment(spendKey, viewKey) { return hash2(hash2(spendKey, viewKey), 0n); }
 
-/** Poseidon(a, b) -> BigInt, matching PoseidonT3.hash([a, b]) on-chain. */
-async function hash2(a, b) {
-  const poseidon = await getPoseidon();
-  return BigInt(poseidon.F.toString(poseidon([BigInt(a), BigInt(b)])));
-}
+/** Nullifier hash of a note: Poseidon(spendKey, 1). Recorded on chain when the note is spent. */
+function computeNullifierHash(spendKey) { return hash2(spendKey, 1n); }
+
+/** Disclosure tag: Poseidon(viewKey, auditorNonce), a public input of the disclose circuit. */
+function computeDisclosureTag(viewKey, auditorNonce) { return hash2(viewKey, auditorNonce); }
 
 /**
- * Commitment for a secret, matching circuits/withdraw.circom:
- *   commitmentHasher.inputs[0] <== secret;
- *   commitmentHasher.inputs[1] <== 0;
+ * The "empty subtree" cascade every pool uses for unfilled branches: zeros[0] = 0, zeros[i+1] = Poseidon(zeros[i], zeros[i]).
+ * @param {number|string} levels  tree depth (20 for V6/V7, 8 for V5) or a generation name ('v7')
+ * @returns {bigint[]} levels + 1 values; zeros[levels] is the root of an empty tree
  */
-async function computeCommitment(secret) {
-  return hash2(BigInt(secret), 0n);
-}
-
-/**
- * Nullifier hash for a secret, matching circuits/withdraw.circom:
- *   nullifierHasher.inputs[0] <== secret;
- *   nullifierHasher.inputs[1] <== 1;
- */
-async function computeNullifierHash(secret) {
-  return hash2(BigInt(secret), 1n);
-}
-
-/**
- * The "empty subtree" cascade used by LatheonShieldedPoolV3 for unfilled
- * branches: zeros[0] = 0, zeros[i+1] = Poseidon(zeros[i], zeros[i]).
- * Computed fresh here rather than hardcoded, for the same reason the
- * on-chain contract computes it in its constructor instead of using a
- * copied constant — verified independently against on-chain values in
- * this SDK's test suite.
- */
-async function computeZeroCascade(levels = LEVELS) {
+function computeZeroCascade(levels = 20) {
+  const depth = typeof levels === 'string' ? levelsOf(levels) : Number(levels);
   const zeros = [0n];
   let current = 0n;
-  for (let i = 0; i < levels; i++) {
-    current = await hash2(current, current);
-    zeros.push(current);
-  }
+  for (let i = 0; i < depth; i++) { current = hash2(current, current); zeros.push(current); }
   return zeros;
 }
 
-module.exports = { hash2, computeCommitment, computeNullifierHash, computeZeroCascade, getPoseidon };
+/** A random field element: a fresh spendKey, viewKey or master key. */
+function randomFieldElement() { return BigInt(hexlify(randomBytes(32))) % FIELD_SIZE; }
+
+/** True when x is a BigInt inside the field (what every key, hash and signal must be). */
+function isFieldElement(x) { return typeof x === 'bigint' && x >= 0n && x < FIELD_SIZE; }
+
+module.exports = { hash2, hash4, computeCommitment, computeNullifierHash, computeDisclosureTag, computeZeroCascade, randomFieldElement, isFieldElement };
