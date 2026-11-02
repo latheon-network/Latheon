@@ -278,6 +278,56 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 .x-founder .x-x { display: inline-flex; gap: 8px; align-items: center; margin-top: 6px; font: 500 14px 'IBM Plex Mono', monospace; color: var(--teal); text-decoration: none; }
 .x-founder .x-x:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) { .x-aurora, .x-piece { animation: none !important; } }
+
+/* ===== social links: X and Telegram more visible ===== */
+.x-soc { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; font: 500 12.5px 'IBM Plex Mono', monospace; color: var(--text-primary) !important; text-decoration: none; transition: border-color .2s, background .2s; white-space: nowrap; }
+.x-soc:hover { border-color: var(--teal); background: rgba(93,202,165,.08); }
+.x-soc i { font-style: normal; color: var(--teal); }
+@media (max-width: 900px) { .nav-links .x-soc { display: none; } }
+.x-community { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; max-width: 920px; margin: 0 auto; }
+@media (max-width: 760px) { .x-community { grid-template-columns: 1fr; } }
+.x-follow { display: flex; align-items: center; gap: 20px; padding: 26px 28px; text-decoration: none; color: var(--text-primary); }
+.x-follow:hover { border-color: var(--teal); }
+.x-follow .x-badge { flex-shrink: 0; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font: 600 20px 'IBM Plex Mono', monospace; color: var(--ink); }
+.x-follow.x-tw .x-badge { background: #7F77DD; }
+.x-follow.x-tw:hover { border-color: #7F77DD; }
+.x-follow.x-tw .x-h { color: #AFA9EC; }
+.x-soc.x-sx i { color: #AFA9EC; }
+.x-follow.x-tg .x-badge { background: var(--teal); font-size: 16px; }
+.x-follow b { display: block; font-size: 18px; font-weight: 600; }
+.x-follow .x-h { display: block; font: 500 14px 'IBM Plex Mono', monospace; color: var(--teal); margin: 2px 0 6px; }
+.x-follow small { display: block; font-size: 14px; color: var(--text-muted); }
+.x-follow .x-go { margin-left: auto; font-size: 22px; color: var(--text-muted); transition: transform .2s, color .2s; }
+.x-follow:hover .x-go { transform: translateX(4px); color: var(--teal); }
+.foot a[href*="x.com"], .foot a[href*="t.me"] { color: var(--text-primary); }
+
+/* ===== v25: test chain strip, latest updates, page links ===== */
+.x-strip { position: relative; z-index: 2; background: linear-gradient(90deg, rgba(127,119,221,.22), rgba(93,202,165,.18)); border-bottom: 1px solid rgba(93,202,165,.35); }
+.x-strip .wrap { display: flex; align-items: center; justify-content: center; gap: 10px 18px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; font-size: 14px; text-align: center; }
+.x-strip b { font-weight: 600; }
+.x-strip .x-live { display: inline-flex; align-items: center; gap: 8px; font: 12px 'IBM Plex Mono', monospace; letter-spacing: 1.5px; color: var(--teal); }
+.x-strip .x-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(93,202,165,.18); }
+.x-strip a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid rgba(242,239,233,.35); }
+.x-strip a:hover { border-color: var(--teal); }
+.x-strip .x-sep { color: var(--text-muted); }
+@media (max-width: 600px) { .x-strip .x-long { display: none; } }
+.nav-links .btn { white-space: nowrap; }
+@media (max-width: 480px) { .nav-links .btn-small { padding: 7px 12px; font-size: 12.5px; } .nav-links { gap: 10px; } }
+.x-news { list-style: none; max-width: 860px; margin: 0 auto; display: grid; gap: 0; border-left: 2px solid rgba(93,202,165,.35); padding-left: 26px; }
+.x-news li { position: relative; padding: 0 0 26px; }
+.x-news li::before { content: ''; position: absolute; left: -33px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(93,202,165,.15); }
+.x-news li.x-new::before { background: var(--gold); box-shadow: 0 0 0 4px rgba(246,197,90,.18); }
+.x-news time { display: block; font: 12.5px 'IBM Plex Mono', monospace; color: var(--teal); letter-spacing: .5px; }
+.x-news li.x-new time { color: var(--gold); }
+.x-news b { display: block; font-size: 17px; font-weight: 600; margin: 2px 0 4px; }
+.x-news p { color: var(--text-muted); font-size: 14.5px; }
+.x-news a { font-size: 14px; }
+.x-more { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.x-pages { border-top: 1px solid var(--border); }
+.x-pages .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-top: 18px; padding-bottom: 4px; font-size: 13px; }
+.x-pages a { color: var(--text-muted); text-decoration: none; }
+.x-pages a:hover { color: var(--text-primary); }
+.x-pages .x-soon { font: 10px 'IBM Plex Mono', monospace; color: var(--gold); border: 1px solid rgba(246,197,90,.45); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
 </style>
 <!-- x-begin -->
 <meta name="description" content="Latheon: a privacy protocol prototype on Ethereum-compatible testnets. Private by default, verifiable on demand.">
@@ -328,6 +378,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <a href="#how" class="hide-m" data-i18n="nav.how">How it works</a>
       <a href="#status" class="hide-m" data-i18n="nav.status">Status</a>
       <a href="#pools" class="hide-m" data-i18n="nav.pools">Pools</a>
+      <!-- x-begin --><a class="x-soc x-sx" href="https://x.com/Latheon_xyz" target="_blank" rel="noopener" aria-label="Latheon on X"><i>X</i> @Latheon_xyz</a><a class="x-soc" href="https://t.me/Latheon" target="_blank" rel="noopener" aria-label="Latheon on Telegram"><i>TG</i> Telegram</a><!-- x-end -->
       <select id="langSelect" class="lang-select" aria-label="Language">
         <option value="en">EN</option>
         <option value="ru">RU</option>
@@ -338,6 +389,19 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   </div>
 </nav>
 
+<!-- x-begin -->
+<div class="x-strip" role="region" aria-label="Latheon test chain">
+  <div class="wrap">
+    <span class="x-live"><i></i><span data-xi18n="tc.live">LIVE</span></span>
+    <span><b data-xi18n="tc.title">Latheon test chain is open.</b> <span class="x-long" data-xi18n="tc.sub">Withdrawals without a wallet, through the relayer.</span></span>
+    <a href="/demo/" target="_blank" rel="noopener" data-xi18n="tc.demo">Try it in the demo</a><span class="x-sep">·</span>
+    <a href="https://explorer.testnet.latheon.xyz/faucet" target="_blank" rel="noopener" data-xi18n="tc.faucet">Faucet</a><span class="x-sep">·</span>
+    <a href="/bridge/" data-xi18n="tc.bridge">Bridge</a><span class="x-sep">·</span>
+    <a href="https://explorer.testnet.latheon.xyz" target="_blank" rel="noopener" data-xi18n="tc.explorer">Explorer</a><span class="x-sep">·</span>
+    <a href="/developers/" data-xi18n="tc.connect">Connect</a>
+  </div>
+</div>
+<!-- x-end -->
 <!-- 1. HERO: one message -->
 <div class="hero-shell" id="top">
   <canvas id="hexField" aria-hidden="true"></canvas>
@@ -379,6 +443,24 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   <a class="scroll-cue" href="#how" aria-label="Scroll to how it works" data-i18n="hero.scroll">SCROLL ↓</a>
 </div>
 
+<!-- x-begin -->
+<section class="block" id="news" style="padding-bottom:40px">
+  <div class="wrap">
+    <div class="head reveal">
+      <div class="eyebrow" data-xi18n="nw.eyebrow">Latest updates</div>
+      <h2 data-xi18n="nw.h2">What changed recently</h2>
+      <p data-xi18n="nw.p">Dated milestones, each confirmed by transactions. Full history on the roadmap.</p>
+    </div>
+    <ol class="x-news reveal">
+      <li class="x-new"><time datetime="2026-10-27">27 Oct 2026</time><b data-xi18n="nw.1t">V7: fixed a flaw in all earlier pools</b><p data-xi18n="nw.1d">An internal review found that every circuit before V7 let a crafted proof withdraw without a deposit. Reproduced with test tokens, fixed in V7 and deployed on the test chain; older pools are frozen for deposits.</p></li>
+      <li><time datetime="2026-10-26">26 Oct 2026</time><b data-xi18n="nw.2t">Larger pools: 1,048,576 deposits each</b><p data-xi18n="nw.2d">Trees 20 levels deep instead of 8, and the relayer's fee bound into the proof (V6). Both carried over to V7.</p></li>
+      <li><time datetime="2026-10-24">24 Oct 2026</time><b data-xi18n="nw.3t">Bridge page live</b><p data-xi18n="nw.3d">Move test LTH between Arbitrum Sepolia and the test chain from your wallet. A 100 LTH round trip was confirmed; a withdrawal takes about two hours.</p></li>
+      <li><time datetime="2026-10-21">21 Oct 2026</time><b data-xi18n="nw.4t">Relayer live on the test chain</b><p data-xi18n="nw.4d">Withdraw to a fresh address without a wallet or gas: the chain's relayer sends the transaction. It cannot change the recipient, which the proof binds.</p></li>
+    </ol>
+    <div class="x-more"><a class="btn btn-ghost" href="/roadmap/" data-xi18n="nw.all">Full roadmap →</a><a class="btn btn-ghost" href="https://explorer.testnet.latheon.xyz" target="_blank" rel="noopener" data-xi18n="nw.exp">Open the explorer ↗</a></div>
+  </div>
+</section>
+<!-- x-end -->
 <!-- x-begin -->
 <div class="x-divider" aria-hidden="true"></div>
 <section class="block" id="why">
@@ -439,7 +521,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <div class="stage">
         <svg id="tree" viewBox="0 0 640 300" role="img" aria-label="Merkle tree of deposits"></svg>
         <div class="caption" id="caption" aria-live="polite"></div>
-        <div class="stage-note" data-i18n="how.note">simulation · illustrative hashes, not Poseidon · a real V7 pool holds 1,048,576 deposits</div>
+        <div class="stage-note" data-i18n="how.note">simulation · illustrative hashes, not Poseidon · real V7 pools hold up to 1,048,576 deposits</div>
       </div>
     </div>
   </div>
@@ -454,6 +536,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <p data-i18n="status.p">Click a line for details and the source.</p>
     </div>
     <div class="cols" id="cols"></div>
+    <!-- x-begin --><div class="x-more"><a class="btn btn-ghost" href="/security/" data-xi18n="pg.sec">Full security model →</a><a class="btn btn-ghost" href="/roadmap/" data-xi18n="pg.road">Roadmap →</a></div><!-- x-end -->
   </div>
 </section>
 
@@ -473,10 +556,11 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     <p class="honest reveal" data-i18n="pools.honest"><strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.</p>
     <p class="gas-note reveal" data-i18n="pools.gasNote">Honest gas note: measured on our test chain with V7 (27 October 2026), a router deposit of 2 notes used 1,749,602 gas for execution and 12,219,550 in total; a withdrawal of both notes with a relayer fee, 625,896 and 35,912,159. Most of the total is the charge for publishing data to the parent chain (Arbitrum Sepolia), so it depends on that chain, not on our contracts. Details in STATUS.md.</p>
     <button class="btn btn-ghost" id="showPools" aria-expanded="false" aria-controls="poolTable">Show contract addresses</button>
+    <!-- x-begin --><a class="btn btn-ghost" href="/developers/" data-xi18n="pg.dev">All deployments →</a><!-- x-end -->
     <div class="pool-table" id="poolTable">
       <div class="net-tabs" id="netTabs" role="tablist" aria-label="Network"></div>
       <div id="poolRows"></div>
-      <p class="legacy-note" data-i18n="pools.legacy"><strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only so existing notes can be withdrawn. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.</p>
+      <p class="legacy-note" data-i18n="pools.legacy"><strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only so existing notes can be withdrawn. Their contracts cannot be paused and still accept deposits sent by other apps: do not deposit into them. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.</p>
     </div>
   </div>
 </section>
@@ -523,6 +607,29 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   </div>
 </section>
 <!-- x-end -->
+<!-- x-begin -->
+<section class="block" id="community" style="padding-top:40px">
+  <div class="wrap">
+    <div class="head reveal" style="margin-bottom:40px">
+      <div class="eyebrow" data-xi18n="cm.eyebrow">Follow the build</div>
+      <h2 data-xi18n="cm.h2">Updates, as they happen</h2>
+      <p data-xi18n="cm.p">Progress, measurements and fixes are posted on X and in Telegram.</p>
+    </div>
+    <div class="x-community">
+      <a class="x-card x-follow x-tw reveal" href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">
+        <span class="x-badge" aria-hidden="true">X</span>
+        <span><b data-xi18n="cm.xT">Latheon on X</b><span class="x-h">@Latheon_xyz</span><small data-xi18n="cm.xD">Project updates and measured numbers.</small></span>
+        <span class="x-go" aria-hidden="true">→</span>
+      </a>
+      <a class="x-card x-follow x-tg reveal" href="https://t.me/Latheon" target="_blank" rel="noopener">
+        <span class="x-badge" aria-hidden="true">TG</span>
+        <span><b data-xi18n="cm.tT">Latheon on Telegram</b><span class="x-h">t.me/Latheon</span><small data-xi18n="cm.tD">Announcements and questions.</small></span>
+        <span class="x-go" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+<!-- x-end -->
 <!-- 5. CTA -->
 <section class="final">
   <div class="wrap">
@@ -535,6 +642,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 </section>
 
 <footer>
+  <!-- x-begin --><nav class="x-pages" aria-label="Pages"><div class="wrap"><a href="/security/" data-xi18n="pg.n.sec">Security</a><a href="/developers/" data-xi18n="pg.n.dev">Developers</a><a href="/roadmap/" data-xi18n="pg.n.road">Roadmap</a><span><a href="/tokenomics/" data-xi18n="pg.n.tok">Tokenomics</a><span class="x-soon">WIP</span></span><span><a href="/partners/" data-xi18n="pg.n.par">Partners</a><span class="x-soon">WIP</span></span><span><a href="/genesis/">Genesis Cohort</a><span class="x-soon">PAUSED</span></span></div></nav><!-- x-end -->
   <div class="wrap foot">
     <span data-i18n="footer.text">Latheon · solo project, built with AI-assisted development</span>
     <span><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X</a><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></span>
@@ -562,7 +670,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'hero.ctaHow': 'See how it works', 'hero.ctaDemo': '<span class="dot"></span>Try the live demo',
       'hero.fine': '<b>●</b> Public prototype · testnets only · no independent audit yet', 'hero.scroll': 'SCROLL ↓',
       'how.eyebrow': 'How it works', 'how.h2': 'Three steps. Try them.', 'how.p': 'A small simulation of one pool. Nothing touches a chain.',
-      'how.note': 'simulation · illustrative hashes, not Poseidon · a real V7 pool holds 1,048,576 deposits',
+      'how.note': 'simulation · illustrative hashes, not Poseidon · real V7 pools hold up to 1,048,576 deposits',
       'step1.t': 'Deposit', 'step1.d': 'Lock a fixed amount. Your deposit joins the others in the tree.',
       'step2.t': 'Withdraw', 'step2.d': 'Prove you own one of the deposits, without saying which.',
       'step3.t': 'Disclose', 'step3.d': 'Show one auditor that this deposit is yours. They still can\'t spend it.',
@@ -587,12 +695,14 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': 'Small anonymity set', 'st.anon.d': 'Pools hold mostly our own test deposits.',
       'st.bridge.t': 'Bridge privacy', 'st.bridge.d': 'Moving funds between L1 and L2 is not private yet.',
       'st.meta.t': 'Public metadata', 'st.meta.d': 'Timing and gas of each transaction are visible.',
+      'st.relay.t': 'Gas-free withdrawals on the test chain', 'st.relay.d': 'A relayer run by the chain sends the withdrawal and pays the gas, so your wallet does not appear in it and a fresh address can receive. It cannot change the recipient, which the proof binds. It sees the recipient and your IP address. No fee.',
+      'st.chain.t': 'Test chain run by us alone', 'st.chain.d': 'One sequencer, one validator and one development key control the Latheon test chain, so its availability and rules depend on us. A multisig with a timelock is planned before any production chain.',
       'pools.eyebrow': 'Deployed', 'pools.h2': 'Live on our own test chain', 'pools.n1': 'V7 pools (current)', 'pools.n2': 'our test chain', 'pools.n3': 'token: test LTH',
       'pools.n4': 'deprecated testnets', 'pools.router': 'Router',
       'pools.honest': '<strong>Honest note:</strong> the pools hold mostly our own test deposits, so the crowd you hide in is close to empty. The mechanics work and can be checked on-chain; real privacy needs real users.',
       'pools.gasNote': 'Honest gas note: measured on our test chain with V7 (27 October 2026), a router deposit of 2 notes used 1,749,602 gas for execution and 12,219,550 in total; a withdrawal of both notes with a relayer fee, 625,896 and 35,912,159. Most of the total is the charge for publishing data to the parent chain (Arbitrum Sepolia), so it depends on that chain, not on our contracts. Details in STATUS.md.',
       'pools.show': 'Show contract addresses', 'pools.hide': 'Hide contract addresses', 'pools.copy': 'copy', 'pools.view': 'view ↗', 'pools.copied': 'Copied {what}',
-      'pools.legacy': '<strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only so existing notes can be withdrawn. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.',
+      'pools.legacy': '<strong>Security note:</strong> an internal review found a flaw in every pre-V7 circuit — a crafted proof could withdraw without a deposit. We confirmed it with a test and fixed it; the current pools are V7 (<code>withdraw_v5</code>). The older pools (V3–V6, and the pools on the three external testnets) are frozen for deposits in our interface (the contracts still accept them; do not deposit there) and kept only so existing notes can be withdrawn. Their contracts cannot be paused and still accept deposits sent by other apps: do not deposit into them. Testnet only — no real funds were ever at risk. Details in STATUS.md and THREAT-MODEL.md.',
       'final.h2': 'Try it on a testnet.', 'final.demo': 'Open the live demo', 'final.code': 'Read the code',
       'footer.text': 'Latheon · solo project, built with AI-assisted development'
     },
@@ -604,7 +714,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'hero.ctaHow': 'Как это работает', 'hero.ctaDemo': '<span class="dot"></span>Попробовать живое демо',
       'hero.fine': '<b>●</b> Публичный прототип · только тестовые сети · независимого аудита пока нет', 'hero.scroll': 'ЛИСТАЙТЕ ↓',
       'how.eyebrow': 'Как это работает', 'how.h2': 'Три шага. Попробуйте.', 'how.p': 'Небольшая симуляция одного пула. В блокчейн ничего не уходит.',
-      'how.note': 'симуляция · условные хеши, не Poseidon · настоящий пул V7 вмещает 1 048 576 депозитов',
+      'how.note': 'симуляция · условные хеши, не Poseidon · настоящий пул V7 вмещает до 1 048 576 депозитов',
       'step1.t': 'Депозит', 'step1.d': 'Внесите фиксированную сумму. Ваш депозит встаёт в дерево рядом с другими.',
       'step2.t': 'Вывод', 'step2.d': 'Докажите, что вам принадлежит один из депозитов, не говоря какой.',
       'step3.t': 'Раскрытие', 'step3.d': 'Покажите одному аудитору, что этот депозит ваш. Потратить его он всё равно не сможет.',
@@ -629,12 +739,14 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': 'Маленькое анонимное множество', 'st.anon.d': 'В пулах в основном наши собственные тестовые депозиты.',
       'st.bridge.t': 'Приватность моста', 'st.bridge.d': 'Перевод средств между L1 и L2 пока не приватен.',
       'st.meta.t': 'Публичные метаданные', 'st.meta.d': 'Время и газ каждой транзакции видны всем.',
+      'st.relay.t': 'Вывод без газа в тестовой сети', 'st.relay.d': 'Релейер сети отправляет вывод и платит газ: ваш кошелёк в выводе не виден, а новый адрес может получить средства. Сменить получателя он не может: получатель привязан к доказательству. Релейер видит получателя и ваш IP-адрес. Без комиссии.',
+      'st.chain.t': 'Тестовую сеть ведём только мы', 'st.chain.d': 'Один секвенсер, один валидатор и один dev-ключ управляют тестовой сетью Latheon, поэтому её работа и правила зависят от нас. Перед любой боевой сетью планируется мультисиг с таймлоком.',
       'pools.eyebrow': 'Развёрнуто', 'pools.h2': 'Работает в нашей собственной тестовой сети', 'pools.n1': 'пула V7 (текущие)', 'pools.n2': 'наша тестовая сеть', 'pools.n3': 'токен: тестовый LTH',
       'pools.n4': 'снятые с эксплуатации сети', 'pools.router': 'Роутер',
       'pools.honest': '<strong>Честно:</strong> в пулах в основном наши собственные тестовые депозиты, поэтому толпа, в которой вы прячетесь, почти пуста. Механика работает и проверяется в блокчейне; для настоящей приватности нужны настоящие пользователи.',
       'pools.gasNote': 'Честно о газе: на нашей тестовой сети с V7 (27 октября 2026) депозит двух нот через роутер потратил 1 749 602 газа на исполнение и 12 219 550 всего; вывод обеих нот с комиссией релейера — 625 896 и 35 912 159. Большая часть общего числа — плата за публикацию данных в родительскую сеть (Arbitrum Sepolia), она зависит от этой сети, а не от наших контрактов. Подробности в STATUS.md.',
       'pools.show': 'Показать адреса контрактов', 'pools.hide': 'Скрыть адреса контрактов', 'pools.copy': 'копировать', 'pools.view': 'смотреть ↗', 'pools.copied': 'Скопировано: {what}',
-      'pools.legacy': '<strong>О безопасности:</strong> внутренняя проверка нашла в схеме всех пулов до V7 ошибку — поддельное доказательство позволяло вывести средства без депозита. Мы подтвердили её тестом и исправили; текущие пулы — V7 (<code>withdraw_v5</code>). Старые пулы (V3–V6 и пулы в трёх внешних тестовых сетях) заморожены для депозитов в нашем интерфейсе (сами контракты депозиты принимают, не вносите туда средства) и оставлены только для вывода уже внесённых нот. Только тестовая сеть — реальные средства никогда не были под угрозой. Подробности в STATUS.md и THREAT-MODEL.md.',
+      'pools.legacy': '<strong>О безопасности:</strong> внутренняя проверка нашла в схеме всех пулов до V7 ошибку — поддельное доказательство позволяло вывести средства без депозита. Мы подтвердили её тестом и исправили; текущие пулы — V7 (<code>withdraw_v5</code>). Старые пулы (V3–V6 и пулы в трёх внешних тестовых сетях) заморожены для депозитов в нашем интерфейсе (сами контракты депозиты принимают, не вносите туда средства) и оставлены только для вывода уже внесённых нот. Их контракты нельзя поставить на паузу, и через другие приложения они по-прежнему принимают депозиты: не вносите в них средства. Только тестовая сеть — реальные средства никогда не были под угрозой. Подробности в STATUS.md и THREAT-MODEL.md.',
       'final.h2': 'Попробуйте в тестовой сети.', 'final.demo': 'Открыть живое демо', 'final.code': 'Читать код',
       'footer.text': 'Latheon · соло-проект, созданный с помощью ИИ-разработки'
     },
@@ -646,7 +758,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'hero.ctaHow': '了解工作原理', 'hero.ctaDemo': '<span class="dot"></span>体验实时演示',
       'hero.fine': '<b>●</b> 公开原型 · 仅限测试网 · 尚无独立审计', 'hero.scroll': '向下滚动 ↓',
       'how.eyebrow': '工作原理', 'how.h2': '三个步骤，亲自试试。', 'how.p': '一个资金池的小型模拟，不涉及任何链上操作。',
-      'how.note': '模拟 · 示意哈希，非 Poseidon · 真实 V7 资金池可容纳 1,048,576 笔存款',
+      'how.note': '模拟 · 示意哈希，非 Poseidon · 真实 V7 资金池最多可容纳 1,048,576 笔存款',
       'step1.t': '存款', 'step1.d': '锁入固定金额。您的存款与其他存款一起加入树中。',
       'step2.t': '取款', 'step2.d': '证明其中一笔存款属于您，但不透露是哪一笔。',
       'step3.t': '披露', 'step3.d': '向一位审计方证明这笔存款属于您。对方仍无法动用它。',
@@ -671,12 +783,14 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'st.anon.t': '匿名集很小', 'st.anon.d': '资金池中主要是我们自己的测试存款。',
       'st.bridge.t': '跨链桥隐私', 'st.bridge.d': '在 L1 和 L2 之间转移资金目前还不具备隐私。',
       'st.meta.t': '元数据公开', 'st.meta.d': '每笔交易的时间和 Gas 对所有人可见。',
+      'st.relay.t': '测试链上免 Gas 取款', 'st.relay.d': '由链运营的中继器发送取款并支付 Gas，因此您的钱包不会出现在取款中，新地址也能直接收款。中继器无法更改收款人，收款人已绑定在证明中。中继器能看到收款人和您的 IP 地址。不收手续费。',
+      'st.chain.t': '测试链目前仅由我们运营', 'st.chain.d': 'Latheon 测试链由一个排序器、一个验证者和一把开发密钥控制，因此其可用性和规则取决于我们。在任何正式链之前，计划改为带时间锁的多签。',
       'pools.eyebrow': '已部署', 'pools.h2': '在我们自己的测试链上运行', 'pools.n1': 'V7 资金池（当前）', 'pools.n2': '我们的测试链', 'pools.n3': '代币：测试 LTH',
       'pools.n4': '已弃用的测试网', 'pools.router': '路由',
       'pools.honest': '<strong>坦诚说明：</strong>资金池中主要是我们自己的测试存款，因此您所隐藏其中的人群几乎是空的。机制可用且可在链上验证；真正的隐私需要真实用户。',
       'pools.gasNote': '关于 Gas 的坦诚说明：在我们的测试链上使用 V7 实测（2026 年 10 月 27 日），通过路由存入 2 个凭证的执行 Gas 为 1,749,602，总计 12,219,550；带中继费取出这两个凭证为 625,896 和 35,912,159。总量的大部分是向父链（Arbitrum Sepolia）发布数据的费用，取决于该链而非我们的合约。详见 STATUS.md。',
       'pools.show': '显示合约地址', 'pools.hide': '隐藏合约地址', 'pools.copy': '复制', 'pools.view': '查看 ↗', 'pools.copied': '已复制 {what}',
-      'pools.legacy': '<strong>安全说明：</strong>一次内部审查发现所有 V7 之前的电路存在缺陷——精心构造的证明可在未存款的情况下取款。我们已通过测试确认并修复；当前资金池为 V7（<code>withdraw_v5</code>）。较旧的资金池（V3–V6 以及三个外部测试网上的资金池）已在我们的界面中冻结存款（合约本身仍接受存款，请勿存入），仅保留用于取出已有凭证。仅测试网——真实资金从未面临风险。详见 STATUS.md 和 THREAT-MODEL.md。',
+      'pools.legacy': '<strong>安全说明：</strong>一次内部审查发现所有 V7 之前的电路存在缺陷——精心构造的证明可在未存款的情况下取款。我们已通过测试确认并修复；当前资金池为 V7（<code>withdraw_v5</code>）。较旧的资金池（V3–V6 以及三个外部测试网上的资金池）已在我们的界面中冻结存款（合约本身仍接受存款，请勿存入），仅保留用于取出已有凭证。这些合约无法暂停，仍会接受其他应用发起的存款：请勿向其存款。仅测试网——真实资金从未面临风险。详见 STATUS.md 和 THREAT-MODEL.md。',
       'final.h2': '在测试网上试试。', 'final.demo': '打开实时演示', 'final.code': '阅读代码',
       'footer.text': 'Latheon · 个人项目，借助 AI 辅助开发构建'
     }
@@ -832,9 +946,9 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 
   /* ---------- status columns ---------- */
   var COLS = [
-    ['live', 'col.live', [['st.pools', 'sdk/deployments.json'], ['st.bind', 'docs/withdraw-recipient-binding.md'], ['st.tree', 'STATUS.md'], ['st.disc', 'STATUS.md'], ['st.router', 'docs/distribution-pool-deployments.md']]],
+    ['live', 'col.live', [['st.pools', 'sdk/deployments.json'], ['st.bind', 'docs/withdraw-recipient-binding.md'], ['st.tree', 'STATUS.md'], ['st.disc', 'STATUS.md'], ['st.router', 'docs/distribution-pool-deployments.md'], ['st.relay', 'docs/testnet.md']]],
     ['fixed', 'col.fixed', [['st.path', 'docs/dev-ceremony-v5.md'], ['st.swap', 'docs/withdraw-recipient-binding.md']]],
-    ['open', 'col.open', [['st.audit', 'THREAT-MODEL.md'], ['st.keys', 'docs/dev-ceremony-v5.md'], ['st.anon', 'THREAT-MODEL.md'], ['st.bridge', 'STATUS.md'], ['st.meta', 'THREAT-MODEL.md']]]
+    ['open', 'col.open', [['st.audit', 'THREAT-MODEL.md'], ['st.keys', 'docs/dev-ceremony-v5.md'], ['st.anon', 'THREAT-MODEL.md'], ['st.bridge', 'STATUS.md'], ['st.meta', 'THREAT-MODEL.md'], ['st.chain', 'THREAT-MODEL.md']]]
   ];
   function renderCols() {
     var openNow = {};
@@ -862,36 +976,36 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     ['latheon-testnet','LTH · V6 (frozen)',50,'0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C'],
     ['latheon-testnet','LTH · V6 (frozen)',10,'0x002B880740926A37da5b6f56faDbFD79400c759d'],
     ['latheon-testnet','LTH · V6 (frozen)',1,'0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260'],
-    ['latheon-testnet','LTH · V5 (frozen)',100,'0xf10AF1771450c528fee0c5435D3E4f4214073aFe'],
-    ['latheon-testnet','LTH · V5 (frozen)',50,'0x4D9b9624418e2E91a38122D53e2A12eE028194b3'],
-    ['latheon-testnet','LTH · V5 (frozen)',10,'0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618'],
-    ['latheon-testnet','LTH · V5 (frozen)',1,'0xD01D19B9D296299619f681b842b3b61C79736F3a'],
-    ['ethereum-sepolia','LTH (frozen)',100,'0x851981f6a35EB0D91d927c0e854774f5d0ce6233'],
-    ['ethereum-sepolia','LTH (frozen)',50,'0x09d3D081195304FD83bb79e4b5B97344cE5e89b4'],
-    ['ethereum-sepolia','LTH (frozen)',10,'0x4402b051482B0304A118A4F8A8bb10095127499D'],
-    ['ethereum-sepolia','LTH (frozen)',1,'0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876'],
-    ['arbitrum-sepolia','LTH (frozen)',100,'0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7'],
-    ['arbitrum-sepolia','LTH (frozen)',50,'0xded64ec452C95bA69Fe80d51447cb8c4953E52C0'],
-    ['arbitrum-sepolia','LTH (frozen)',10,'0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5'],
-    ['arbitrum-sepolia','LTH (frozen)',1,'0x4480012096726C670A2C89E05AA37DF7258EF26a'],
-    ['robinhood-testnet','LTH (frozen)',100,'0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C'],
-    ['robinhood-testnet','LTH (frozen)',50,'0x288b8E0281b85118135F7bd55902f7167EAe5169'],
-    ['robinhood-testnet','LTH (frozen)',10,'0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6'],
-    ['robinhood-testnet','LTH (frozen)',1,'0x24a394Fe56464A79A63Adbc57B785d599c3c0074'],
-    ['robinhood-testnet','USDG (frozen)',100,'0x6513862b2153c6AFd56C00B798a859548b0181e7'],
-    ['robinhood-testnet','USDG (frozen)',50,'0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214'],
-    ['robinhood-testnet','USDG (frozen)',10,'0xaA16653312E033623a6CD0D1f7DEFDFc21f30461'],
-    ['robinhood-testnet','USDG (frozen)',1,'0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4']
+    ['latheon-testnet','LTH · V5',100,'0xf10AF1771450c528fee0c5435D3E4f4214073aFe'],
+    ['latheon-testnet','LTH · V5',50,'0x4D9b9624418e2E91a38122D53e2A12eE028194b3'],
+    ['latheon-testnet','LTH · V5',10,'0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618'],
+    ['latheon-testnet','LTH · V5',1,'0xD01D19B9D296299619f681b842b3b61C79736F3a'],
+    ['ethereum-sepolia','LTH',100,'0x851981f6a35EB0D91d927c0e854774f5d0ce6233'],
+    ['ethereum-sepolia','LTH',50,'0x09d3D081195304FD83bb79e4b5B97344cE5e89b4'],
+    ['ethereum-sepolia','LTH',10,'0x4402b051482B0304A118A4F8A8bb10095127499D'],
+    ['ethereum-sepolia','LTH',1,'0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876'],
+    ['arbitrum-sepolia','LTH',100,'0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7'],
+    ['arbitrum-sepolia','LTH',50,'0xded64ec452C95bA69Fe80d51447cb8c4953E52C0'],
+    ['arbitrum-sepolia','LTH',10,'0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5'],
+    ['arbitrum-sepolia','LTH',1,'0x4480012096726C670A2C89E05AA37DF7258EF26a'],
+    ['robinhood-testnet','LTH',100,'0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C'],
+    ['robinhood-testnet','LTH',50,'0x288b8E0281b85118135F7bd55902f7167EAe5169'],
+    ['robinhood-testnet','LTH',10,'0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6'],
+    ['robinhood-testnet','LTH',1,'0x24a394Fe56464A79A63Adbc57B785d599c3c0074'],
+    ['robinhood-testnet','USDG',100,'0x6513862b2153c6AFd56C00B798a859548b0181e7'],
+    ['robinhood-testnet','USDG',50,'0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214'],
+    ['robinhood-testnet','USDG',10,'0xaA16653312E033623a6CD0D1f7DEFDFc21f30461'],
+    ['robinhood-testnet','USDG',1,'0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4']
   ];
   /* distribution routers, one per token set (docs/distribution-pool-deployments.md) */
   var ROUTERS = [
     ['latheon-testnet','LTH · V7','0x1D1189D5399B24BB40858AEACDb649977b596Cf2'],
     ['latheon-testnet','LTH · V6 (frozen)','0x93963CF193DD6a961eFEA8311b0834EE31518150'],
-    ['latheon-testnet','LTH · V5 (frozen)','0x0C3475657D4Bd198efe068dDB064725B6514FB04'],
-    ['ethereum-sepolia','LTH (frozen)','0xC12095a1e7fAc20E827a93933576469e1122eB61'],
-    ['arbitrum-sepolia','LTH (frozen)','0x284985291A32cf0cfE48F6CA128615983952350e'],
-    ['robinhood-testnet','LTH (frozen)','0x006da9E656581A7740856aA89c690b3Abd296c30'],
-    ['robinhood-testnet','USDG (frozen)','0xded64ec452C95bA69Fe80d51447cb8c4953E52C0']
+    ['latheon-testnet','LTH · V5','0x0C3475657D4Bd198efe068dDB064725B6514FB04'],
+    ['ethereum-sepolia','LTH','0xC12095a1e7fAc20E827a93933576469e1122eB61'],
+    ['arbitrum-sepolia','LTH','0x284985291A32cf0cfE48F6CA128615983952350e'],
+    ['robinhood-testnet','LTH','0x006da9E656581A7740856aA89c690b3Abd296c30'],
+    ['robinhood-testnet','USDG','0xded64ec452C95bA69Fe80d51447cb8c4953E52C0']
   ];
   var toastT, currentNet = null;
   function toast(m) { var el2 = $('toast'); el2.textContent = m; el2.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { el2.classList.remove('on'); }, 1500); }
@@ -976,7 +1090,18 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'fd.eyebrow': 'Founder', 'fd.h2': 'Who builds Latheon', 'fd.name': 'Vladimir Smirnov, founder of Latheon',
       'fd.p1': 'Crypto lacks privacy. When every transaction is public, people and organizations can be exposed, and their data can end up in the hands of scammers. I knew a way to reduce that risk, so I started building it.',
       'fd.p2': 'Latheon is a privacy protocol on Ethereum, built and maintained by me alone. It is live on testnets only, and the long-term goal is a Layer 2 where privacy is the default. Before this I worked as a lead auditor in a control and audit department and studied public administration. That background shaped my approach: privacy should hold up under verification. The code and tests are open, the numbers are measured, and I say plainly what is not done yet, including that there is no independent audit.',
-      'vf.deps': 'deposits in the pools', 'vf.na': 'network not responding — open the explorer', 'vf.code': 'Source code ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Threat model ↗'
+      'vf.deps': 'deposits in the pools', 'vf.na': 'network not responding — open the explorer', 'vf.code': 'Source code ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Threat model ↗',
+      'cm.eyebrow': 'Follow the build', 'cm.h2': 'Updates, as they happen', 'cm.p': 'Progress, measurements and fixes are posted on X and in Telegram.',
+      'cm.xT': 'Latheon on X', 'cm.xD': 'Project updates and measured numbers.', 'cm.tT': 'Latheon on Telegram', 'cm.tD': 'Announcements and questions.',
+      'tc.live': 'LIVE', 'tc.title': 'Latheon test chain is open.', 'tc.sub': 'Withdrawals without a wallet, through the relayer.', 'tc.demo': 'Try it in the demo', 'tc.faucet': 'Faucet', 'tc.bridge': 'Bridge', 'tc.explorer': 'Explorer', 'tc.connect': 'Connect',
+      'nw.eyebrow': 'Latest updates', 'nw.h2': 'What changed recently', 'nw.p': 'Dated milestones, each confirmed by transactions. Full history on the roadmap.',
+      'nw.1t': 'V7: fixed a flaw in all earlier pools', 'nw.1d': 'An internal review found that every circuit before V7 let a crafted proof withdraw without a deposit. Reproduced with test tokens, fixed in V7 and deployed on the test chain; older pools are frozen for deposits.',
+      'nw.2t': 'Larger pools: 1,048,576 deposits each', 'nw.2d': 'Trees 20 levels deep instead of 8, and the relayer\'s fee bound into the proof (V6). Both carried over to V7.',
+      'nw.3t': 'Bridge page live', 'nw.3d': 'Move test LTH between Arbitrum Sepolia and the test chain from your wallet. A 100 LTH round trip was confirmed; a withdrawal takes about two hours.',
+      'nw.4t': 'Relayer live on the test chain', 'nw.4d': 'Withdraw to a fresh address without a wallet or gas: the chain\'s relayer sends the transaction. It cannot change the recipient, which the proof binds.',
+      'nw.all': 'Full roadmap →', 'nw.exp': 'Open the explorer ↗',
+      'pg.sec': 'Full security model →', 'pg.road': 'Roadmap →', 'pg.dev': 'All deployments →',
+      'pg.n.sec': 'Security', 'pg.n.dev': 'Developers', 'pg.n.road': 'Roadmap', 'pg.n.tok': 'Tokenomics', 'pg.n.par': 'Partners'
     },
     ru: {
       'why.eyebrow': 'Зачем это нужно', 'why.h2': 'Приватность и доказательство одновременно',
@@ -995,7 +1120,18 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'fd.eyebrow': 'Основатель', 'fd.h2': 'Кто создаёт Latheon', 'fd.name': 'Владимир Смирнов, основатель Latheon',
       'fd.p1': 'В крипто-индустрии не хватает приватности. Когда все операции открыты, люди и организации могут быть скомпрометированы, а их данные могут попасть к мошенникам. Я знал, как снизить этот риск, и решил это сделать.',
       'fd.p2': 'Latheon — протокол приватности на Ethereum, который я создаю и поддерживаю один. Сейчас он работает только в тестовых сетях, а долгосрочная цель — L2 с приватностью по умолчанию. До этого я работал ведущим аудитором в контрольно-ревизионном отделе и учился на государственном управлении. Этот опыт определил мой подход: приватность должна выдерживать проверку. Код и тесты открыты, цифры измерены, а о том, что ещё не сделано, я говорю прямо, в том числе о том, что независимого аудита пока нет.',
-      'vf.deps': 'депозитов в пулах', 'vf.na': 'сеть не отвечает — откройте обозреватель', 'vf.code': 'Исходный код ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Модель угроз ↗'
+      'vf.deps': 'депозитов в пулах', 'vf.na': 'сеть не отвечает — откройте обозреватель', 'vf.code': 'Исходный код ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': 'Модель угроз ↗',
+      'cm.eyebrow': 'Следите за проектом', 'cm.h2': 'Новости по мере появления', 'cm.p': 'Прогресс, замеры и исправления публикуются в X и в Telegram.',
+      'cm.xT': 'Latheon в X', 'cm.xD': 'Новости проекта и измеренные цифры.', 'cm.tT': 'Latheon в Telegram', 'cm.tD': 'Объявления и вопросы.',
+      'tc.live': 'РАБОТАЕТ', 'tc.title': 'Тестовая сеть Latheon открыта.', 'tc.sub': 'Вывод без кошелька, через релейер.', 'tc.demo': 'Попробовать в демо', 'tc.faucet': 'Кран', 'tc.bridge': 'Мост', 'tc.explorer': 'Обозреватель', 'tc.connect': 'Подключение',
+      'nw.eyebrow': 'Последние новости', 'nw.h2': 'Что изменилось недавно', 'nw.p': 'Этапы с датами, каждый подтверждён транзакциями. Полная история — в роадмапе.',
+      'nw.1t': 'V7: исправлена ошибка во всех прежних пулах', 'nw.1d': 'Внутренняя проверка нашла, что во всех схемах до V7 поддельное доказательство позволяло вывести средства без депозита. Воспроизведено на тестовых токенах, исправлено в V7 и развёрнуто в тестовой сети; старые пулы заморожены для депозитов.',
+      'nw.2t': 'Большие пулы: 1 048 576 депозитов в каждом', 'nw.2d': 'Деревья глубиной 20 уровней вместо 8, комиссия релейера вшита в доказательство (V6). Всё это перешло в V7.',
+      'nw.3t': 'Заработала страница моста', 'nw.3d': 'Перевод тестового LTH между Arbitrum Sepolia и тестовой сетью прямо из кошелька. Проверен круг на 100 LTH; вывод занимает около двух часов.',
+      'nw.4t': 'Релейер в тестовой сети', 'nw.4d': 'Вывод на новый адрес без кошелька и газа: транзакцию отправляет релейер сети. Сменить получателя он не может, получатель привязан к доказательству.',
+      'nw.all': 'Весь роадмап →', 'nw.exp': 'Открыть обозреватель ↗',
+      'pg.sec': 'Модель безопасности →', 'pg.road': 'Роадмап →', 'pg.dev': 'Все развёртывания →',
+      'pg.n.sec': 'Безопасность', 'pg.n.dev': 'Разработчикам', 'pg.n.road': 'Роадмап', 'pg.n.tok': 'Токеномика', 'pg.n.par': 'Партнёры'
     },
     zh: {
       'why.eyebrow': '为什么重要', 'why.h2': '隐私与证明，兼而有之',
@@ -1014,7 +1150,18 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'fd.eyebrow': '创始人', 'fd.h2': '谁在构建 Latheon', 'fd.name': 'Vladimir Smirnov，Latheon 创始人',
       'fd.p1': '加密行业缺少隐私。当所有交易都公开时，个人和机构可能被暴露，他们的数据也可能落入诈骗者手中。我知道如何降低这种风险，所以决定动手去做。',
       'fd.p2': 'Latheon 是一个构建在以太坊上的隐私协议，由我一人开发和维护。目前仅在测试网运行，长期目标是打造默认保护隐私的 Layer 2。此前我在监督审计部门担任高级审计员，并学习公共管理。这段经历塑造了我的做法：隐私应当经得起验证。代码和测试公开，数据均为实测，尚未完成的部分我会如实说明，包括目前还没有独立审计。',
-      'vf.deps': '资金池中的存款', 'vf.na': '网络暂无响应——请打开区块浏览器', 'vf.code': '源代码 ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': '威胁模型 ↗'
+      'vf.deps': '资金池中的存款', 'vf.na': '网络暂无响应——请打开区块浏览器', 'vf.code': '源代码 ↗', 'vf.status': 'STATUS.md ↗', 'vf.threat': '威胁模型 ↗',
+      'cm.eyebrow': '关注项目进展', 'cm.h2': '项目动态，随时更新', 'cm.p': '进展、实测数据和修复会发布在 X 和 Telegram 上。',
+      'cm.xT': 'Latheon 的 X 账号', 'cm.xD': '项目动态和实测数据。', 'cm.tT': 'Latheon 的 Telegram', 'cm.tD': '公告与问答。',
+      'tc.live': '运行中', 'tc.title': 'Latheon 测试链已开放。', 'tc.sub': '通过中继器取款，无需钱包。', 'tc.demo': '在演示中试用', 'tc.faucet': '水龙头', 'tc.bridge': '跨链桥', 'tc.explorer': '区块浏览器', 'tc.connect': '连接方式',
+      'nw.eyebrow': '最新动态', 'nw.h2': '近期更新', 'nw.p': '带日期的里程碑，均有链上交易确认。完整历史见路线图。',
+      'nw.1t': 'V7：修复所有早期资金池中的缺陷', 'nw.1d': '内部审查发现，V7 之前的所有电路都允许精心构造的证明在没有存款的情况下取款。已用测试代币复现，在 V7 中修复并部署到测试链；旧资金池已冻结存款。',
+      'nw.2t': '更大的资金池：每个可容纳 1,048,576 笔存款', 'nw.2d': '默克尔树深度从 8 层增加到 20 层，中继费绑定在证明中（V6）。这些改进都保留在 V7 中。',
+      'nw.3t': '跨链桥页面上线', 'nw.3d': '可直接从钱包在 Arbitrum Sepolia 与测试链之间转移测试 LTH。已确认一次 100 LTH 的往返；取款约需两小时。',
+      'nw.4t': '测试链中继器上线', 'nw.4d': '无需钱包和 Gas 即可取款到新地址：由链的中继器发送交易。它无法更改收款人，收款人已绑定在证明中。',
+      'nw.all': '完整路线图 →', 'nw.exp': '打开区块浏览器 ↗',
+      'pg.sec': '完整安全模型 →', 'pg.road': '路线图 →', 'pg.dev': '全部部署 →',
+      'pg.n.sec': '安全', 'pg.n.dev': '开发者', 'pg.n.road': '路线图', 'pg.n.tok': '代币经济', 'pg.n.par': '合作伙伴'
     }
   };
   function lang() { var l = 'en'; try { l = localStorage.getItem('latheon-lang') || (navigator.language || 'en').slice(0, 2); } catch (e) {} return X[l] ? l : 'en'; }
@@ -1046,7 +1193,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
     }, { threshold: 0.6 }).observe(stage);
   }
 
-  /* live counters: deposits held by each network's V5 and V6 pools, read from the pool contracts themselves (nextIndex(), one
+  /* live counters: deposits held by each network's V5 pools, read from the pool contracts themselves (nextIndex(), one
      eth_call per pool through the network's RPC from demo/deployments.json). The explorer's "transactions" counter is
      not used: deposits made through the router are internal calls and do not show up there, and Blockscout does not
      index every chain completely. */
