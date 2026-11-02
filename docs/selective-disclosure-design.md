@@ -1,6 +1,6 @@
 # Latheon — Structured Selective Disclosure: Design Document (v0.1, draft)
 
-**Status:** Original design (v0.1). Implemented as `LatheonShieldedPoolV4` and extended with recipient binding in V5; both flows were confirmed on testnets (`STATUS.md` §2a and §3). Prototype, no independent review yet. The text below keeps the original design framing.
+**Status:** Original design (v0.1). Implemented as `LatheonShieldedPoolV4`, extended with recipient binding in V5 and carried unchanged into V6 and V7, the current generation on the Latheon test chain (the disclosure circuit and the note format did not change); both flows were confirmed on testnets (`STATUS.md` §2c and §3). The multi-note disclosure report built on this circuit is described in `disclosure-v2-design.md`. Prototype, no independent review yet. The text below keeps the original design framing.
 
 ## 1. Problem with the current mechanism
 

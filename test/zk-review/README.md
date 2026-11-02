@@ -43,5 +43,8 @@ Takes about 6 minutes (most of it 20-level proofs).
 
 ## What these tests do not cover
 
-The phase-1 powers-of-tau files are not in the repository, so `snarkjs zkey verify` (which checks the C/L and H points
-of a key against the circuit) cannot be run from it. All keys come from single-operator development setups.
+This suite does not run `snarkjs zkey verify` (which checks the C/L and H points of a key against the circuit). The
+phase-1 file of the `withdraw_v4` and `withdraw_v5` keys, `pot14_final.ptau`, is committed in `circuits/ptau/` since
+30 October 2026, so that check can be run by hand as described in `docs/dev-ceremony-v5.md`; the `withdraw_v3` phase-1
+file was not kept, and `withdraw_v2` and `disclose` used the public Hermez file. All keys come from single-operator
+development setups.

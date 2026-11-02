@@ -1,6 +1,6 @@
 # Latheon — Bridge Privacy: Design Document (v0.1, draft)
 
-**Status:** Design exploration, not yet implemented. Does not change any currently deployed contract or the current L1 prototypes (V3/V4), which continue to work exactly as they do today.
+**Status:** Design exploration, not yet implemented. Written when the V3/V4 pools on Ethereum Sepolia were current; since then the Latheon test chain exists, with a standard, public bridge page from Arbitrum Sepolia (`testnet.md`), and `ROADMAP.md` records the chosen direction (funds originating on the chain, a one-way bridge pool later). This document does not change any deployed contract.
 
 ## 1. The problem, precisely
 
