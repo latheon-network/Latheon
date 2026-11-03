@@ -1,5 +1,7 @@
 # Deploying V5 pools
 
+> **Deprecated generation (27 October 2026).** V5 pools use `withdraw_v3`, which carries the pre-V7 flaw (`THREAT-MODEL.md` §8.0); do not deploy new ones for use. The current generation is V7 on the Latheon test chain, deployed with the scripts in `latheon-network/l2-eval-ci` (`testnet/latheon`). This checklist is kept as a record and for the pitfalls, which still apply.
+
 A checklist distilled from the first real deployments (three networks, 16 pools). It complements
 `DEPLOYMENT-CHECKLIST.en.md`, which describes the V3 stack.
 
@@ -22,8 +24,10 @@ A checklist distilled from the first real deployments (three networks, 16 pools)
 6. **Check the library link:** `zeros(8)` of any pool must equal
    `21551820661461729022865262380882070649935529853313286572328683688269863701601`.
 7. **Exercise it:** one deposit and one withdrawal to another address per network (the demo does this).
-8. **Record it:** add the pools to `sdk/deployments.json` (the demo reads it at run time), then `docs/deployments-v5.md`,
-   the activity widget and the "Also live" blocks of the site.
+8. **Record it:** add the pools to `sdk/deployments.json` and the identical `demo/deployments.json` (the demo and the
+   site's counters read it at run time; `node tools/check-deployments.js` checks the flags), then the address tables in
+   `docs/` (today `docs/testnet.md`; `docs/deployments-v5.md` for the deprecated V5 sets) and the pool table in
+   `site/index.html`.
 
 ## Smoke-test values for step 3
 

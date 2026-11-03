@@ -54,10 +54,10 @@ We do **not** currently assume protection against:
 
 ## 8. Remaining limitations
 
-- Selective disclosure (V4/V5) reveals to the chosen auditor which deposit is being disclosed; see §2.5. The disclosure circuit and contracts are a prototype with no independent review. On V3 pools disclosure remains manual.
+- Selective disclosure (V4 and later, including V7) reveals to the chosen auditor which deposit is being disclosed; see §2.5. The disclosure circuit and contracts are a prototype with no independent review. On V3 pools disclosure remains manual.
 - No independent cryptographic review or formal security audit has been performed yet.
 - Anonymity set size is currently very small: the pools hold mostly test deposits.
-- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6/V7 pool (see §4). A V5 pool keeps 30 roots and a V6 pool 100: a proof made against an older root is refused and has to be made again. The demo does that on its own (a new scan and a new proof, up to three attempts); the note is never spent by a refused proof.
+- The Merkle tree capacity is 256 deposits per V5 pool and 1,048,576 per V6/V7 pool (see §4). A V5 pool keeps 30 roots and a V6 or V7 pool 100: a proof made against an older root is refused and has to be made again. The demo does that on its own (a new scan and a new proof, up to three attempts); the note is never spent by a refused proof.
 
 ### 8.0 Critical (every pool before V7): the Merkle path selector was not constrained to a bit. Fixed in V7.
 
@@ -78,12 +78,12 @@ In `LatheonShieldedPoolV3` and `V4`, the `recipient` passed to `withdraw()` is n
 - **Reproduced** against the V4 contract in a local EVM test.
 - **Exposure:** realistic where the mempool is public (Ethereum). On Arbitrum-stack chains we believe there is no public mempool, but the sequencer sees pending transactions and we do not rely on that.
 - **Funds affected so far:** none; all V3/V4 pools are testnet-only.
-- **Fix:** V5 (`circuits/withdraw_v3.circom`, `LatheonShieldedPoolV5.sol`) binds the recipient into the proof as a public input, derived by the contract from the address actually being paid. The replay is rejected in local tests. V5 pools use a new (development) trusted-setup key pair and are deployed as fresh contracts on all three testnets (`docs/deployments-v5.md`).
+- **Fix:** V5 (`circuits/withdraw_v3.circom`, `LatheonShieldedPoolV5.sol`) binds the recipient into the proof as a public input, derived by the contract from the address actually being paid. The replay is rejected in local tests. V5 pools use a new (development) trusted-setup key pair and were deployed as fresh contracts on all three external testnets (`docs/deployments-v5.md`); those pools are deprecated since 27 October 2026 because of §8.0, and the recipient binding is carried into V6 and V7.
 - Details: `docs/withdraw-recipient-binding.md`. Setup caveats: `docs/dev-ceremony-v3.md`.
 
 ### 8.2 Open: bridge privacy (L1 to L2)
 
-A future L2 faces a leak that the cryptography does not cover: funding an L2 wallet through a standard bridge from an L1 address that is linkable to an identity links that identity to the later shielded deposit. This is unsolved; options and trade-offs are in `docs/bridge-privacy-design.md`.
+An L2 faces a leak that the cryptography does not cover: funding an L2 wallet through a standard bridge from an L1 address that is linkable to an identity links that identity to the later shielded deposit. The Latheon test chain's bridge page (`docs/testnet.md`) is such a standard bridge: it links the Arbitrum Sepolia address to the same address on the chain. This is unsolved; the intended direction (funds originating on the chain, a one-way bridge pool later) is recorded in `ROADMAP.md`, and the options and trade-offs are in `docs/bridge-privacy-design.md`.
 
 ### 8.3 Distribution router and master key (V5, V6 and V7 routers; testnets, not independently reviewed)
 
