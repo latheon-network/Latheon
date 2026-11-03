@@ -30,7 +30,7 @@ Follow the work: X [@Latheon_xyz](https://x.com/Latheon_xyz) · Telegram [t.me/L
 For anyone integrating with Latheon or calling the contracts directly: **only the V7 pools and the V7 router on the Latheon test chain are current.** Every older pool (V3, V4, V5, V6, on every network, including all pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet) uses a circuit with a known flaw: a forged proof can withdraw from it without a deposit (`THREAT-MODEL.md` §8.0). The freeze is in our interface only; **the contracts have no pause, still accept deposits, and anything deposited there can be emptied by such a proof.**
 
 - Read the flags in [`sdk/deployments.json`](./sdk/deployments.json) (same file as `demo/deployments.json`): pre-V7 pools carry `"frozen": true, "forgeable": true`, pre-V7 routers `"frozen": true`. Never deposit into a flagged entry; such entries are listed only so notes already in them can be withdrawn.
-- The V3 pool on Ethereum Sepolia (`0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C`, table below) is pre-V7 too, and it is the default pool of the old JavaScript SDK's `deposit()`; see the compatibility table in [`sdk/README.md`](./sdk/README.md).
+- The V3 pool on Ethereum Sepolia (`0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C`, table below) is pre-V7 too; it was the default pool of the SDK's `deposit()` before 0.2.0, which no longer handles V3 at all (see [`sdk/README.md`](./sdk/README.md)).
 - `node tools/check-deployments.js` checks the flags and the documents (no network needed).
 
 ## How a pool works
@@ -57,7 +57,7 @@ Full mechanics and limits: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 ```
 contracts/   Solidity contracts: token, faucet, pools (V3–V7; only V7 is current), distribution routers, verifiers, Poseidon hashing
 circuits/    circom circuits (withdraw v1/v2/v3/v4/v5, disclose), compiled proving artifacts in build/, the phase-1 ptau file in ptau/
-sdk/         pool and router registry (deployments.json), distribution helpers (distribution.js), reference app for the frozen V5 pools (demo-app-v5.html, withdrawals only), JavaScript SDK (V3 pool, see its compatibility table)
+sdk/         JavaScript SDK for the V7 pools and router (notes, master keys, 20-level paths, withdraw_v5 proofs, withdraw / withdrawMany, relayer; V6 / V5 withdrawals only), pool and router registry (deployments.json), distribution helpers (distribution.js), reference app for the frozen V5 pools (demo-app-v5.html, withdrawals only)
 demo/        the live demo (latheon.xyz/demo): index.html and deployments.json
 site/        source of the landing page (latheon.xyz)
 test/        Remix unit tests (V3/V4), Node tests with real proofs (v5-integration, distribution, native, native-v6,
