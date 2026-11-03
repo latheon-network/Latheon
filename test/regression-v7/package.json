@@ -1,0 +1,9 @@
+{
+  "name": "latheon-regression-v7-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Regression tests for circuits/withdraw_v5.circom and the V7 contracts: Merkle selector bit constraint, recipient/relayer/fee binding, nullifier replay, withdrawMany limits. Real Groth16 proofs on a local EVM; uses test/zk-review's helpers and node_modules.",
+  "scripts": {
+    "test": "node run.js"
+  }
+}

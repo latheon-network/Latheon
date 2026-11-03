@@ -2,7 +2,7 @@
 
 ## Project status
 
-Latheon is experimental software. All deployments (Ethereum Sepolia, Arbitrum Sepolia, Robinhood Chain Testnet) are research and development prototypes on testnets and must not be treated as production financial infrastructure. They have not undergone a formal third-party security audit.
+Latheon is experimental software. All deployments are research and development prototypes on testnets and must not be treated as production financial infrastructure: the current V7 pools run on the Latheon test chain (our own Arbitrum Orbit chain on Arbitrum Sepolia, `docs/testnet.md`); the earlier deployments on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet are deprecated since 27 October 2026 and kept only for withdrawals. None of them has undergone a formal third-party security audit.
 
 ## Scope
 
@@ -46,10 +46,11 @@ We ask researchers to allow reasonable time for investigation and remediation be
 See [`STATUS.md`](./STATUS.md) §7 and [`THREAT-MODEL.md`](./THREAT-MODEL.md) for a full, honest account of current limitations, including:
 
 - No formal third-party audit yet; limited external security review.
-- The proving and verifying keys are development keys from single-party setups ([`docs/dev-ceremony-v3.md`](./docs/dev-ceremony-v3.md)). A public multi-party ceremony is required before any real-value deployment.
+- The proving and verifying keys are development keys from single-party setups ([`docs/dev-ceremony-v5.md`](./docs/dev-ceremony-v5.md) for the current circuit; earlier keys in `dev-ceremony-v4.md` and `dev-ceremony-v3.md`). A public multi-party ceremony is required before any real-value deployment.
 - Anonymity sets are small: the pools hold mostly test deposits.
 - Metadata (timing, gas usage) is publicly visible on-chain.
-- The legacy V3/V4 pools remain deployed and have the flaw described above.
+- Every pool before V7 (V3–V6, on every network) remains deployed, still accepts deposits and is forgeable; the V3/V4 pools additionally lack recipient binding. They are kept only so existing notes can be withdrawn.
+- The Latheon test chain is run by us alone: one sequencer, one validator and one development key with the owner powers (`THREAT-MODEL.md` §8.4, `docs/operator-rights.md`).
 
 ## Testnet warning
 
@@ -57,8 +58,8 @@ All Latheon deployments are experimental testnet deployments. Do not use real-wo
 
 ## Security roadmap
 
-1. Expanded automated tests and circuit test vectors (V5 integration tests with real proofs are in `test/v5-integration`).
-2. Invariant and fuzz testing for contracts.
+1. Expanded automated tests and circuit test vectors (done for the current generation: `test/native-v7`, `test/zk-review`, the demo's browser tests; earlier generations keep their own suites, see `README.md`, "Verify it yourself").
+2. Invariant and fuzz testing for contracts (`test/fuzz-v7` exists; not yet run in CI on every change).
 3. Independent code review.
 4. Independent cryptographic review of the circuit and trusted setup.
 5. Public multi-party trusted-setup ceremony, after the circuit is frozen.

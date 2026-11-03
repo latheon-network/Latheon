@@ -1,7 +1,7 @@
 # Distribution pool and composable privacy: design (v0.5)
 
 **Status:** the router contract (`contracts/LatheonDistributionPool.sol`) and the client mirror of its split rule
-(`sdk/distribution.js`) are implemented and tested on a local EVM (`test/distribution`). **Deployed on four testnet token sets and checked by hand with real proofs (addresses and transactions: `docs/distribution-pool-deployments.md`); not reviewed by anyone else.** The wallet side is built in the demo for D3 (rounding chosen by the user, exact amount preselected), one master key per deposit, and withdrawal by amount and key (`sdk/distribution.js`, `test/distribution/wallet.js`, `test/demo-e2e/router-e2e.js`; run live on Ethereum Sepolia). D2 (a planner that proposes several addresses and delays) and D4 (pool-activity indicators) are not built; the demo offers separate notes for unlinked payouts and warns that one `withdrawMany` links its notes. Supersedes v0.3. All numbers below come from a toy model
+(`sdk/distribution.js`) are implemented and tested on a local EVM (`test/distribution`). **Deployed on four external testnet token sets and checked by hand with real proofs (addresses and transactions: `docs/distribution-pool-deployments.md`); those routers are deprecated since 27 October 2026 with their V5 pools. The current router is the native-coin V7 router on the Latheon test chain (`LatheonDistributionPoolV7Native`, same split rule, per-note relayer fee; `docs/testnet.md`). Not reviewed by anyone else.** The wallet side is built in the demo for D3 (rounding chosen by the user, exact amount preselected), one master key per deposit, and withdrawal by amount and key (`sdk/distribution.js`, `test/distribution/wallet.js`, `test/demo-e2e/router-e2e.js`; run live on Ethereum Sepolia). D2 (a planner that proposes several addresses and delays) and D4 (pool-activity indicators) are not built; the demo offers separate notes for unlinked payouts and warns that one `withdrawMany` links its notes. Supersedes v0.3. All numbers below come from a toy model
 (`tools/privacy-simulation/privacy_sim.py`); they compare design options under explicit assumptions and are
 **not** guarantees of privacy.
 
@@ -117,7 +117,7 @@ Quiet pool, about 7 deposits per day:
 
 ## 7. Implementation order
 
-1. Fixed-denomination pools (done: V5 deployed on three testnets).
+1. Fixed-denomination pools (done: V5 deployed on three external testnets, deprecated 27 October 2026; the current pools are V7 on the Latheon test chain).
 2. Wallet: one master key per deposit, coin selection by amount (**done in the demo**); a withdrawal planner with several addresses and delays (not done).
 3. Deposit UI: rounding and warnings (**done**); pool-activity indicators (not done).
 4. DistributionPool contract (canonical split, no queue). **Done and deployed on four testnet token sets.**
@@ -174,12 +174,12 @@ These are local-EVM figures, not live-network readings. Gas on each live network
 - **It does not by itself make a withdrawal harder to link.** The total amount is public and so is the composition of the
   notes: they are emitted by one transaction from one sender. The toy-model result of section 3 stands: what reduces
   linkability is rounding the amount (D3) and withdrawing in parts to different addresses and times (D2), and those live in
-  the wallet, which is not built yet.
+  the wallet: rounding is offered in the demo; the planner (D2) is not built yet.
 - **It does not enlarge an anonymity set.** Several notes from one user count as one depositor (section 5).
 - **`withdrawMany` links.** Several notes paid to one address in one transaction are visibly one group. It is a
   convenience for people who do not need unlinking; the wallet should offer separate withdrawals, at different times and
   to different addresses, as the private mode (D2).
 - **It adds a contract to the audit scope.** It is small and holds nothing, but no one outside the project has reviewed it,
   and nothing in the repository has had an independent audit.
-- **Testnets only, and not deployed.** The pools it would sit on hold mostly the team's own test deposits (section 3, finding 6).
+- **Testnets only.** Deployed on the four external token sets (now deprecated) and, in its native-coin V6/V7 form, on the Latheon test chain (`docs/testnet.md`); nothing holds real value. The pools it sits on hold mostly the team's own test deposits (section 3, finding 6).
 

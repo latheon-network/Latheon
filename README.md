@@ -22,7 +22,7 @@ Follow the work: X [@Latheon_xyz](https://x.com/Latheon_xyz) · Telegram [t.me/L
 - **Fixed in V7: withdrawal without a deposit.** In every earlier circuit one value in the Merkle path was not limited to 0 or 1, so a crafted proof could withdraw from a pool without any deposit. Found in an internal review, reproduced locally with test tokens, fixed in `withdraw_v5`. All older pools (V3–V6, and the V5 pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet, now deprecated) are kept only for withdrawals. Our demo no longer deposits into them; the contracts themselves have no pause, still accept deposits and stay forgeable, so nobody should deposit into them (they are marked `frozen` and `forgeable` in `deployments.json`). See `STATUS.md` §7 and [`docs/dev-ceremony-v5.md`](./docs/dev-ceremony-v5.md).
 - **Recipient-bound proofs:** a withdrawal proof is valid only for the address it was made for, and the relayer and its fee are bound into the proof too. The earlier V3/V4 pools lacked recipient binding, so a pending withdrawal could be redirected; this was found internally, reproduced and fixed; see [`docs/withdraw-recipient-binding.md`](./docs/withdraw-recipient-binding.md).
 - **Capacity:** each pool's Merkle tree has depth 20, so a pool holds up to 1,048,576 deposits, and it keeps its last 100 roots.
-- **Any amount, via a router:** `contracts/LatheonDistributionPool.sol` is a stateless contract (no owner, no fee) that splits an amount into notes of 100 / 50 / 10 / 1 and deposits them into the four pools in one transaction; `withdrawMany` pays several notes to one address in one transaction (up to 16). The current router is the V7 native router on the Latheon test chain; the routers on the three external testnets are deprecated with their pools. Not independently reviewed. Several notes withdrawn to one address in one transaction are visibly linked to each other. Details: [`docs/distribution-pool-architecture.md`](./docs/distribution-pool-architecture.md), [`docs/distribution-pool-deployments.md`](./docs/distribution-pool-deployments.md).
+- **Any amount, via a router:** the distribution router (`contracts/LatheonDistributionPoolV7Native.sol` on the test chain; the original `LatheonDistributionPool.sol` served the external testnets) is a stateless contract (no owner, no fee) that splits an amount into notes of 100 / 50 / 10 / 1 and deposits them into the four pools in one transaction; `withdrawMany` pays several notes to one address in one transaction (up to 16). The current router is the V7 native router on the Latheon test chain; the routers on the three external testnets are deprecated with their pools. Not independently reviewed. Several notes withdrawn to one address in one transaction are visibly linked to each other. Details: [`docs/distribution-pool-architecture.md`](./docs/distribution-pool-architecture.md), [`docs/distribution-pool-deployments.md`](./docs/distribution-pool-deployments.md).
 - **Selective disclosure:** a depositor can prove to one chosen auditor that they control a specific deposit, without giving that auditor any ability to spend it. The auditor learns which deposit it is (its commitment is public on-chain anyway), but not your keys, your other deposits, or where the funds went. Design: [`docs/selective-disclosure-design.md`](./docs/selective-disclosure-design.md).
 
 ## Do not deposit into pre-V7 pools
@@ -56,12 +56,12 @@ Full mechanics and limits: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 
 ```
 contracts/   Solidity contracts: token, faucet, pools (V3–V7; only V7 is current), distribution routers, verifiers, Poseidon hashing
-circuits/    circom circuits (withdraw v1/v2/v3, disclose) and compiled proving artifacts in build/
+circuits/    circom circuits (withdraw v1/v2/v3/v4/v5, disclose), compiled proving artifacts in build/, the phase-1 ptau file in ptau/
 sdk/         JavaScript SDK for the V7 pools and router (notes, master keys, 20-level paths, withdraw_v5 proofs, withdraw / withdrawMany, relayer; V6 / V5 withdrawals only), pool and router registry (deployments.json), distribution helpers (distribution.js), reference app for the frozen V5 pools (demo-app-v5.html, withdrawals only)
 demo/        the live demo (latheon.xyz/demo): index.html and deployments.json
 site/        source of the landing page (latheon.xyz)
-test/        Remix unit tests (V3/V4), Node integration tests with real proofs (v5-integration, distribution),
-             browser end-to-end tests for the demo (demo-e2e)
+test/        Remix unit tests (V3/V4), Node tests with real proofs (v5-integration, distribution, native, native-v6,
+             native-v7, fuzz-v7, zk-review), browser end-to-end tests for the demo and the bridge page (demo-e2e)
 tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model), check-deployments.js and check-versions.js (offline consistency checks)
 docs/        technical documentation, see docs/README.md
 ```
@@ -80,13 +80,14 @@ docs/        technical documentation, see docs/README.md
 
 - `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
 - `cd test/distribution && npm install && npm test`: the router with real proofs on a local EVM (48 checks, a few minutes); `node wallet.js` checks the wallet-side helpers (25 checks).
-- `cd test/native && npm install && npm test`: the native-coin variant of the V5 pool and the router (no ERC-20: the pools take and pay the chain's gas coin), with real proofs on a local EVM (57 checks, a few minutes). Not deployed anywhere yet.
+- `cd test/native && npm install && npm test`: the native-coin variant of the V5 pool and the router (no ERC-20: the pools take and pay the chain's gas coin), with real proofs on a local EVM (57 checks, a few minutes). This variant was the Latheon test chain's first pool set (20 October 2026), now frozen and superseded by V7; `test/native-v7` below covers the current one.
 - `node test/demo-e2e/rpc-robust.js`: the demo's log scanning against fake endpoints modelled on real ones (whole range in one request, range caps, rate limits, pruned nodes, an endpoint that is down), and that the reference app carries the same code (13 checks, no network, no packages).
 - `node test/demo-e2e/landing-e2e.js`: the website's live deposit counters (9 checks, Playwright).
 - `test/demo-e2e`: browser tests of the demo on local chains (reference scripts; see its README).
 - `cd test/native-v7 && npm install && npm test`: the V7 pools and router with real `withdraw_v5` proofs, including a check that the pre-V7 forgery can no longer be proven (71 checks in the internal review of 1–2 November 2026).
 - `DEMO=demo node test/demo-e2e/disclosure-e2e.js`: the disclosure report for an accountant or auditor in a real browser (one V7 chain, the real disclosure verifier): building it, the auditor's check, tampering, repeated notes, network errors, CSV.
 - `cd test/zk-review && npm install && npm test`: the internal review of the circuits (not an audit): forgery reproduced on every pre-V7 circuit, `withdraw_v5` negative and positive cases, artifact consistency; a few steps need a circom 2.2.3 binary (`CIRCOM=…`).
+- `cd test/zk-review && npm install && cd ../regression-v7 && npm test`: regression tests for `withdraw_v5` and the V7 contracts with real proofs: the Merkle selector bit constraint s·(1−s)=0 on every level, recipient/relayer/fee binding, nullifier replay, `withdrawMany` with 2, 16 and 17 notes (92 checks).
 - `cd test/fuzz-v7 && npm install && npm test`: random sequences of deposits and withdrawals against the V7 contracts with invariants; run it on anvil (ganache can drop a mined block under this load and report a false failure).
 - Remix unit tests for V3/V4 are in `test/` (open them in Remix; no local setup).
 - `tools/zk-toolkit.html` (serve it over `http://`, not `file://`) runs trusted setup and proof generation in the browser. Circuit sources are in `circuits/` and can be tried at [zkrepl.dev](https://zkrepl.dev).

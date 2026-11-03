@@ -81,7 +81,7 @@ The demo also checks every scan against the pool's `nextIndex()` before it build
 ## Website counters: `landing-e2e.js`
 
 Opens `site/index.html` in Chromium with mocked RPC answers and checks the "Verify it yourself" cards: each shows the sum
-of `nextIndex()` over that network's V5 pools, no explorer API is called, the label is translated (EN/RU/ZH), a network
+of `nextIndex()` over that network's pools (V5, V6 and V7 together, as the page sums them), no explorer API is called, the label is translated (EN/RU/ZH), a network
 that does not answer shows a dash and a link to its explorer, and there are no JavaScript errors. 9 checks:
 `node landing-e2e.js` (Playwright with Chromium).
 
