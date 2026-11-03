@@ -329,6 +329,75 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 .x-pages a:hover { color: var(--text-primary); }
 .x-pages .x-soon { font: 10px 'IBM Plex Mono', monospace; color: var(--gold); border: 1px solid rgba(246,197,90,.45); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
 </style>
+<style id="portal-theme">
+/* ===== Portal layer (v34): WebGL hex tunnel, custom cursor, 3D tilt, word reveals, scroll progress. Delete this block, the x-portal markup and the last script to return to v33. ===== */
+.x-portal { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; z-index: 0; }
+html.x-gl .x-aurora { display: none; }
+.hero::before { content: ''; position: absolute; inset: -12% -22%; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 46% 44% at 50% 50%, rgba(20,18,28,.72), rgba(20,18,28,.3) 60%, transparent 74%); }
+.x-mark-w { width: 150px; margin: 0 auto 22px; perspective: 700px; }
+.x-mark { margin: 0; transition: transform .25s ease-out; will-change: transform; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero > .x-mark-w { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) both, xFloat 7s ease-in-out 1.2s infinite; }
+  @keyframes xFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+  .scroll-cue::after { content: ''; display: block; width: 1px; height: 30px; margin: 8px auto 0; background: linear-gradient(var(--teal), transparent); animation: xCue 1.8s ease-in-out infinite; }
+  @keyframes xCue { 0% { transform: scaleY(0); transform-origin: top; } 45% { transform: scaleY(1); transform-origin: top; } 55% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+}
+/* word reveals */
+.x-w { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0 .02em .12em; margin: 0 -.02em -.12em; }
+.x-wi { display: inline-block; transform: translateY(112%); transition: transform .9s cubic-bezier(.16,1,.3,1); will-change: transform; }
+.x-split.is-in .x-wi { transform: none; }
+.x-split.is-done .x-w { overflow: visible; }
+@media (prefers-reduced-motion: reduce) { .x-wi { transform: none !important; } }
+/* the gradient words of the hero line, re-applied to the split words (background-clip: text does not reach into inline-blocks) */
+.hero h1.x-split .t, .hero h1.x-split .v { background: none; }
+.hero h1.x-split .t .x-wi { background: linear-gradient(90deg, #5DCAA5, #9BE3C9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero h1.x-split .v .x-wi { background: linear-gradient(90deg, #7F77DD, #B7B1F0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* scroll progress + active section */
+.x-prog { position: fixed; top: 0; left: 0; width: 100%; height: 2px; z-index: 60; pointer-events: none; transform-origin: left; transform: scaleX(0);
+  background: linear-gradient(90deg, var(--violet), var(--teal), var(--gold)); }
+.nav-links a.x-on { color: var(--text-primary); }
+.nav-links a.x-on::after { content: ''; display: block; height: 2px; margin-top: 2px; background: var(--teal); border-radius: 2px; }
+/* custom cursor (fine pointers only) */
+.x-cur { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity .3s; }
+.x-cur.x-show { opacity: 1; }
+.x-cur i, .x-cur b { position: absolute; left: 0; top: 0; border-radius: 50%; display: block; }
+.x-cur i { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--teal); transition: background .25s, transform .25s; }
+.x-cur b { width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 1.5px solid rgba(93,202,165,.75); transition: transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, background-color .3s; }
+.x-cur.x-hov b { transform: scale(1.7); border-color: rgba(246,197,90,.9); background-color: rgba(246,197,90,.08); }
+.x-cur.x-hov i { background: var(--gold); transform: scale(.6); }
+.x-cur.x-down b { transform: scale(.85); }
+html.x-fine body, html.x-fine a, html.x-fine button, html.x-fine summary, html.x-fine .step, html.x-fine .tab, html.x-fine .leaf { cursor: none; }
+html.x-fine select, html.x-fine input, html.x-fine textarea { cursor: auto; }
+/* tilt + hover details */
+.x-card, .col { transform-style: preserve-3d; }
+.x-card.x-tilt, .col.x-tilt { transition: transform .08s linear, border-color .25s; }
+.x-card:hover svg polygon { transform: rotate(30deg) scale(1.06); }
+.x-card svg polygon { transform-box: fill-box; transform-origin: center; transition: transform .6s cubic-bezier(.16,1,.3,1); }
+.x-row:not(.x-hdr) { transition: background .2s; }
+.x-row:not(.x-hdr):hover { background: rgba(242,239,233,.03); }
+.x-row:not(.x-hdr):hover > .x-us { box-shadow: inset 0 0 0 1px rgba(127,119,221,.55); }
+/* Merkle path peek */
+#tree .leaf { cursor: pointer; }
+#tree .leaf:hover { stroke: var(--violet); }
+.edge.peek { stroke: rgba(127,119,221,.85); stroke-width: 2; }
+.node.peek { stroke: var(--violet); fill: #3A3150; }
+.stage-hint { text-align: center; font: 11.5px 'IBM Plex Mono', monospace; color: #C3BEF3; opacity: 0; transition: opacity .25s; margin-top: 6px; min-height: 18px; }
+.stage-hint.x-show { opacity: 1; }
+/* news timeline fills as you scroll */
+.x-news { position: relative; border-left-color: rgba(93,202,165,.15); }
+.x-news::before { content: ''; position: absolute; left: -2px; top: 0; bottom: 0; width: 2px; background: linear-gradient(var(--teal), var(--gold)); transform-origin: top; transform: scaleY(var(--prog, 0)); transition: transform .15s linear; }
+.x-news li::before { opacity: .3; transition: opacity .4s, box-shadow .4s; }
+.x-news li.x-lit::before { opacity: 1; }
+/* final CTA sits on its own portal */
+.final { position: relative; overflow: hidden; }
+.final .wrap { position: relative; z-index: 1; }
+.final::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(20,18,28,.7), transparent 75%); }
+.final .wrap { z-index: 2; }
+/* film grain */
+body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-events: none; opacity: .04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); background-size: 180px 180px; }
+</style>
 <!-- x-begin -->
 <meta name="description" content="Latheon: a privacy protocol prototype on Ethereum-compatible testnets. Private by default, verifiable on demand.">
 <meta property="og:type" content="website">
@@ -404,10 +473,11 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 <!-- x-end -->
 <!-- 1. HERO: one message -->
 <div class="hero-shell" id="top">
+  <!-- x-begin --><canvas id="portal" class="x-portal" aria-hidden="true"></canvas><!-- x-end -->
   <canvas id="hexField" aria-hidden="true"></canvas>
   <!-- x-begin --><div class="x-aurora" aria-hidden="true"></div><!-- x-end -->
   <header class="wrap hero">
-    <!-- x-begin --><svg class="x-mark" width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- x-begin --><div class="x-mark-w"><svg class="x-mark" width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <mask id="xMarkMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
             <rect width="280" height="150" fill="#fff"/>
@@ -430,7 +500,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
         <polygon class="x-piece x-p1" points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
         <polygon class="x-piece x-p2" points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
         <polygon class="x-piece x-p3" points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
-      </svg><!-- x-end -->
+      </svg></div><!-- x-end -->
     <div class="eyebrow" data-i18n="hero.eyebrow">Private by default · Verifiable on demand</div>
     <h1 class="display" data-i18n="hero.h1">Prove what's <span class="t">true</span>.<br>Reveal only what's <span class="v">needed</span>.</h1>
     <p data-i18n="hero.lede">A privacy protocol on Ethereum-compatible testnets, built on zero-knowledge proofs.</p>
@@ -521,6 +591,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <div class="stage">
         <svg id="tree" viewBox="0 0 640 300" role="img" aria-label="Merkle tree of deposits"></svg>
         <div class="caption" id="caption" aria-live="polite"></div>
+        <!-- x-begin --><div class="stage-hint" id="xPathHint" aria-hidden="true"></div><!-- x-end -->
         <div class="stage-note" data-i18n="how.note">simulation · illustrative hashes, not Poseidon · real V7 pools hold up to 1,048,576 deposits</div>
       </div>
     </div>
@@ -632,6 +703,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 <!-- x-end -->
 <!-- 5. CTA -->
 <section class="final">
+  <!-- x-begin --><canvas id="portal2" class="x-portal" aria-hidden="true"></canvas><!-- x-end -->
   <div class="wrap">
     <h2 class="display reveal" data-i18n="final.h2">Try it on a testnet.</h2>
     <div class="ctas reveal">
@@ -649,6 +721,7 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   </div>
 </footer>
 <div class="toast" id="toast"></div>
+<!-- x-begin --><div class="x-prog" id="xProg" aria-hidden="true"></div><div class="x-cur" id="xCur" aria-hidden="true"><b></b><i></i></div><!-- x-end -->
 
 <script>
 (function () {
@@ -1223,6 +1296,255 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
   }).catch(function () {});
 
   apply();
+})();
+</script>
+<!-- x-end -->
+<!-- x-begin -->
+<script>
+/* Portal layer (v34): WebGL hex tunnel behind the hero and the final CTA (reacts to the pointer and to scrolling), custom cursor,
+   3D tilt on cards, word-by-word headings, scroll progress, live-counter count-up, Merkle-path peek on the tree. No libraries.
+   Everything here is cosmetic: with prefers-reduced-motion, without WebGL or on touch screens the page behaves as in v33. */
+(function () {
+  'use strict';
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var FINE = window.matchMedia('(pointer: fine)').matches;
+  var H = document.documentElement;
+  function $(id) { return document.getElementById(id); }
+  var P = {
+    en: { 'pk.hint': 'Merkle path of this deposit: the hashes that put it in the root' },
+    ru: { 'pk.hint': 'Путь Меркла этого депозита: хэши, по которым он входит в корень' },
+    zh: { 'pk.hint': '该存款的默克尔路径：将它纳入根哈希的那些哈希' }
+  };
+  function lang() { var l = 'en'; try { l = localStorage.getItem('latheon-lang') || (navigator.language || 'en').slice(0, 2); } catch (e) {} return P[l] ? l : 'en'; }
+  function tp(k) { return (P[lang()][k] !== undefined ? P[lang()] : P.en)[k]; }
+
+  /* ---------- WebGL portal ---------- */
+  var VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  var FS = [
+    'precision mediump float;',
+    'uniform vec2 u_res;uniform float u_t;uniform vec2 u_m;uniform float u_open;uniform float u_dive;uniform float u_amp;',
+    'float hexd(vec2 p){p=abs(p);return max(dot(p,vec2(.5,.8660254)),p.x);}',
+    'void main(){',
+    ' vec2 uv=(gl_FragCoord.xy-.5*u_res)/u_res.y;',
+    ' vec2 c=uv-u_m*.2;',
+    ' float d=hexd(c)+.015;',
+    ' float depth=.7/d;',
+    ' float z=u_t*.22+u_dive*1.8;',
+    ' float ring=depth-z;float f=fract(ring);float i=floor(ring);',
+    ' float k=mod(i,3.);',
+    ' vec3 V=vec3(.498,.467,.867),T=vec3(.365,.792,.647),G=vec3(.965,.773,.353);',
+    ' vec3 col=k<.5?V:(k<1.5?T:G);',
+    ' float line=smoothstep(0.,.035,f)*(1.-smoothstep(.035,.17,f))+.3*smoothstep(.47,.5,f)*(1.-smoothstep(.5,.56,f));',
+    ' float a=atan(c.y,c.x);',
+    ' float spoke=pow(abs(sin(a*3.+1.5708)),28.)*.45;',
+    ' float att=smoothstep(.10,.42,d)*(1.-smoothstep(.5,1.05,d));',
+    ' float fog=exp(-.10*depth);',
+    ' vec3 ink=vec3(.078,.071,.110);',
+    ' vec3 rgb=ink+col*(line*1.05+spoke*.12+.05)*att*u_amp*(.35+.65*fog);',
+    ' rgb+=T*exp(-length(uv-u_m)*3.2)*.09*u_amp;',
+    ' float vis=1.-smoothstep(u_open*1.25-.1,u_open*1.25,d);',
+    ' rgb=mix(ink,rgb,vis);',
+    ' rgb+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5)/128.;',
+    ' gl_FragColor=vec4(rgb,1.);}'
+  ].join('\n');
+  function makePortal(canvas, amp) {
+    var gl = null;
+    try { gl = canvas.getContext('webgl', { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'low-power' }); } catch (e) {}
+    if (!gl) return null;
+    function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+    var pr = gl.createProgram();
+    try { gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); } catch (e) { return null; }
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return null;
+    gl.useProgram(pr);
+    var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var U = {}; ['u_res', 'u_t', 'u_m', 'u_open', 'u_dive', 'u_amp'].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
+    var st = { m: [0, 0], tm: [0, 0], open: 0, dive: 0, run: false, raf: 0, t0: 0, w: 1, h: 1 };
+    function size() {
+      var host = canvas.parentElement, s = Math.min(window.devicePixelRatio || 1, 1.5) * (host.clientHeight < 520 ? 1 : 0.6);
+      st.w = Math.max(1, Math.round(host.clientWidth * s)); st.h = Math.max(1, Math.round(host.clientHeight * s));
+      canvas.width = st.w; canvas.height = st.h; gl.viewport(0, 0, st.w, st.h);
+    }
+    function frame(now) {
+      st.raf = 0; if (!st.run) return;
+      if (!st.t0) st.t0 = now;
+      st.m[0] += (st.tm[0] - st.m[0]) * 0.06; st.m[1] += (st.tm[1] - st.m[1]) * 0.06;
+      if (st.open < 1) st.open = Math.min(1, st.open + 0.011);
+      gl.uniform2f(U.u_res, st.w, st.h); gl.uniform1f(U.u_t, (now - st.t0) / 1000);
+      gl.uniform2f(U.u_m, st.m[0], st.m[1]); gl.uniform1f(U.u_open, st.open); gl.uniform1f(U.u_dive, st.dive); gl.uniform1f(U.u_amp, amp);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      st.raf = requestAnimationFrame(frame);
+    }
+    size();
+    return {
+      size: size,
+      start: function () { if (!st.run) { st.run = true; st.raf = requestAnimationFrame(frame); } },
+      stop: function () { st.run = false; if (st.raf) { cancelAnimationFrame(st.raf); st.raf = 0; } },
+      pointer: function (e) { if (!e) { st.tm = [0, 0]; return; } var r = canvas.getBoundingClientRect(); st.tm = [(e.clientX - r.left - r.width / 2) / r.height, -(e.clientY - r.top - r.height / 2) / r.height]; },
+      dive: function (v) { st.dive = v; }
+    };
+  }
+  var portals = [];
+  if (!REDUCED) {
+    [['portal', 1.0], ['portal2', 0.75]].forEach(function (c) {
+      var cv = $(c[0]); if (!cv) return;
+      var p = makePortal(cv, c[1]); if (!p) return;
+      portals.push(p);
+      var host = cv.parentElement;
+      host.addEventListener('pointermove', p.pointer);
+      host.addEventListener('pointerleave', function () { p.pointer(null); });
+      if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting && !document.hidden) p.start(); else p.stop(); }); }, { threshold: 0.02 }).observe(cv);
+      else p.start();
+      cv.dataset.on = '1';
+    });
+    if (portals.length) {
+      H.classList.add('x-gl');
+      window.addEventListener('resize', function () { portals.forEach(function (p) { p.size(); }); });
+      document.addEventListener('visibilitychange', function () { if (document.hidden) portals.forEach(function (p) { p.stop(); }); else portals.forEach(function (p) { p.size(); p.start(); }); });
+    }
+  }
+
+  /* ---------- scroll: hero parallax + dive, progress bar, news timeline, active nav ---------- */
+  var hero = document.querySelector('.hero'), shell = $('top'), prog = $('xProg'), news = document.querySelector('.x-news'), ticking = false;
+  var newsItems = news ? Array.prototype.slice.call(news.children) : [];
+  function onScroll() {
+    ticking = false;
+    var y = window.scrollY || window.pageYOffset, hh = shell ? shell.offsetHeight : 1;
+    var k = Math.min(1.4, y / hh);
+    if (portals[0]) portals[0].dive(k);
+    if (hero && !REDUCED) { hero.style.transform = 'translateY(' + (y * 0.28).toFixed(1) + 'px)'; hero.style.opacity = Math.max(0, 1 - k * 1.3).toFixed(3); }
+    if (prog) { var max = document.documentElement.scrollHeight - window.innerHeight; prog.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, y / max) : 0).toFixed(4) + ')'; }
+    if (news) {
+      var r = news.getBoundingClientRect(), mid = window.innerHeight * 0.62, pr = Math.max(0, Math.min(1, (mid - r.top) / r.height));
+      news.style.setProperty('--prog', pr.toFixed(3));
+      newsItems.forEach(function (li) { li.classList.toggle('x-lit', li.getBoundingClientRect().top < mid); });
+    }
+  }
+  window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  onScroll();
+  var links = {}; document.querySelectorAll('.nav-links a[href^="#"]').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  if ('IntersectionObserver' in window) {
+    var curId = null, io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) curId = en.target.id; });
+      Object.keys(links).forEach(function (id) { links[id].classList.toggle('x-on', id === curId); });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    Object.keys(links).forEach(function (id) { var s = $(id); if (s) io.observe(s); });
+  }
+
+  /* ---------- hero mark: tilts toward the pointer ---------- */
+  var mark = document.querySelector('.x-mark');
+  if (mark && FINE && !REDUCED && shell) {
+    shell.addEventListener('pointermove', function (e) {
+      var r = shell.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+      mark.style.transform = 'rotateX(' + (-py * 22).toFixed(1) + 'deg) rotateY(' + (px * 26).toFixed(1) + 'deg) translate3d(' + (px * 10).toFixed(1) + 'px,' + (py * 10).toFixed(1) + 'px,0)';
+    });
+    shell.addEventListener('pointerleave', function () { mark.style.transform = ''; });
+  }
+
+  /* ---------- word-by-word headings ---------- */
+  function split(el) {
+    var zh = lang() === 'zh';
+    (function walk(node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+        if (n.nodeType === 3) {
+          var frag = document.createDocumentFragment();
+          (zh ? n.nodeValue.split('') : n.nodeValue.split(/(\s+)/)).forEach(function (p) {
+            if (!p) return;
+            if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(p)); return; }
+            var w = document.createElement('span'); w.className = 'x-w'; var i = document.createElement('span'); i.className = 'x-wi'; i.textContent = p; w.appendChild(i); frag.appendChild(w);
+          });
+          node.replaceChild(frag, n);
+        } else if (n.nodeType === 1 && n.tagName !== 'BR' && !n.classList.contains('x-w')) walk(n);
+      });
+    })(el);
+    el.classList.add('x-split');
+    el.querySelectorAll('.x-wi').forEach(function (s, i) { s.style.transitionDelay = (i * 40) + 'ms'; });
+  }
+  function reveal(el) { if (!el.querySelector('.x-w')) split(el); el.classList.add('is-in'); setTimeout(function () { el.classList.add('is-done'); }, 1500 + el.querySelectorAll('.x-wi').length * 40); }
+  var heads = Array.prototype.slice.call(document.querySelectorAll('.head h2, .final h2')), h1 = document.querySelector('.hero h1');
+  if (!REDUCED) {
+    if (h1) { split(h1); setTimeout(function () { reveal(h1); }, 250); }
+    if ('IntersectionObserver' in window) {
+      var ho = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { reveal(en.target); ho.unobserve(en.target); } }); }, { threshold: 0.4 });
+      heads.forEach(function (h) { split(h); ho.observe(h); });
+    } else heads.forEach(reveal);
+    var sel = $('langSelect');
+    if (sel) sel.addEventListener('change', function () { setTimeout(function () { (h1 ? [h1] : []).concat(heads).forEach(function (h) { if (h.classList.contains('is-in')) { split(h); h.classList.add('is-in'); } }); }, 30); });
+  }
+
+  /* ---------- custom cursor ---------- */
+  var cur = $('xCur');
+  if (cur && FINE && !REDUCED) {
+    H.classList.add('x-fine');
+    var dot = cur.querySelector('i'), ring = cur.querySelector('b'), cx = -100, cy = -100, rx = -100, ry = -100, craf = 0, seen = false;
+    function tick() { craf = 0; rx += (cx - rx) * 0.22; ry += (cy - ry) * 0.22; ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0)'; if (Math.abs(cx - rx) + Math.abs(cy - ry) > 0.2) craf = requestAnimationFrame(tick); }
+    var HOV = 'a, button, summary, .step, .tab, .leaf, label';
+    document.addEventListener('pointermove', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      cx = e.clientX; cy = e.clientY; dot.style.transform = 'translate3d(' + cx + 'px,' + cy + 'px,0)';
+      if (!seen) { seen = true; rx = cx; ry = cy; cur.classList.add('x-show'); }
+      cur.classList.toggle('x-hov', !!(e.target.closest && e.target.closest(HOV)));
+      if (!craf) craf = requestAnimationFrame(tick);
+    });
+    document.addEventListener('pointerdown', function () { cur.classList.add('x-down'); });
+    document.addEventListener('pointerup', function () { cur.classList.remove('x-down'); });
+    document.addEventListener('mouseleave', function () { cur.classList.remove('x-show'); seen = false; });
+    H.addEventListener('mouseleave', function () { cur.classList.remove('x-show'); seen = false; });
+  }
+
+  /* ---------- 3D tilt on cards ---------- */
+  if (FINE && !REDUCED) {
+    var SEL = '.x-card, .col';
+    document.addEventListener('pointermove', function (e) {
+      var c = e.target.closest && e.target.closest(SEL); if (!c) return;
+      var r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5, a = Math.min(7, 3200 / r.width);
+      c.classList.add('x-tilt');
+      c.style.transform = 'perspective(900px) rotateX(' + (-py * a).toFixed(2) + 'deg) rotateY(' + (px * a * 1.2).toFixed(2) + 'deg) translateY(-4px)';
+    });
+    document.addEventListener('pointerout', function (e) {
+      var c = e.target.closest && e.target.closest(SEL); if (!c || (e.relatedTarget && c.contains(e.relatedTarget))) return;
+      c.classList.remove('x-tilt'); c.style.transform = '';
+    });
+  }
+
+  /* ---------- count-up: live counters (when the number arrives) and the big figures ---------- */
+  function countUp(el, to, text, ms) {
+    if (REDUCED) { el.textContent = text; return; }
+    var t0 = null; el.dataset.anim = '1';
+    (function step(now) { if (!t0) t0 = now; var k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(to * e).toLocaleString('en-US'); if (k < 1) requestAnimationFrame(step); else { el.textContent = text; delete el.dataset.anim; } })(performance.now());
+  }
+  var xn = $('xNets');
+  if (xn && 'MutationObserver' in window && !REDUCED) {
+    new MutationObserver(function (ms) {
+      ms.forEach(function (m) {
+        var el = m.target.nodeType === 3 ? m.target.parentNode : m.target; if (!el || !el.classList || !el.classList.contains('x-num')) return;
+        var txt = el.textContent, n = Number(txt.replace(/,/g, ''));
+        if (el.dataset.anim || txt === '—' || !isFinite(n) || el.dataset.final === txt) return;
+        el.dataset.final = txt; countUp(el, n, txt, 1100);
+      });
+    }).observe(xn, { subtree: true, childList: true, characterData: true });
+  }
+  if ('IntersectionObserver' in window && !REDUCED) {
+    var bo = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { var b = en.target, n = Number(b.textContent); bo.unobserve(b); if (isFinite(n)) countUp(b, n, b.textContent, 900); } }); }, { threshold: 0.5 });
+    document.querySelectorAll('.big b').forEach(function (b) { bo.observe(b); });
+  }
+
+  /* ---------- Merkle-path peek: hover a leaf to light the hashes that put it in the root ---------- */
+  var tree = $('tree'), hint = $('xPathHint');
+  if (tree) {
+    var lines = tree.querySelectorAll('line'), circles = tree.querySelectorAll('circle'), leaves = tree.querySelectorAll('polygon');
+    var OL = [0, 16, 24, 28], ON = [0, 8, 12, 14], lit = [];
+    function clearPeek() { lit.forEach(function (e) { e.classList.remove('peek'); }); lit = []; if (hint) hint.classList.remove('x-show'); }
+    Array.prototype.forEach.call(leaves, function (leaf, i) {
+      leaf.addEventListener('pointerenter', function () {
+        clearPeek(); var j = i;
+        for (var L = 0; L < 4; L++) { var p = j >> 1, ln = lines[OL[L] + p * 2 + (j & 1)], nd = circles[ON[L] + p]; if (ln) { ln.classList.add('peek'); lit.push(ln); } if (nd) { nd.classList.add('peek'); lit.push(nd); } j = p; }
+        if (hint) { hint.textContent = tp('pk.hint'); hint.classList.add('x-show'); }
+      });
+      leaf.addEventListener('pointerleave', clearPeek);
+    });
+  }
 })();
 </script>
 <!-- x-end -->
