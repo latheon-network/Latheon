@@ -400,7 +400,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); background-size: 180px 180px; }
 </style>
 <!-- x-begin -->
-<meta name="description" content="Latheon: a privacy protocol prototype on Ethereum-compatible testnets. Private by default, verifiable on demand.">
+<meta name="description" content="Latheon: a privacy protocol prototype on its own test chain. Private by default, verifiable on demand.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://latheon.xyz/">
 <meta property="og:title" content="Latheon — Private by default. Verifiable on demand.">
@@ -504,7 +504,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       </svg></div><!-- x-end -->
     <div class="eyebrow" data-i18n="hero.eyebrow">Private by default · Verifiable on demand</div>
     <h1 class="display" data-i18n="hero.h1">Prove what's <span class="t">true</span>.<br>Reveal only what's <span class="v">needed</span>.</h1>
-    <p data-i18n="hero.lede">A privacy protocol on Ethereum-compatible testnets, built on zero-knowledge proofs.</p>
+    <p data-i18n="hero.lede">A privacy protocol on its own test chain, built on zero-knowledge proofs.</p>
     <div class="ctas">
       <a class="btn btn-gold" href="#how" data-i18n="hero.ctaHow">See how it works</a>
       <a class="btn btn-ghost" href="/demo/" target="_blank" rel="noopener" data-i18n="hero.ctaDemo"><span class="dot"></span>Try the live demo</a>
@@ -742,7 +742,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       'nav.how': 'How it works', 'nav.status': 'Status', 'nav.pools': 'Pools', 'nav.demo': 'Live demo',
       'hero.eyebrow': 'Private by default · Verifiable on demand',
       'hero.h1': 'Prove what\'s <span class="t">true</span>.<br>Reveal only what\'s <span class="v">needed</span>.',
-      'hero.lede': 'A privacy protocol on Ethereum-compatible testnets, built on zero-knowledge proofs.',
+      'hero.lede': 'A privacy protocol on its own test chain, built on zero-knowledge proofs.',
       'hero.ctaHow': 'See how it works', 'hero.ctaDemo': '<span class="dot"></span>Try the live demo',
       'hero.fine': '<b>●</b> Public prototype · testnets only · no independent audit yet', 'hero.scroll': 'SCROLL ↓',
       'how.eyebrow': 'How it works', 'how.h2': 'Three steps. Try them.', 'how.p': 'A small simulation of one pool. Nothing touches a chain.',
@@ -786,7 +786,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       'nav.how': 'Как это работает', 'nav.status': 'Статус', 'nav.pools': 'Пулы', 'nav.demo': 'Живое демо',
       'hero.eyebrow': 'Приватность по умолчанию · Проверка по запросу',
       'hero.h1': 'Докажи то, что <span class="t">правда</span>.<br>Раскрой только то, что <span class="v">нужно</span>.',
-      'hero.lede': 'Протокол приватности в тестовых сетях, совместимых с Ethereum, на доказательствах с нулевым разглашением.',
+      'hero.lede': 'Протокол приватности в собственной тестовой сети, на доказательствах с нулевым разглашением.',
       'hero.ctaHow': 'Как это работает', 'hero.ctaDemo': '<span class="dot"></span>Попробовать живое демо',
       'hero.fine': '<b>●</b> Публичный прототип · только тестовые сети · независимого аудита пока нет', 'hero.scroll': 'ЛИСТАЙТЕ ↓',
       'how.eyebrow': 'Как это работает', 'how.h2': 'Три шага. Попробуйте.', 'how.p': 'Небольшая симуляция одного пула. В блокчейн ничего не уходит.',
@@ -830,7 +830,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       'nav.how': '工作原理', 'nav.status': '状态', 'nav.pools': '资金池', 'nav.demo': '实时演示',
       'hero.eyebrow': '默认隐私 · 按需验证',
       'hero.h1': '证明<span class="t">真实</span>之事。<br>只披露<span class="v">必要</span>之事。',
-      'hero.lede': '运行在兼容 Ethereum 的测试网上、基于零知识证明的隐私协议。',
+      'hero.lede': '运行在自有测试链上、基于零知识证明的隐私协议。',
       'hero.ctaHow': '了解工作原理', 'hero.ctaDemo': '<span class="dot"></span>体验实时演示',
       'hero.fine': '<b>●</b> 公开原型 · 仅限测试网 · 尚无独立审计', 'hero.scroll': '向下滚动 ↓',
       'how.eyebrow': '工作原理', 'how.h2': '三个步骤，亲自试试。', 'how.p': '一个资金池的小型模拟，不涉及任何链上操作。',
@@ -1558,24 +1558,11 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
 </script>
 <!-- x-end -->
 <!-- x-begin -->
-<style id="variants-ui">
-.v-ui { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 9500; display: flex; flex-direction: column; align-items: center; gap: 6px; background: rgba(28,25,39,.92); border: 1px solid var(--border-strong); border-radius: 14px; padding: 8px 10px; font: 12px 'IBM Plex Mono', monospace; color: var(--text-muted); backdrop-filter: blur(8px); max-width: calc(100vw - 24px); }
-.v-ui b { display: none; }
-.v-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-.v-ui button { display: inline-flex; align-items: center; gap: 7px; background: none; border: 1px solid transparent; border-radius: 999px; padding: 5px 10px 5px 6px; color: var(--text-muted); font: 13px 'IBM Plex Sans', sans-serif; cursor: pointer; white-space: nowrap; }
-.v-ui button i { font: 11px 'IBM Plex Mono', monospace; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border-strong); display: grid; place-items: center; font-style: normal; flex-shrink: 0; }
-.v-ui button small { display: none; }
-.v-ui button:hover { color: var(--text-primary); background: rgba(242,239,233,.04); }
-.v-ui button.on { color: var(--text-primary); border-color: rgba(93,202,165,.5); background: rgba(93,202,165,.08); }
-.v-ui button.on i { background: var(--teal); color: var(--ink); border-color: var(--teal); }
-.v-desc { font-size: 11.5px; color: var(--text-muted); text-align: center; max-width: 820px; line-height: 1.4; }
-.v-desc em { font-style: normal; color: var(--text-primary); }
+<style id="hero-scene">
 #hexField, #portal { display: none !important; }
 #vcan2d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; z-index: 0; }
 #top { user-select: none; -webkit-user-select: none; touch-action: pan-y; }
-@media (max-width: 720px) { .v-ui { bottom: 8px; padding: 6px; } .v-ui button span { display: none; } .v-ui button { padding: 5px 6px; } .v-desc { display: none; } }
 </style>
-<div class="v-ui" id="vui"><b>Вариант фона</b></div>
 <script>
 /* Hero backgrounds built from the mark's own geometry (two faces and a floating slab) and from particles. Same interface
    for every renderer: {frame(t, dt), click(x, y), resize(), destroy()}. 2D canvas, no libraries. */
@@ -1592,6 +1579,19 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
   var GREY = [[52, 47, 74], [40, 36, 58], [28, 25, 40]];
   var BRAND = [[[175, 169, 236], [127, 119, 221], [60, 52, 137]], [[93, 202, 165], [15, 110, 86], [11, 84, 67]], [[246, 197, 90], [219, 154, 44], [156, 100, 20]]];
   var MONO = "11px 'IBM Plex Mono', monospace";
+  /* scene labels, EN / RU / ZH; the language follows <html lang>, set by the page's language switcher */
+  var SL = {
+    en: { dep: 'deposit', wd: 'withdraw · unlinkable', yoursS: 'yours · ', yoursL: 'yours · only you can prove it · ', notYours: 'not yours · not linkable',
+      cntS: 'yours {0} · in pool {1} · out {2}', holdS: ' · hold to prove', tapS: 'tap on the left to deposit · hold to prove yours',
+      cntL: 'your deposits {0} · in the pool {1} · withdrawn {2}', holdL: ' · hold the button to prove yours', tapL: 'click left of the pool to make your own deposit' },
+    ru: { dep: 'депозит', wd: 'вывод · без связи', yoursS: 'ваша · ', yoursL: 'ваша · доказать можете только вы · ', notYours: 'не ваша · связь не видна',
+      cntS: 'ваших {0} · в пуле {1} · вышло {2}', holdS: ' · удерживайте', tapS: 'коснитесь слева: депозит · удерживайте: ваши',
+      cntL: 'ваши депозиты {0} · в пуле {1} · выведено {2}', holdL: ' · удерживайте кнопку, чтобы доказать свои', tapL: 'нажмите слева от пула, чтобы сделать свой депозит' },
+    zh: { dep: '存款', wd: '取款 · 无法关联', yoursS: '你的 · ', yoursL: '你的 · 只有你能证明 · ', notYours: '不是你的 · 无法关联',
+      cntS: '你的 {0} · 池中 {1} · 已取出 {2}', holdS: ' · 长按证明', tapS: '点按左侧存款 · 长按证明你的',
+      cntL: '你的存款 {0} · 池中 {1} · 已取出 {2}', holdL: ' · 按住按钮证明你的', tapL: '点击池左侧，存入你自己的一笔' }
+  };
+  function TT(k, v) { var l = (document.documentElement.lang || 'en').slice(0, 2), d = SL[l] || SL.en, t = d[k] || SL.en[k]; return v ? t.replace(/\{(\d)\}/g, function (m, i) { return v[i]; }) : t; }
   function rgba(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, Math.min(1, a)).toFixed(3) + ')'; }
   function mix(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
   function hash(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
@@ -1673,7 +1673,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
           shellAt(pc.x - 35 * k3 + tilt * .4, pc.y, k3 * .9, br + 4 + grab * 6, BRAND[0], .92 * fade, .08 * fade);
           shellAt(pc.x + 35 * k3 + tilt * .4, pc.y, k3 * .9, br + 4 + grab * 6, BRAND[1], .92 * fade, .08 * fade);
           shellAt(pc.x + tilt * .8, pc.y + 2 * k3, k3 * .72, br + 2 + grab * 6, BRAND[2], .95 * fade, .1 * fade);
-          label('deposit', g.inX, pc.y - 42 * k3 - 14, PAPER, .35 * fade); label('withdraw · unlinkable', g.outX, pc.y - 42 * k3 - 14, PAPER, .35 * fade);
+          label(TT('dep'), g.inX, pc.y - 42 * k3 - 14, PAPER, .35 * fade); label(TT('wd'), g.outX, pc.y - 42 * k3 - 14, PAPER, .35 * fade);
         }
         if (mode === 'relayer') { halo(g.relX, pc.y, 40, TEAL, (.15 + relayPulse * .4) * fade); shellAt(g.relX, pc.y - 6, .3, 3 + relayPulse * 8, shade(1, .5 + relayPulse), .95 * fade, .1 * fade); label('relayer · pays gas · cannot change the recipient', g.relX, pc.y - 42 * .3 - 18, TEAL, .7 * fade); }
         /* notes: 0 lane → 1 elbow down → 2 into the pool → 3 held → 4 out → (relayer) → 5 elbow → 6 lane */
@@ -1708,12 +1708,12 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
           pins.forEach(function (p) { if (items.indexOf(p) >= 0) disclose(p, GOLD, 1, 'pinned · deposit ' + p.id + '…'); });
           if (proofFor && items.indexOf(proofFor) >= 0 && pins.indexOf(proofFor) < 0) disclose(proofFor, proofFor.c, proofT, (proofT >= 1 ? '✓ proof verified · ' : '') + 'deposit ' + proofFor.id + '… · click to pin');
         } else if (mode === 'own') {
-          var shown = 0; items.forEach(function (p) { if (p.own && p.st >= 4 && mouse.down) { disclose(p, GOLD, 1, mob ? 'yours · ' + p.id + '…' : 'yours · only you can prove it · ' + p.id + '…'); shown++; } });
-          if (best && !best.own) label('not yours · not linkable', best.x, best.y - 18, PAPER, .6 * fade);
+          var shown = 0; items.forEach(function (p) { if (p.own && p.st >= 4 && mouse.down) { disclose(p, GOLD, 1, (mob ? TT('yoursS') : TT('yoursL')) + p.id + '…'); shown++; } });
+          if (best && !best.own) label(TT('notYours'), best.x, best.y - 18, PAPER, .6 * fade);
           hint += dt; var ownOut = items.filter(function (p) { return p.own && p.st >= 4; }).length;
           var inP = items.filter(function (p) { return p.own && p.st === 3; }).length, F = mob ? "10.5px 'IBM Plex Mono', monospace" : null;
-          if (mob) label(stats.own ? ('yours ' + stats.own + ' · in pool ' + inP + ' · out ' + ownOut + (ownOut ? ' · hold to prove' : '')) : 'tap on the left to deposit · hold to prove yours', 16, lanesL[0] - 26, GOLD, (.6 + .3 * Math.sin(hint * 2)) * fade, F, 'left');
-          else label(stats.own ? ('your deposits ' + stats.own + ' · in the pool ' + inP + ' · withdrawn ' + ownOut + (ownOut ? ' · hold the button to prove yours' : '')) : 'click left of the pool to make your own deposit', 24, H * .1, GOLD, (.6 + .3 * Math.sin(hint * 2)) * fade, null, 'left');
+          if (mob) label(stats.own ? TT('cntS', [stats.own, inP, ownOut]) + (ownOut ? TT('holdS') : '') : TT('tapS'), 16, lanesL[0] - 26, GOLD, (.6 + .3 * Math.sin(hint * 2)) * fade, F, 'left');
+          else label(stats.own ? TT('cntL', [stats.own, inP, ownOut]) + (ownOut ? TT('holdL') : '') : TT('tapL'), 24, H * .1, GOLD, (.6 + .3 * Math.sin(hint * 2)) * fade, null, 'left');
         } else if (mode === 'crowd') {
           var set = items.filter(function (p) { return p.st >= 3; }).length, guess = Math.max(0, 1 - set / 14);
           if (guess > 0) items.forEach(function (p) { if (p.st >= 5) { var ly = lanesL[(p.ln * 7 + 3) % LANES]; ctx.strokeStyle = rgba([224, 108, 117], guess * .35 * fade); ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(g.eR, pc.y); ctx.lineTo(g.eL, pc.y); ctx.lineTo(g.eL, ly); ctx.lineTo(0, ly); ctx.stroke(); ctx.setLineDash([]); } });
@@ -1729,28 +1729,17 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       }, destroy: function () { clear(1); } };
   }
 
-  var VARIANTS = [
-    ['Исходный', 'пул на рельсах, как в прошлый раз', function () { return rails('base'); }],
-    ['Свой депозит', 'клик слева от пула кладёт ваш золотой депозит; после вывода он сер, как все, но пока держите кнопку, только ваши ноты раскрываются: доказать может лишь владелец', function () { return rails('own'); }],
-    ['Линза аудитора', 'курсор — линза: входящие ноты внутри неё подписаны, выходящая под центром рисует доказательство до своего рельса, клик закрепляет раскрытие (до трёх)', function () { return rails('lens'); }],
-    ['Перетащи пул', 'пул можно таскать по экрану, рельсы и повороты перестраиваются на лету, ноты продолжают идти', function () { return rails('drag'); }],
-    ['Релейер', 'выводы идут через релейер, который платит газ; клик по правому рельсу переключает его на прямой вывод из кошелька', function () { return rails('relayer'); }],
-    ['Толпа', 'пока депозитов мало, наблюдатель угадывает связь (красный пунктир); зажмите кнопку слева, чтобы добавить толпу, и угадывать станет бессмысленно', function () { return rails('crowd'); }]
-  ];
   var cur = null, raf = 0, last = 0;
   function size() { W = shell.clientWidth; H = shell.clientHeight; c2.width = W * DPR; c2.height = H * DPR; if (cur && cur.resize) cur.resize(); }
-  function loop(now) { raf = 0; if (!cur) return; var dt = Math.min(.05, (now - last) / 1000 || .016); last = now; sm.x += (mouse.x - sm.x) * .1; sm.y += (mouse.y - sm.y) * .1; if (!document.hidden) cur.frame(now / 1000, dt); raf = requestAnimationFrame(loop); }
-  function use(i) {
-    if (cur) { cur.destroy(); cur = null; } size(); cur = VARIANTS[i][2]();
-    ui.querySelectorAll('button').forEach(function (b, j) { b.classList.toggle('on', j === i); }); desc.innerHTML = '<em>' + VARIANTS[i][0] + '.</em> ' + VARIANTS[i][1];
-    try { location.hash = 'v' + (i + 1); } catch (e) {}
-    if (!raf && !REDUCED) raf = requestAnimationFrame(loop); else if (REDUCED) cur.frame(0, .016);
+  function loop(now) { raf = 0; if (!cur) return; var dt = Math.min(.05, (now - last) / 1000 || .016); last = now; sm.x += (mouse.x - sm.x) * .1; sm.y += (mouse.y - sm.y) * .1; if (!document.hidden && heroVisible) cur.frame(now / 1000, dt); raf = requestAnimationFrame(loop); }
+  var heroVisible = true;   /* the scene pauses while the hero is scrolled out of view */
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { heroVisible = es[0].isIntersecting; }, { threshold: 0 }).observe(shell);
+  function start() {
+    size(); cur = rails('own');
+    if (!REDUCED) raf = requestAnimationFrame(loop); else cur.frame(0, .016);
   }
-  var ui = document.getElementById('vui');
-  var row = document.createElement('div'); row.className = 'v-row'; ui.appendChild(row); var desc = document.createElement('div'); desc.className = 'v-desc'; ui.appendChild(desc);
-  VARIANTS.forEach(function (v, i) { var b = document.createElement('button'); b.innerHTML = '<i>' + (i + 1) + '</i><span>' + v[0] + '</span>'; b.addEventListener('click', function () { use(i); }); row.appendChild(b); });
   window.addEventListener('resize', size);
-  var m = /v([1-6])/.exec(location.hash || ''); use(m ? +m[1] - 1 : 1);
+  start();
 })();
 </script>
 <!-- x-end -->
