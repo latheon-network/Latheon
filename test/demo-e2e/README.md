@@ -26,12 +26,14 @@ It does not replace a test with a real wallet and live RPC endpoints.
 The demo on a network whose gas coin is the pooled token, next to an ERC-20 network: native pools and router, a wallet
 that has to add the network, the relayer stand-in, a visitor with no wallet, and a stale root: the relayer stand-in puts
 30 deposits (V5) or 100 (V6) into the pool between proving and sending, and the demo must make a new proof on its own.
-18 checks with real proofs (the V6 run takes much longer because of those 100 deposits). `V6=1` runs the
-same checks on the V6 pools and router (`withdraw_v4`, 20-level trees, relayer and fee in the proof):
+18 checks with real proofs (the V6 and V7 runs take much longer because of those 100 deposits). `V6=1` runs the
+same checks on the V6 pools and router (`withdraw_v4`, 20-level trees, relayer and fee in the proof), `V7=1` on the
+current V7 pools and router (`withdraw_v5`; 18/18 on 2 November 2026):
 
 ```
 DEMO=/path/to/demo node native-e2e.js
 V6=1 DEMO=/path/to/demo node native-e2e.js
+V7=1 DEMO=/path/to/demo node native-e2e.js
 ```
 
 ## Router features: `router-e2e.js`
@@ -51,21 +53,19 @@ DEMO=/path/to/demo node router-e2e.js
 
 It is a local test, not a replacement for a run with a real wallet. That was also done: see `STATUS.md`.
 
-## Native-coin pools: `native-e2e.js`
+## What `native-e2e.js` checks
 
 For a network whose gas coin is the pooled token (`LatheonShieldedPoolV5Native`, `LatheonDistributionPoolNative`; in
 `deployments.json` the token has `"native": true`, address zero, and the pools `"version": "v5-native"`). One local chain
 with the native pools and router next to an ordinary ERC-20 network, a mock wallet that does not know the native network
-yet, real Groth16 proofs. 16 checks: both networks listed; the wallet is asked to add the network with its own coin;
+yet, real Groth16 proofs. Among the 18 checks: both networks listed; the wallet is asked to add the network with its own coin;
 deposit steps say "Check the pool" and "No approval needed"; a 10 LTH deposit sent as the coin itself; the note
 withdrawn to an empty address that then holds exactly 10; a router deposit of 161 as 1+1+1+1 notes with nothing left in
 the router; withdrawal by amount and master key to an empty address; the separate gas-coin row hidden on the native
 network and shown again on the ERC-20 one; the faucet-page link (`faucetPage`) and its Russian text; no raw i18n keys;
 no JavaScript errors; and the network's relayer (`relayer` in `deployments.json`, simulated by the test): a withdrawal by amount and key sent by the relayer's account while the user pays nothing, and a visitor with no wallet at all withdrawing a note through it. 16 of 16 passed on 2026-10-21.
 
-```
-DEMO=/path/to/demo node native-e2e.js
-```
+(Commands above.)
 
 ## Log scanning: `rpc-robust.js`
 

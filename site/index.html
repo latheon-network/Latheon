@@ -452,7 +452,9 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       <p data-xi18n="nw.p">Dated milestones, each confirmed by transactions. Full history on the roadmap.</p>
     </div>
     <ol class="x-news reveal">
-      <li class="x-new"><time datetime="2026-10-27">27 Oct 2026</time><b data-xi18n="nw.1t">V7: fixed a flaw in all earlier pools</b><p data-xi18n="nw.1d">An internal review found that every circuit before V7 let a crafted proof withdraw without a deposit. Reproduced with test tokens, fixed in V7 and deployed on the test chain; older pools are frozen for deposits.</p></li>
+      <li class="x-new"><time datetime="2026-11-01">1 Nov 2026</time><b data-xi18n="nw.5t">Disclosure report for an accountant or auditor</b><p data-xi18n="nw.5d">Prove many deposits at once: one file with a proof per note, made for the auditor&#39;s one-time code; the auditor tab checks it for free and exports CSV. Optionally, where withdrawn notes went.</p></li>
+      <li><time datetime="2026-10-31">31 Oct 2026</time><b data-xi18n="nw.6t">Throughput test of the test chain</b><p data-xi18n="nw.6d">From one server with our own wallets: up to about 2,380 deposits and 7,680 plain transfers a minute, no failures up to 32 wallets. Lower bounds, not the limit: the load generator shared the server.</p></li>
+      <li><time datetime="2026-10-27">27 Oct 2026</time><b data-xi18n="nw.1t">V7: fixed a flaw in all earlier pools</b><p data-xi18n="nw.1d">An internal review found that every circuit before V7 let a crafted proof withdraw without a deposit. Reproduced with test tokens, fixed in V7 and deployed on the test chain; older pools are frozen for deposits.</p></li>
       <li><time datetime="2026-10-26">26 Oct 2026</time><b data-xi18n="nw.2t">Larger pools: 1,048,576 deposits each</b><p data-xi18n="nw.2d">Trees 20 levels deep instead of 8, and the relayer's fee bound into the proof (V6). Both carried over to V7.</p></li>
       <li><time datetime="2026-10-24">24 Oct 2026</time><b data-xi18n="nw.3t">Bridge page live</b><p data-xi18n="nw.3d">Move test LTH between Arbitrum Sepolia and the test chain from your wallet. A 100 LTH round trip was confirmed; a withdrawal takes about two hours.</p></li>
       <li><time datetime="2026-10-21">21 Oct 2026</time><b data-xi18n="nw.4t">Relayer live on the test chain</b><p data-xi18n="nw.4d">Withdraw to a fresh address without a wallet or gas: the chain's relayer sends the transaction. It cannot change the recipient, which the proof binds.</p></li>
@@ -1095,6 +1097,8 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'cm.xT': 'Latheon on X', 'cm.xD': 'Project updates and measured numbers.', 'cm.tT': 'Latheon on Telegram', 'cm.tD': 'Announcements and questions.',
       'tc.live': 'LIVE', 'tc.title': 'Latheon test chain is open.', 'tc.sub': 'Withdrawals without a wallet, through the relayer.', 'tc.demo': 'Try it in the demo', 'tc.faucet': 'Faucet', 'tc.bridge': 'Bridge', 'tc.explorer': 'Explorer', 'tc.connect': 'Connect',
       'nw.eyebrow': 'Latest updates', 'nw.h2': 'What changed recently', 'nw.p': 'Dated milestones, each confirmed by transactions. Full history on the roadmap.',
+      'nw.5t': 'Disclosure report for an accountant or auditor', 'nw.5d': 'Prove many deposits at once: one file with a proof per note, made for the auditor\'s one-time code; the auditor tab checks it for free and exports CSV. Optionally, where withdrawn notes went.',
+      'nw.6t': 'Throughput test of the test chain', 'nw.6d': 'From one server with our own wallets: up to about 2,380 deposits and 7,680 plain transfers a minute, no failures up to 32 wallets. Lower bounds, not the limit: the load generator shared the server.',
       'nw.1t': 'V7: fixed a flaw in all earlier pools', 'nw.1d': 'An internal review found that every circuit before V7 let a crafted proof withdraw without a deposit. Reproduced with test tokens, fixed in V7 and deployed on the test chain; older pools are frozen for deposits.',
       'nw.2t': 'Larger pools: 1,048,576 deposits each', 'nw.2d': 'Trees 20 levels deep instead of 8, and the relayer\'s fee bound into the proof (V6). Both carried over to V7.',
       'nw.3t': 'Bridge page live', 'nw.3d': 'Move test LTH between Arbitrum Sepolia and the test chain from your wallet. A 100 LTH round trip was confirmed; a withdrawal takes about two hours.',
@@ -1125,6 +1129,8 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'cm.xT': 'Latheon в X', 'cm.xD': 'Новости проекта и измеренные цифры.', 'cm.tT': 'Latheon в Telegram', 'cm.tD': 'Объявления и вопросы.',
       'tc.live': 'РАБОТАЕТ', 'tc.title': 'Тестовая сеть Latheon открыта.', 'tc.sub': 'Вывод без кошелька, через релейер.', 'tc.demo': 'Попробовать в демо', 'tc.faucet': 'Кран', 'tc.bridge': 'Мост', 'tc.explorer': 'Обозреватель', 'tc.connect': 'Подключение',
       'nw.eyebrow': 'Последние новости', 'nw.h2': 'Что изменилось недавно', 'nw.p': 'Этапы с датами, каждый подтверждён транзакциями. Полная история — в роадмапе.',
+      'nw.5t': 'Отчёт для бухгалтера или аудитора', 'nw.5d': 'Доказательство многих депозитов сразу: один файл с доказательством для каждой ноты под одноразовый код аудитора; вкладка аудитора проверяет его бесплатно и выгружает CSV. По желанию — куда ушли выведенные ноты.',
+      'nw.6t': 'Тест пропускной способности тестовой сети', 'nw.6d': 'С одного сервера, нашими кошельками: до ~2 380 депозитов и ~7 680 простых переводов в минуту, без отказов до 32 кошельков. Это нижняя граница, а не предел: генератор нагрузки работал на том же сервере.',
       'nw.1t': 'V7: исправлена ошибка во всех прежних пулах', 'nw.1d': 'Внутренняя проверка нашла, что во всех схемах до V7 поддельное доказательство позволяло вывести средства без депозита. Воспроизведено на тестовых токенах, исправлено в V7 и развёрнуто в тестовой сети; старые пулы заморожены для депозитов.',
       'nw.2t': 'Большие пулы: 1 048 576 депозитов в каждом', 'nw.2d': 'Деревья глубиной 20 уровней вместо 8, комиссия релейера вшита в доказательство (V6). Всё это перешло в V7.',
       'nw.3t': 'Заработала страница моста', 'nw.3d': 'Перевод тестового LTH между Arbitrum Sepolia и тестовой сетью прямо из кошелька. Проверен круг на 100 LTH; вывод занимает около двух часов.',
@@ -1155,6 +1161,8 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
       'cm.xT': 'Latheon 的 X 账号', 'cm.xD': '项目动态和实测数据。', 'cm.tT': 'Latheon 的 Telegram', 'cm.tD': '公告与问答。',
       'tc.live': '运行中', 'tc.title': 'Latheon 测试链已开放。', 'tc.sub': '通过中继器取款，无需钱包。', 'tc.demo': '在演示中试用', 'tc.faucet': '水龙头', 'tc.bridge': '跨链桥', 'tc.explorer': '区块浏览器', 'tc.connect': '连接方式',
       'nw.eyebrow': '最新动态', 'nw.h2': '近期更新', 'nw.p': '带日期的里程碑，均有链上交易确认。完整历史见路线图。',
+      'nw.5t': '面向会计或审计人员的披露报告', 'nw.5d': '一次证明多笔存款：一个文件，每个凭证一份针对审计人员一次性代码的证明；审计标签页免费验证并导出 CSV。可选：显示已取出凭证的去向。',
+      'nw.6t': '测试链吞吐量测试', 'nw.6d': '从一台服务器、使用我们自己的钱包：每分钟最多约 2,380 笔存款和 7,680 笔普通转账，32 个钱包以内无失败。这是下限而非极限：负载生成器与链运行在同一台服务器上。',
       'nw.1t': 'V7：修复所有早期资金池中的缺陷', 'nw.1d': '内部审查发现，V7 之前的所有电路都允许精心构造的证明在没有存款的情况下取款。已用测试代币复现，在 V7 中修复并部署到测试链；旧资金池已冻结存款。',
       'nw.2t': '更大的资金池：每个可容纳 1,048,576 笔存款', 'nw.2d': '默克尔树深度从 8 层增加到 20 层，中继费绑定在证明中（V6）。这些改进都保留在 V7 中。',
       'nw.3t': '跨链桥页面上线', 'nw.3d': '可直接从钱包在 Arbitrum Sepolia 与测试链之间转移测试 LTH。已确认一次 100 LTH 的往返；取款约需两小时。',

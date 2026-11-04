@@ -8,15 +8,17 @@ This roadmap uses the same NOW / NEXT / THEN / VISION framing as the project's i
 
 ## NOW — Working prototype, fully on-chain privacy (🟢 status: live)
 
+- **Latheon test chain** (Arbitrum Orbit on Arbitrum Sepolia, test LTH as gas) with public RPC, explorer, faucet, relayer and bridge page. The current pools are **V7** (circuit `withdraw_v5`, 20-level trees, relayer fee bound into the proof), live since 27 October 2026 and confirmed with real proofs; V7 fixes a flaw present in every earlier circuit (withdrawal without a deposit, found in an internal review). The older V5 and V6 pools on the chain are frozen for deposits and kept for withdrawals. See [`docs/testnet.md`](./docs/testnet.md).
+- Contracts, circuit, and tooling published as open source.
+
+**History — the first track on Ethereum Sepolia and the external testnets (superseded by V7, kept for the record):**
+
 - LTH token deployed on Ethereum Sepolia.
 - Shielded pool deployed, using fixed-denomination deposits.
 - **On-chain Merkle commitment tree** — deposits update the tree automatically, in the same transaction, using an on-chain Poseidon hash. No operator or off-chain step involved. *(This item has moved here from NEXT — it is now complete.)*
 - Groth16 verifier deployed, checking proofs against the pool's own on-chain root history.
 - A complete shielded withdrawal — deposit, on-chain tree update, off-chain proof, on-chain verification, withdrawal to an unlinked address — demonstrated end-to-end on Sepolia.
-- Contracts, circuit, and tooling published as open source.
 - **V5 pools** (recipient-bound proofs, pool size as a constructor parameter) deployed on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain testnets, with integration tests using real proofs in `test/v5-integration`. See `docs/deployments-v5.md`. **Deprecated on 27 October 2026:** like every pool before V7 they carry the circuit flaw described in `STATUS.md` §7, so deposits into them are frozen in our interface and they are kept only for withdrawals of existing notes. The project focuses on the Latheon test chain; V7 is not planned on these three networks.
-
-- **Latheon test chain** (Arbitrum Orbit on Arbitrum Sepolia, test LTH as gas) with public RPC, explorer, faucet, relayer and bridge page. The current pools are **V7** (circuit `withdraw_v5`, 20-level trees, relayer fee bound into the proof), live since 27 October 2026 and confirmed with real proofs; V7 fixes a flaw present in every earlier circuit (withdrawal without a deposit, found in an internal review). The older V5 and V6 pools on the chain are frozen for deposits and kept for withdrawals. See [`docs/testnet.md`](./docs/testnet.md).
 
 Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 
@@ -63,8 +65,8 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [ ] Disclosure v2 (design draft: `docs/disclosure-v2-design.md`): the user chooses the scope; batch disclosure of many notes in one bundle that the auditor tab verifies and exports (works with V7, no new circuit; **done: released on the site 1 November 2026, with the optional keys of withdrawn notes**); a proof that a withdrawal came from a given deposit (`disclose_withdrawal`, with the next circuit revision). Only the user starts a disclosure; there is no regulator key.
 - [ ] Demo: send deposits with a gas margin over the estimate; concurrent deposits into one pool can change each other's gas and revert (seen on a local chain, `docs/loadtest-2026-10-31-throughput.md`).
 - [ ] Throughput: let the relayer go beyond one withdrawal per block (several keys, or more notes per `withdrawMany`); diagnose the failed deposits at 64 wallets at once and measure the chain with the load coming from a separate machine (`docs/loadtest-2026-10-31-throughput.md`).
-- [ ] Re-measure gas on V7 on the Latheon test chain under controlled conditions (two consecutive withdrawals); see the note in `docs/gas-benchmark.en.md`. The earlier per-network V5 plan is dropped with the external testnets.
-- [ ] Proof-generation timing, partly done: `docs/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the current circuit (`withdraw_v5`) in a browser on a named device, and phones (on the test server, in Node, a `withdraw_v5` proof takes about 0.6 s: `docs/loadtest-2026-10-31-throughput.md`).
+- [ ] Re-measure gas on V7 on the Latheon test chain under controlled conditions (two consecutive withdrawals); see the note in `docs/legacy/gas-benchmark.en.md`. The earlier per-network V5 plan is dropped with the external testnets.
+- [ ] Proof-generation timing, partly done: `docs/legacy/gas-benchmark.en.md` records 0.44 s in the browser for the `withdraw_v2` circuit (device not recorded). Still missing: the current circuit (`withdraw_v5`) in a browser on a named device, and phones (on the test server, in Node, a `withdraw_v5` proof takes about 0.6 s: `docs/loadtest-2026-10-31-throughput.md`).
 
 ---
 

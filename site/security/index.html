@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security model · Latheon</title>
+<meta name="description" content="What Latheon protects, what stays public, what was fixed and what is still open.">
+<meta name="twitter:site" content="@Latheon_xyz">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root { --ink:#14121C; --ink-elevated:#1C1927; --ink-card:#221E30; --violet:#7F77DD; --violet-deep:#534AB7; --teal:#5DCAA5; --teal-deep:#0F6E56; --gold:#F6C55A; --gold-deep:#DB9A2C; --text-primary:#F2EFE9; --text-muted:#9793A8; --border:rgba(242,239,233,.1); --border-strong:rgba(242,239,233,.22); --red:#E8838B; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { background:radial-gradient(1000px 520px at 50% -10%, rgba(83,74,183,.16), transparent 62%), var(--ink); color:var(--text-primary); font-family:'IBM Plex Sans', Arial, sans-serif; line-height:1.6; overflow-x:hidden; }
+a { color:var(--teal); }
+:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+.wrap { max-width:1120px; margin:0 auto; padding:0 32px; }
+@media (max-width:480px) { .wrap { padding:0 16px; } }
+code, .mono { font-family:'IBM Plex Mono', monospace; }
+code { font-size:.92em; color:var(--text-primary); background:rgba(242,239,233,.06); padding:1px 6px; border-radius:4px; overflow-wrap:anywhere; }
+.eyebrow { font:12px 'IBM Plex Mono', monospace; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:14px; }
+/* nav */
+.nav { position:sticky; top:0; z-index:50; background:rgba(20,18,28,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+.nav-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:14px; padding-bottom:14px; }
+.brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text-primary); }
+.brand svg { width:34px; height:auto; }
+.brand span { font:600 20px 'Cinzel', Georgia, serif; letter-spacing:.5px; }
+.nav-links { display:flex; align-items:center; gap:24px; }
+.nav-links a { color:var(--text-muted); text-decoration:none; font-size:14px; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color:var(--text-primary); }
+.nav-links a[aria-current="page"] { box-shadow:inset 0 -2px 0 var(--teal); padding-bottom:4px; }
+@media (max-width:860px) { .nav-links .hide-m { display:none; } }
+@media (max-width:480px) { .nav-links { gap:10px; } .nav-links .btn-small { padding:7px 12px; font-size:12.5px; } .brand { gap:8px; } .brand span { font-size:18px; } }
+.btn { display:inline-flex; align-items:center; gap:9px; padding:11px 22px; border-radius:999px; font:600 14px 'IBM Plex Sans', sans-serif; text-decoration:none; border:1px solid transparent; white-space:nowrap; transition:transform .15s, background .2s, border-color .2s; }
+.btn-gold { background:var(--gold); color:var(--ink); }
+.btn-gold:hover { transform:translateY(-1px); }
+.btn-ghost { color:var(--text-primary); border-color:var(--border-strong); font-weight:500; }
+.btn-ghost:hover { background:var(--ink-elevated); }
+.btn-small { padding:7px 16px; font-size:13px; }
+.nav-links a.btn-ghost { color:var(--text-primary); }
+.lang-select { background:var(--ink-elevated); color:var(--text-primary); border:1px solid var(--border); border-radius:999px; padding:7px 10px; font:12px 'IBM Plex Mono', monospace; }
+/* page head */
+.ph { padding-top:88px; padding-bottom:48px; }
+.ph h1 { font:600 clamp(32px,5vw,54px)/1.12 'Cinzel', Georgia, serif; margin-bottom:18px; max-width:18ch; }
+.ph p.lede { font-size:18px; color:var(--text-muted); max-width:60ch; }
+.ph .src { margin-top:16px; font:12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:28px; }
+.chip { font:12px 'IBM Plex Mono', monospace; padding:5px 12px; border-radius:999px; border:1px solid var(--border-strong); color:var(--text-primary); }
+.chip.g { border-color:rgba(246,197,90,.55); color:var(--gold); }
+.chip.t { border-color:rgba(93,202,165,.55); color:var(--teal); }
+section.s { padding:40px 0; }
+section.s > .wrap > h2 { font-size:clamp(22px,2.6vw,28px); font-weight:600; margin-bottom:8px; }
+section.s > .wrap > p.sub { color:var(--text-muted); margin-bottom:24px; max-width:68ch; }
+.card { background:var(--ink-card); border:1px solid var(--border); border-radius:14px; padding:24px; }
+.grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+@media (max-width:860px) { .grid2, .grid3 { grid-template-columns:1fr; } }
+.card h3 { font-size:17px; margin-bottom:12px; }
+.card .k { font:12px 'IBM Plex Mono', monospace; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
+ul.l { list-style:none; display:grid; gap:10px; font-size:15px; color:var(--text-muted); }
+ul.l li { padding-left:22px; position:relative; }
+ul.l li::before { position:absolute; left:0; top:0; font-family:'IBM Plex Mono', monospace; }
+ul.l.ok li::before { content:'✓'; color:var(--teal); }
+ul.l.pub li::before { content:'◎'; color:var(--gold); }
+ul.l.open li::before { content:'○'; color:var(--gold); }
+ul.l.dash li::before { content:'—'; color:var(--violet); }
+ul.l b { color:var(--text-primary); font-weight:500; }
+.tbl { width:100%; border-collapse:collapse; font-size:14px; }
+.tbl th { text-align:left; font:12px 'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); font-weight:400; padding:10px 12px; border-bottom:1px solid var(--border-strong); }
+.tbl td { padding:12px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text-muted); }
+.tbl td:first-child { color:var(--text-primary); }
+.scroll { overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--ink-card); }
+.scroll .tbl td, .scroll .tbl th { white-space:nowrap; }
+.note { font-size:13.5px; color:var(--text-muted); margin-top:14px; }
+.note.warn { border-left:3px solid var(--gold); padding:10px 14px; background:rgba(246,197,90,.06); border-radius:0 8px 8px 0; }
+a.addr { font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--teal); text-decoration:none; }
+a.addr:hover { text-decoration:underline; }
+.ok-t { color:var(--teal) !important; }
+/* network cards */
+.net { margin-bottom:28px; }
+.net-hd { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 18px; margin-bottom:14px; }
+.net-hd h3 { font-size:20px; }
+.net-hd span { font:12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.kv { display:grid; grid-template-columns:200px minmax(0,1fr); gap:8px 18px; font-size:14px; margin-bottom:16px; }
+.kv dt { color:var(--text-muted); }
+.kv dd { overflow-wrap:anywhere; }
+@media (max-width:600px) { .kv { grid-template-columns:1fr; gap:2px; } .kv dd { margin-bottom:8px; } }
+/* roadmap */
+.phase { display:grid; grid-template-columns:180px minmax(0,1fr); gap:28px; padding:28px 0; border-top:1px solid var(--border); }
+@media (max-width:760px) { .phase { grid-template-columns:1fr; gap:10px; } }
+.phase .when b { display:block; font:600 22px 'Cinzel', Georgia, serif; }
+.phase .when span { display:block; font:11.5px 'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-top:6px; }
+.phase .when .st { display:inline-block; margin-top:10px; }
+.timeline { position:relative; display:grid; gap:14px; padding-left:22px; border-left:2px solid rgba(93,202,165,.35); }
+.timeline li { list-style:none; position:relative; font-size:15px; color:var(--text-muted); }
+.timeline li::before { content:''; position:absolute; left:-29px; top:7px; width:12px; height:12px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(93,202,165,.15); }
+.timeline li b { display:block; font:500 12.5px 'IBM Plex Mono', monospace; color:var(--teal); }
+.timeline li b.tbd { color:var(--gold); }
+.bar { height:8px; border-radius:999px; background:rgba(242,239,233,.08); overflow:hidden; margin:6px 0 14px; max-width:420px; }
+.bar i { display:block; height:100%; width:75%; background:linear-gradient(90deg,var(--teal),var(--violet)); }
+/* under construction */
+.uc { position:relative; margin:8px 0 8px; border-radius:20px; overflow:hidden; border:1px solid var(--border); background:var(--ink-elevated); min-height:380px; }
+.uc .ghost { padding:36px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; filter:blur(3px); opacity:.45; }
+@media (max-width:760px) { .uc .ghost { grid-template-columns:1fr; padding:20px; } }
+.uc .ghost div { height:120px; border-radius:12px; background:linear-gradient(135deg, rgba(127,119,221,.35), rgba(93,202,165,.18)); }
+.uc .ghost div:nth-child(2) { background:linear-gradient(135deg, rgba(246,197,90,.30), rgba(127,119,221,.15)); }
+.uc .ghost div.wide { grid-column:1/-1; height:80px; }
+.tape { position:absolute; left:-10%; width:120%; height:46px; display:flex; align-items:center; overflow:hidden; color:var(--ink); font:600 14px 'IBM Plex Mono', monospace; letter-spacing:2px; white-space:nowrap; box-shadow:0 10px 30px rgba(0,0,0,.45);
+  background:repeating-linear-gradient(-45deg, var(--gold) 0 26px, #14121C 26px 52px); }
+.tape span { display:inline-block; padding-left:100%; animation:tapeRun 26s linear infinite; }
+.tape span em { font-style:normal; background:var(--gold); padding:4px 14px; margin-right:28px; border-radius:3px; }
+.tape.a { top:38%; transform:rotate(-6deg); }
+.tape.b { top:52%; transform:rotate(5deg); }
+.tape.b span { animation-duration:32s; animation-direction:reverse; }
+@keyframes tapeRun { to { transform:translateX(-100%); } }
+.uc .sign { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:2; display:flex; align-items:center; gap:10px; background:rgba(20,18,28,.92); border:1px solid rgba(246,197,90,.5); border-radius:999px; padding:8px 18px; font:12px 'IBM Plex Mono', monospace; color:var(--gold); white-space:nowrap; }
+.uc .sign i { width:8px; height:8px; border-radius:50%; background:var(--gold); animation:blink 1.6s ease-in-out infinite; }
+@keyframes blink { 50% { opacity:.25; } }
+@media (prefers-reduced-motion: reduce) { .tape span, .uc .sign i { animation:none; } .tape span { padding-left:24px; } }
+.cta-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+.x-badge { display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; font:600 11px 'IBM Plex Mono', monospace; color:var(--ink); }
+html:not([lang="en"]) .ph h1, html:not([lang="en"]) .phase .when b { font-family:'IBM Plex Sans', Arial, sans-serif; font-weight:600; }
+/* footer */
+footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48px; }
+.foot { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:28px; font-size:14px; }
+@media (max-width:760px) { .foot { grid-template-columns:1fr 1fr; } .foot > div:first-child { grid-column:1/-1; } }
+.foot h4 { font:12px 'IBM Plex Mono', monospace; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); font-weight:400; margin-bottom:12px; }
+.foot ul { list-style:none; display:grid; gap:8px; }
+.foot a { color:var(--text-muted); text-decoration:none; }
+.foot a:hover { color:var(--text-primary); }
+.foot .soc a { color:var(--text-primary); }
+.foot small { display:block; color:var(--text-muted); margin-top:10px; max-width:36ch; }
+.foot .soon { font:10px 'IBM Plex Mono', monospace; color:var(--gold); border:1px solid rgba(246,197,90,.45); border-radius:999px; padding:0 6px; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="L" data-lang="en">
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">How it works</a><a class="hide-m" href="/security/" aria-current="page">Security</a><a class="hide-m" href="/developers/">Developers</a><a class="hide-m" href="/roadmap/">Roadmap</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">Live demo</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">Protocol</div>
+  <h1>Security model</h1>
+  <p class="lede">Latheon is a public prototype on testnets. This page sets out what the proofs guarantee, what remains publicly visible, which issues have been resolved and which limitations are still open.</p>
+  <div class="chips"><span class="chip g">No independent audit</span><span class="chip g">Testnets only</span><span class="chip g">Development trusted-setup keys</span><span class="chip g">Small anonymity set</span></div>
+  <p class="src">Sources: <a href="https://github.com/latheon-network/latheon/blob/main/THREAT-MODEL.md" target="_blank" rel="noopener">THREAT-MODEL.md</a> · <a href="https://github.com/latheon-network/latheon/blob/main/STATUS.md" target="_blank" rel="noopener">STATUS.md</a> · <a href="https://github.com/latheon-network/latheon/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a></p>
+</header>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k ok-t">Protected by the proof</div><ul class="l ok">
+    <li><b>The link between a withdrawal and its deposit</b>, within the deposits in that pool at the time.</li>
+    <li><b>The withdrawal goes only to the address the proof was made for</b> (since V5: the recipient is part of the proof).</li>
+    <li><b>Only a real deposit can be withdrawn</b> (since V7: every step of the Merkle path is constrained).</li>
+    <li><b>Your keys</b> when you disclose a deposit to an auditor.</li>
+    <li><b>Your other deposits and your withdrawal address</b> when you disclose.</li>
+    <li><b>Your wallet</b>, when a withdrawal on the Latheon test chain goes through the relayer.</li>
+  </ul></div>
+  <div class="card"><div class="k" style="color:var(--gold)">Publicly visible</div><ul class="l pub">
+    <li>That a deposit or a withdrawal happened, its block and time.</li>
+    <li>The withdrawal recipient address.</li>
+    <li>Gas and other transaction metadata.</li>
+    <li>How many deposits a pool holds (the anonymity set).</li>
+    <li>Which deposit it is, to the one auditor you disclose to.</li>
+  </ul></div>
+</div></section>
+<section class="s"><div class="wrap">
+  <h2>Withdrawal vs. disclosure</h2>
+  <p class="sub">A withdrawal hides which deposit funded it. A disclosure proves ownership of one specific deposit to one auditor of your choice.</p>
+  <div class="scroll"><table class="tbl">
+    <tr><th></th><th>Withdrawal</th><th>Disclosure</th></tr>
+    <tr><td>Who sees it</td><td>Everyone on the chain</td><td>One auditor you choose</td></tr>
+    <tr><td>Which deposit</td><td class="ok-t">Hidden</td><td>Known to the auditor</td></tr>
+    <tr><td>Your keys</td><td class="ok-t">Not revealed</td><td class="ok-t">Not revealed</td></tr>
+    <tr><td>Can someone else spend it</td><td class="ok-t">No</td><td class="ok-t">No</td></tr>
+    <tr><td>Reusable by others</td><td>—</td><td class="ok-t">No: bound to the auditor's nonce</td></tr>
+  </table></div>
+</div></section>
+<section class="s"><div class="wrap"><div class="card"><div class="k" style="color:var(--violet)">Resolved</div><h3>Withdrawal without a deposit (all pools before V7)</h3>
+    <p class="note" style="margin-top:0">In every circuit before V7 one value in the Merkle path (the left/right choice at each level) was not limited to 0 or 1. A crafted proof could therefore satisfy the check for a deposit that never existed and withdraw from the pool. Found in an internal review on 27 October 2026 and reproduced in a local test; only testnet tokens were involved. Fixed in V7 (circuit <code>withdraw_v5</code>), now live on the Latheon test chain. Older pools — V3 to V6, and the pools on Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet — are frozen for deposits in our interface and kept only so existing notes can be withdrawn. Their contracts cannot be paused and still accept deposits sent by other apps: do not deposit into them.</p>
+    <p class="note"><a href="https://github.com/latheon-network/latheon/blob/main/docs/dev-ceremony-v5.md" target="_blank" rel="noopener">Details →</a></p></div></div></section>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k" style="color:var(--violet)">Resolved</div><h3>Recipient not bound to the proof (V3/V4)</h3>
+    <p class="note" style="margin-top:0">A pending withdrawal could be redirected by replaying its proof with another recipient. Found internally and reproduced in a local test; only testnet tokens were involved. Fixed in V5, which binds the recipient into the proof. The old pools stay deployed, marked legacy.</p>
+    <p class="note"><a href="https://github.com/latheon-network/latheon/blob/main/docs/withdraw-recipient-binding.md" target="_blank" rel="noopener">Details →</a></p></div>
+  <div class="card"><div class="k" style="color:var(--gold)">Known limitations</div><ul class="l open">
+    <li><b>No independent audit</b> or circuit review yet.</li>
+    <li><b>Trusted-setup keys come from a single operator.</b> A public ceremony is required before any real value.</li>
+    <li><b>Small anonymity set</b>: the pools hold mostly test deposits. A V7 pool holds up to 1,048,576 (the old V5 pools: 256).</li>
+    <li><b>Bridge privacy</b> (L1 → L2) is unsolved.</li>
+    <li><b>Network level</b>: who broadcast a transaction (IP address) is not protected.</li>
+    <li><b>Router payouts</b>: notes withdrawn together in one transaction are visibly linked.</li>
+    <li><b>Latheon test chain</b>: one sequencer and one validator, both run by us; owner powers sit with one development key. The relayer, also ours, sees the recipient and your IP address.</li>
+  </ul></div>
+</div></section>
+<section class="s"><div class="wrap"><div class="card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+  <div><h3 style="margin-bottom:4px">Responsible disclosure</h3><p class="note" style="margin:0">Report vulnerabilities privately, not through public issues: <a href="mailto:latheon.protocol@gmail.com">latheon.protocol@gmail.com</a></p></div>
+  <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon/blob/main/SECURITY.md" target="_blank" rel="noopener">Security policy ↗</a>
+</div></div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>Solo project, built with AI-assisted development. Public prototype on testnets only. Test tokens have no value.</small></div>
+  <div><h4>Protocol</h4><ul><li><a href="/#how">How it works</a></li><li><a href="/security/">Security</a></li><li><a href="/developers/">Developers</a></li><li><a href="/demo/">Live demo</a></li></ul></div>
+  <div><h4>Project</h4><ul><li><a href="/roadmap/">Roadmap</a></li><li><a href="/tokenomics/">Tokenomics</a><span class="soon">WIP</span></li><li><a href="/partners/">Partners</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>Follow</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<div class="L" data-lang="ru" hidden>
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask_ru" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask_ru)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">Как это работает</a><a class="hide-m" href="/security/" aria-current="page">Безопасность</a><a class="hide-m" href="/developers/">Разработчикам</a><a class="hide-m" href="/roadmap/">Роадмап</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">Живое демо</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">Протокол</div>
+  <h1>Модель безопасности</h1>
+  <p class="lede">Latheon — публичный прототип в тестовых сетях. На этой странице описано, что гарантируют доказательства, что остаётся публичным, какие проблемы решены и какие ограничения ещё открыты.</p>
+  <div class="chips"><span class="chip g">Нет независимого аудита</span><span class="chip g">Только тестовые сети</span><span class="chip g">Dev-ключи trusted setup</span><span class="chip g">Малое анонимное множество</span></div>
+  <p class="src">Источники: <a href="https://github.com/latheon-network/latheon/blob/main/THREAT-MODEL.md" target="_blank" rel="noopener">THREAT-MODEL.md</a> · <a href="https://github.com/latheon-network/latheon/blob/main/STATUS.md" target="_blank" rel="noopener">STATUS.md</a> · <a href="https://github.com/latheon-network/latheon/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a></p>
+</header>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k ok-t">Защищено доказательством</div><ul class="l ok">
+    <li><b>Связь вывода с его депозитом</b> — среди депозитов, которые были в пуле на тот момент.</li>
+    <li><b>Вывод идёт только на адрес, для которого сделано доказательство</b> (since V5: получатель входит в доказательство).</li>
+    <li><b>Вывести можно только настоящий депозит</b> (с V7: каждый шаг пути в дереве Меркла ограничен).</li>
+    <li><b>Ваши ключи</b> при раскрытии депозита аудитору.</li>
+    <li><b>Другие ваши депозиты и адрес вывода</b> при раскрытии.</li>
+    <li><b>Ваш кошелёк</b>, когда вывод в тестовой сети Latheon идёт через релейер.</li>
+  </ul></div>
+  <div class="card"><div class="k" style="color:var(--gold)">Видно всем</div><ul class="l pub">
+    <li>Сам факт депозита или вывода, его блок и время.</li>
+    <li>Адрес получателя вывода.</li>
+    <li>Газ и другие метаданные транзакции.</li>
+    <li>Сколько депозитов в пуле (анонимное множество).</li>
+    <li>Какой это депозит — для того аудитора, которому вы его раскрыли.</li>
+  </ul></div>
+</div></section>
+<section class="s"><div class="wrap">
+  <h2>Вывод и раскрытие</h2>
+  <p class="sub">Вывод скрывает, из какого депозита он сделан. Раскрытие доказывает владение одним конкретным депозитом одному выбранному вами аудитору.</p>
+  <div class="scroll"><table class="tbl">
+    <tr><th></th><th>Вывод</th><th>Раскрытие</th></tr>
+    <tr><td>Кто видит</td><td>Все в сети</td><td>Один выбранный аудитор</td></tr>
+    <tr><td>Какой депозит</td><td class="ok-t">Скрыт</td><td>Известен аудитору</td></tr>
+    <tr><td>Ваши ключи</td><td class="ok-t">Не раскрываются</td><td class="ok-t">Не раскрываются</td></tr>
+    <tr><td>Может ли кто-то другой потратить</td><td class="ok-t">Нет</td><td class="ok-t">Нет</td></tr>
+    <tr><td>Можно ли использовать повторно</td><td>—</td><td class="ok-t">Нет: привязано к числу аудитора</td></tr>
+  </table></div>
+</div></section>
+<section class="s"><div class="wrap"><div class="card"><div class="k" style="color:var(--violet)">Решено</div><h3>Вывод без депозита (все пулы до V7)</h3>
+    <p class="note" style="margin-top:0">Во всех схемах до V7 одно значение в пути дерева Меркла (выбор «влево/вправо» на каждом уровне) не было ограничено нулём или единицей. Поэтому поддельное доказательство могло пройти проверку для несуществующего депозита и вывести средства из пула. Найдено внутренней проверкой 27 октября 2026 и воспроизведено в локальном тесте; затронуты только тестовые токены. Исправлено в V7 (схема <code>withdraw_v5</code>), уже работающем в тестовой сети Latheon. Старые пулы — с V3 по V6 и пулы в Ethereum Sepolia, Arbitrum Sepolia и Robinhood Chain Testnet — заморожены для депозитов в нашем интерфейсе и оставлены только для вывода уже внесённых нот. Их контракты нельзя поставить на паузу, и через другие приложения они по-прежнему принимают депозиты: не вносите в них средства.</p>
+    <p class="note"><a href="https://github.com/latheon-network/latheon/blob/main/docs/dev-ceremony-v5.md" target="_blank" rel="noopener">Подробнее →</a></p></div></div></section>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k" style="color:var(--violet)">Решено</div><h3>Получатель не был привязан к доказательству (V3/V4)</h3>
+    <p class="note" style="margin-top:0">Ожидающий вывод можно было перенаправить, повторив его доказательство с другим получателем. Найдено нами и воспроизведено в локальном тесте; затронуты только тестовые токены. Исправлено в V5: получатель привязан к доказательству. Старые пулы остаются развёрнутыми с пометкой legacy.</p>
+    <p class="note"><a href="https://github.com/latheon-network/latheon/blob/main/docs/withdraw-recipient-binding.md" target="_blank" rel="noopener">Подробнее →</a></p></div>
+  <div class="card"><div class="k" style="color:var(--gold)">Известные ограничения</div><ul class="l open">
+    <li><b>Независимого аудита</b> и проверки схем пока нет.</li>
+    <li><b>Ключи trusted setup созданы одной стороной.</b> До любых реальных средств нужна публичная церемония.</li>
+    <li><b>Малое анонимное множество</b>: в пулах в основном тестовые депозиты. Пул V7 вмещает до 1 048 576 депозитов (старые пулы V5: 256).</li>
+    <li><b>Приватность моста</b> (L1 → L2) не решена.</li>
+    <li><b>Сетевой уровень</b>: кто отправил транзакцию (IP-адрес), не защищено.</li>
+    <li><b>Выплаты через роутер</b>: ноты, выведенные одной транзакцией, видимо связаны.</li>
+    <li><b>Тестовая сеть Latheon</b>: один секвенсер и один валидатор, оба наши; права владельца у одного dev-ключа. Релейер, тоже наш, видит получателя и ваш IP-адрес.</li>
+  </ul></div>
+</div></section>
+<section class="s"><div class="wrap"><div class="card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+  <div><h3 style="margin-bottom:4px">Ответственное раскрытие уязвимостей</h3><p class="note" style="margin:0">Сообщайте об уязвимостях приватно, не через публичные issues: <a href="mailto:latheon.protocol@gmail.com">latheon.protocol@gmail.com</a></p></div>
+  <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon/blob/main/SECURITY.md" target="_blank" rel="noopener">Политика безопасности ↗</a>
+</div></div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask_ru" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask_ru)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>Соло-проект, созданный с помощью ИИ-разработки. Публичный прототип только в тестовых сетях. Тестовые токены ничего не стоят.</small></div>
+  <div><h4>Протокол</h4><ul><li><a href="/#how">Как это работает</a></li><li><a href="/security/">Безопасность</a></li><li><a href="/developers/">Разработчикам</a></li><li><a href="/demo/">Живое демо</a></li></ul></div>
+  <div><h4>Проект</h4><ul><li><a href="/roadmap/">Роадмап</a></li><li><a href="/tokenomics/">Токеномика</a><span class="soon">WIP</span></li><li><a href="/partners/">Партнёры</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>Следить</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<div class="L" data-lang="zh" hidden>
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask_zh" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask_zh)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">工作原理</a><a class="hide-m" href="/security/" aria-current="page">安全</a><a class="hide-m" href="/developers/">开发者</a><a class="hide-m" href="/roadmap/">路线图</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">实时演示</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">协议</div>
+  <h1>安全模型</h1>
+  <p class="lede">Latheon 是测试网上的公开原型。本页说明证明能保证什么、哪些信息仍然公开、哪些问题已解决，以及哪些限制仍未解决。</p>
+  <div class="chips"><span class="chip g">尚无独立审计</span><span class="chip g">仅限测试网</span><span class="chip g">开发用可信设置密钥</span><span class="chip g">匿名集较小</span></div>
+  <p class="src">来源：<a href="https://github.com/latheon-network/latheon/blob/main/THREAT-MODEL.md" target="_blank" rel="noopener">THREAT-MODEL.md</a> · <a href="https://github.com/latheon-network/latheon/blob/main/STATUS.md" target="_blank" rel="noopener">STATUS.md</a> · <a href="https://github.com/latheon-network/latheon/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a></p>
+</header>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k ok-t">由证明保护</div><ul class="l ok">
+    <li><b>取款与其存款之间的关联</b>，在当时该资金池的存款范围内。</li>
+    <li><b>取款只会发往证明所针对的地址</b>（自 V5 起：收款人是证明的一部分）。</li>
+    <li><b>只有真实存在的存款才能被取出</b>（自 V7 起：默克尔路径的每一步都受到约束）。</li>
+    <li>向审计方披露存款时，<b>您的密钥</b>。</li>
+    <li>披露时，<b>您的其他存款和取款地址</b>。</li>
+    <li>在 Latheon 测试链上通过中继器取款时，<b>您的钱包</b>。</li>
+  </ul></div>
+  <div class="card"><div class="k" style="color:var(--gold)">公开可见</div><ul class="l pub">
+    <li>存款或取款的发生、所在区块和时间。</li>
+    <li>取款收款地址。</li>
+    <li>Gas 及其他交易元数据。</li>
+    <li>资金池中的存款数量（匿名集）。</li>
+    <li>对您披露的那位审计方而言：是哪一笔存款。</li>
+  </ul></div>
+</div></section>
+<section class="s"><div class="wrap">
+  <h2>取款与披露的区别</h2>
+  <p class="sub">取款隐藏资金来自哪一笔存款。披露则向您选择的一位审计方证明您拥有某一笔特定存款。</p>
+  <div class="scroll"><table class="tbl">
+    <tr><th></th><th>取款</th><th>披露</th></tr>
+    <tr><td>谁能看到</td><td>链上所有人</td><td>您选择的一位审计方</td></tr>
+    <tr><td>哪一笔存款</td><td class="ok-t">隐藏</td><td>审计方知道</td></tr>
+    <tr><td>您的密钥</td><td class="ok-t">不公开</td><td class="ok-t">不公开</td></tr>
+    <tr><td>他人能否动用</td><td class="ok-t">否</td><td class="ok-t">否</td></tr>
+    <tr><td>他人能否重复使用</td><td>—</td><td class="ok-t">否：绑定审计方的一次性数字</td></tr>
+  </table></div>
+</div></section>
+<section class="s"><div class="wrap"><div class="card"><div class="k" style="color:var(--violet)">已解决</div><h3>无需存款即可取款（V7 之前的所有资金池）</h3>
+    <p class="note" style="margin-top:0">在 V7 之前的所有电路中，默克尔路径中的一个值（每一层的左/右选择）没有被限制为 0 或 1。因此，精心构造的证明可以为一笔从未存在的存款通过校验，并从资金池取款。由内部审查于 2026 年 10 月 27 日发现，并在本地测试中复现；仅涉及测试网代币。已在 V7（电路 <code>withdraw_v5</code>）中修复，现已在 Latheon 测试链上运行。较旧的资金池——V3 至 V6，以及 Ethereum Sepolia、Arbitrum Sepolia 和 Robinhood Chain Testnet 上的资金池——已在我们的界面中冻结存款，仅保留用于取出已有凭证。这些合约无法暂停，仍会接受其他应用发起的存款：请勿向其存款。</p>
+    <p class="note"><a href="https://github.com/latheon-network/latheon/blob/main/docs/dev-ceremony-v5.md" target="_blank" rel="noopener">详情 →</a></p></div></div></section>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k" style="color:var(--violet)">已解决</div><h3>收款人未绑定到证明（V3/V4）</h3>
+    <p class="note" style="margin-top:0">待处理的取款可能被他人用另一个收款人重放其证明而改道。由我们内部发现并在本地测试中复现，仅涉及测试网代币。已在 V5 中修复：收款人被绑定到证明中。旧资金池仍在部署中，并标记为 legacy。</p>
+    <p class="note"><a href="https://github.com/latheon-network/latheon/blob/main/docs/withdraw-recipient-binding.md" target="_blank" rel="noopener">详情 →</a></p></div>
+  <div class="card"><div class="k" style="color:var(--gold)">已知限制</div><ul class="l open">
+    <li>尚无<b>独立审计</b>或电路审查。</li>
+    <li><b>可信设置密钥由单一方生成。</b>在涉及任何真实价值之前需要公开仪式。</li>
+    <li><b>匿名集较小</b>：资金池中主要是测试存款。每个 V7 资金池最多 1,048,576 笔（旧 V5 资金池：256 笔）。</li>
+    <li><b>跨链桥隐私</b>（L1 → L2）尚未解决。</li>
+    <li><b>网络层</b>：谁广播了交易（IP 地址）不受保护。</li>
+    <li><b>路由合约支付</b>：在一笔交易中一起取出的票据可被看出相互关联。</li>
+    <li><b>Latheon 测试链</b>：一个排序器和一个验证者，均由我们运行；所有者权限由一把开发密钥掌握。中继器同样由我们运行，能看到收款人和您的 IP 地址。</li>
+  </ul></div>
+</div></section>
+<section class="s"><div class="wrap"><div class="card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+  <div><h3 style="margin-bottom:4px">负责任披露</h3><p class="note" style="margin:0">请私下报告漏洞，不要通过公开 issue： <a href="mailto:latheon.protocol@gmail.com">latheon.protocol@gmail.com</a></p></div>
+  <a class="btn btn-ghost" href="https://github.com/latheon-network/latheon/blob/main/SECURITY.md" target="_blank" rel="noopener">安全政策 ↗</a>
+</div></div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask_zh" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask_zh)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>个人项目，借助 AI 辅助开发构建。仅限测试网的公开原型。测试代币没有价值。</small></div>
+  <div><h4>协议</h4><ul><li><a href="/#how">工作原理</a></li><li><a href="/security/">安全</a></li><li><a href="/developers/">开发者</a></li><li><a href="/demo/">实时演示</a></li></ul></div>
+  <div><h4>项目</h4><ul><li><a href="/roadmap/">路线图</a></li><li><a href="/tokenomics/">代币经济</a><span class="soon">WIP</span></li><li><a href="/partners/">合作伙伴</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>关注</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<script>
+(function () {
+  var L = 'en';
+  try { L = localStorage.getItem('latheon-lang') || 'en'; } catch (e) {}
+  if (['en', 'ru', 'zh'].indexOf(L) < 0) L = 'en';
+  function set(l) {
+    document.querySelectorAll('.L').forEach(function (d) { d.hidden = d.getAttribute('data-lang') !== l; });
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : l;
+    document.querySelectorAll('.lang-select').forEach(function (s) { s.value = l; });
+    try { localStorage.setItem('latheon-lang', l); } catch (e) {}
+  }
+  document.querySelectorAll('.lang-select').forEach(function (s) { s.addEventListener('change', function () { set(this.value); }); });
+  set(L);
+})();
+</script>
+
+</body>
+</html>
