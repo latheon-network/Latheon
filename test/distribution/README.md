@@ -37,7 +37,7 @@ capacity and prove the rollback on the actual "Tree is full" revert (adds ten mi
 
 - Compiled with solc `evmVersion: paris` and run on ganache `shanghai`; dependency versions are pinned in `package.json`.
 - A message from ganache about "µWS is not compatible with your Node.js build" is harmless.
-- Gas numbers are from a local EVM; live networks differ (L2 gas is priced differently), see `docs/gas-benchmark.en.md`
+- Gas numbers are from a local EVM; live networks differ (L2 gas is priced differently), see `docs/legacy/gas-benchmark.en.md`
   for the V5 pool readings.
 - This is a local test. It does not replace an independent audit or a test against live networks.
 

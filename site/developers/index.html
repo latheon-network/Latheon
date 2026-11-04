@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deployments · Latheon</title>
+<meta name="description" content="Latheon contract addresses on the Latheon test chain, Ethereum Sepolia, Arbitrum Sepolia and Robinhood Chain Testnet, generated from deployments.json.">
+<meta name="twitter:site" content="@Latheon_xyz">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root { --ink:#14121C; --ink-elevated:#1C1927; --ink-card:#221E30; --violet:#7F77DD; --violet-deep:#534AB7; --teal:#5DCAA5; --teal-deep:#0F6E56; --gold:#F6C55A; --gold-deep:#DB9A2C; --text-primary:#F2EFE9; --text-muted:#9793A8; --border:rgba(242,239,233,.1); --border-strong:rgba(242,239,233,.22); --red:#E8838B; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { background:radial-gradient(1000px 520px at 50% -10%, rgba(83,74,183,.16), transparent 62%), var(--ink); color:var(--text-primary); font-family:'IBM Plex Sans', Arial, sans-serif; line-height:1.6; overflow-x:hidden; }
+a { color:var(--teal); }
+:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+.wrap { max-width:1120px; margin:0 auto; padding:0 32px; }
+@media (max-width:480px) { .wrap { padding:0 16px; } }
+code, .mono { font-family:'IBM Plex Mono', monospace; }
+code { font-size:.92em; color:var(--text-primary); background:rgba(242,239,233,.06); padding:1px 6px; border-radius:4px; overflow-wrap:anywhere; }
+.eyebrow { font:12px 'IBM Plex Mono', monospace; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:14px; }
+/* nav */
+.nav { position:sticky; top:0; z-index:50; background:rgba(20,18,28,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+.nav-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:14px; padding-bottom:14px; }
+.brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text-primary); }
+.brand svg { width:34px; height:auto; }
+.brand span { font:600 20px 'Cinzel', Georgia, serif; letter-spacing:.5px; }
+.nav-links { display:flex; align-items:center; gap:24px; }
+.nav-links a { color:var(--text-muted); text-decoration:none; font-size:14px; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color:var(--text-primary); }
+.nav-links a[aria-current="page"] { box-shadow:inset 0 -2px 0 var(--teal); padding-bottom:4px; }
+@media (max-width:860px) { .nav-links .hide-m { display:none; } }
+@media (max-width:480px) { .nav-links { gap:10px; } .nav-links .btn-small { padding:7px 12px; font-size:12.5px; } .brand { gap:8px; } .brand span { font-size:18px; } }
+.btn { display:inline-flex; align-items:center; gap:9px; padding:11px 22px; border-radius:999px; font:600 14px 'IBM Plex Sans', sans-serif; text-decoration:none; border:1px solid transparent; white-space:nowrap; transition:transform .15s, background .2s, border-color .2s; }
+.btn-gold { background:var(--gold); color:var(--ink); }
+.btn-gold:hover { transform:translateY(-1px); }
+.btn-ghost { color:var(--text-primary); border-color:var(--border-strong); font-weight:500; }
+.btn-ghost:hover { background:var(--ink-elevated); }
+.btn-small { padding:7px 16px; font-size:13px; }
+.nav-links a.btn-ghost { color:var(--text-primary); }
+.lang-select { background:var(--ink-elevated); color:var(--text-primary); border:1px solid var(--border); border-radius:999px; padding:7px 10px; font:12px 'IBM Plex Mono', monospace; }
+/* page head */
+.ph { padding-top:88px; padding-bottom:48px; }
+.ph h1 { font:600 clamp(32px,5vw,54px)/1.12 'Cinzel', Georgia, serif; margin-bottom:18px; max-width:18ch; }
+.ph p.lede { font-size:18px; color:var(--text-muted); max-width:60ch; }
+.ph .src { margin-top:16px; font:12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:28px; }
+.chip { font:12px 'IBM Plex Mono', monospace; padding:5px 12px; border-radius:999px; border:1px solid var(--border-strong); color:var(--text-primary); }
+.chip.g { border-color:rgba(246,197,90,.55); color:var(--gold); }
+.chip.t { border-color:rgba(93,202,165,.55); color:var(--teal); }
+section.s { padding:40px 0; }
+section.s > .wrap > h2 { font-size:clamp(22px,2.6vw,28px); font-weight:600; margin-bottom:8px; }
+section.s > .wrap > p.sub { color:var(--text-muted); margin-bottom:24px; max-width:68ch; }
+.card { background:var(--ink-card); border:1px solid var(--border); border-radius:14px; padding:24px; }
+.grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+@media (max-width:860px) { .grid2, .grid3 { grid-template-columns:1fr; } }
+.card h3 { font-size:17px; margin-bottom:12px; }
+.card .k { font:12px 'IBM Plex Mono', monospace; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
+ul.l { list-style:none; display:grid; gap:10px; font-size:15px; color:var(--text-muted); }
+ul.l li { padding-left:22px; position:relative; }
+ul.l li::before { position:absolute; left:0; top:0; font-family:'IBM Plex Mono', monospace; }
+ul.l.ok li::before { content:'✓'; color:var(--teal); }
+ul.l.pub li::before { content:'◎'; color:var(--gold); }
+ul.l.open li::before { content:'○'; color:var(--gold); }
+ul.l.dash li::before { content:'—'; color:var(--violet); }
+ul.l b { color:var(--text-primary); font-weight:500; }
+.tbl { width:100%; border-collapse:collapse; font-size:14px; }
+.tbl th { text-align:left; font:12px 'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); font-weight:400; padding:10px 12px; border-bottom:1px solid var(--border-strong); }
+.tbl td { padding:12px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text-muted); }
+.tbl td:first-child { color:var(--text-primary); }
+.scroll { overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--ink-card); }
+.scroll .tbl td, .scroll .tbl th { white-space:nowrap; }
+.note { font-size:13.5px; color:var(--text-muted); margin-top:14px; }
+.note.warn { border-left:3px solid var(--gold); padding:10px 14px; background:rgba(246,197,90,.06); border-radius:0 8px 8px 0; }
+a.addr { font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--teal); text-decoration:none; }
+a.addr:hover { text-decoration:underline; }
+.ok-t { color:var(--teal) !important; }
+/* network cards */
+.net { margin-bottom:28px; }
+.net-hd { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 18px; margin-bottom:14px; }
+.net-hd h3 { font-size:20px; }
+.net-hd span { font:12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.kv { display:grid; grid-template-columns:200px minmax(0,1fr); gap:8px 18px; font-size:14px; margin-bottom:16px; }
+.kv dt { color:var(--text-muted); }
+.kv dd { overflow-wrap:anywhere; }
+@media (max-width:600px) { .kv { grid-template-columns:1fr; gap:2px; } .kv dd { margin-bottom:8px; } }
+/* roadmap */
+.phase { display:grid; grid-template-columns:180px minmax(0,1fr); gap:28px; padding:28px 0; border-top:1px solid var(--border); }
+@media (max-width:760px) { .phase { grid-template-columns:1fr; gap:10px; } }
+.phase .when b { display:block; font:600 22px 'Cinzel', Georgia, serif; }
+.phase .when span { display:block; font:11.5px 'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-top:6px; }
+.phase .when .st { display:inline-block; margin-top:10px; }
+.timeline { position:relative; display:grid; gap:14px; padding-left:22px; border-left:2px solid rgba(93,202,165,.35); }
+.timeline li { list-style:none; position:relative; font-size:15px; color:var(--text-muted); }
+.timeline li::before { content:''; position:absolute; left:-29px; top:7px; width:12px; height:12px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(93,202,165,.15); }
+.timeline li b { display:block; font:500 12.5px 'IBM Plex Mono', monospace; color:var(--teal); }
+.timeline li b.tbd { color:var(--gold); }
+.bar { height:8px; border-radius:999px; background:rgba(242,239,233,.08); overflow:hidden; margin:6px 0 14px; max-width:420px; }
+.bar i { display:block; height:100%; width:75%; background:linear-gradient(90deg,var(--teal),var(--violet)); }
+/* under construction */
+.uc { position:relative; margin:8px 0 8px; border-radius:20px; overflow:hidden; border:1px solid var(--border); background:var(--ink-elevated); min-height:380px; }
+.uc .ghost { padding:36px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; filter:blur(3px); opacity:.45; }
+@media (max-width:760px) { .uc .ghost { grid-template-columns:1fr; padding:20px; } }
+.uc .ghost div { height:120px; border-radius:12px; background:linear-gradient(135deg, rgba(127,119,221,.35), rgba(93,202,165,.18)); }
+.uc .ghost div:nth-child(2) { background:linear-gradient(135deg, rgba(246,197,90,.30), rgba(127,119,221,.15)); }
+.uc .ghost div.wide { grid-column:1/-1; height:80px; }
+.tape { position:absolute; left:-10%; width:120%; height:46px; display:flex; align-items:center; overflow:hidden; color:var(--ink); font:600 14px 'IBM Plex Mono', monospace; letter-spacing:2px; white-space:nowrap; box-shadow:0 10px 30px rgba(0,0,0,.45);
+  background:repeating-linear-gradient(-45deg, var(--gold) 0 26px, #14121C 26px 52px); }
+.tape span { display:inline-block; padding-left:100%; animation:tapeRun 26s linear infinite; }
+.tape span em { font-style:normal; background:var(--gold); padding:4px 14px; margin-right:28px; border-radius:3px; }
+.tape.a { top:38%; transform:rotate(-6deg); }
+.tape.b { top:52%; transform:rotate(5deg); }
+.tape.b span { animation-duration:32s; animation-direction:reverse; }
+@keyframes tapeRun { to { transform:translateX(-100%); } }
+.uc .sign { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:2; display:flex; align-items:center; gap:10px; background:rgba(20,18,28,.92); border:1px solid rgba(246,197,90,.5); border-radius:999px; padding:8px 18px; font:12px 'IBM Plex Mono', monospace; color:var(--gold); white-space:nowrap; }
+.uc .sign i { width:8px; height:8px; border-radius:50%; background:var(--gold); animation:blink 1.6s ease-in-out infinite; }
+@keyframes blink { 50% { opacity:.25; } }
+@media (prefers-reduced-motion: reduce) { .tape span, .uc .sign i { animation:none; } .tape span { padding-left:24px; } }
+.cta-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+.x-badge { display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; font:600 11px 'IBM Plex Mono', monospace; color:var(--ink); }
+html:not([lang="en"]) .ph h1, html:not([lang="en"]) .phase .when b { font-family:'IBM Plex Sans', Arial, sans-serif; font-weight:600; }
+/* footer */
+footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48px; }
+.foot { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:28px; font-size:14px; }
+@media (max-width:760px) { .foot { grid-template-columns:1fr 1fr; } .foot > div:first-child { grid-column:1/-1; } }
+.foot h4 { font:12px 'IBM Plex Mono', monospace; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); font-weight:400; margin-bottom:12px; }
+.foot ul { list-style:none; display:grid; gap:8px; }
+.foot a { color:var(--text-muted); text-decoration:none; }
+.foot a:hover { color:var(--text-primary); }
+.foot .soc a { color:var(--text-primary); }
+.foot small { display:block; color:var(--text-muted); margin-top:10px; max-width:36ch; }
+.foot .soon { font:10px 'IBM Plex Mono', monospace; color:var(--gold); border:1px solid rgba(246,197,90,.45); border-radius:999px; padding:0 6px; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="L" data-lang="en">
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">How it works</a><a class="hide-m" href="/security/">Security</a><a class="hide-m" href="/developers/" aria-current="page">Developers</a><a class="hide-m" href="/roadmap/">Roadmap</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">Live demo</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">Developers</div>
+  <h1>Deployments</h1>
+  <p class="lede">Contract addresses for every supported test network, including the Latheon test chain, generated from <code>deployments.json</code>, the registry the demo uses. Addresses are network-specific: the same address on another network is a different contract.</p>
+  <div class="chips"><span class="chip t">4 V7 pools · open</span><span class="chip t">1 active chain</span><span class="chip g">V6 / V5: withdrawals only</span><span class="chip g">3 testnets deprecated</span><span class="chip g">Testnets only</span></div>
+  <div class="cta-row"><a class="btn btn-gold" href="/demo/deployments.json" target="_blank" rel="noopener">deployments.json</a><a class="btn btn-ghost" href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">Source code ↗</a><a class="btn btn-ghost" href="/demo/" target="_blank" rel="noopener">Live demo</a></div>
+</header>
+<section class="s"><div class="wrap"><div class="net card">
+  <div class="net-hd"><h3>Latheon Testnet</h3><span>chainId 60531373273</span><span>4 V5 + 4 V6 + 4 V7 pools</span><span class="chip t">our test chain</span></div>
+  <dl class="kv"><dt>Tokens</dt><dd>LTH (native gas coin)</dd><dt>RPC</dt><dd><code>https://rpc.testnet.latheon.xyz</code></dd><dt>Explorer</dt><dd><a href="https://explorer.testnet.latheon.xyz" target="_blank" rel="noopener">explorer.testnet.latheon.xyz</a></dd><dt>Faucet</dt><dd><a href="https://explorer.testnet.latheon.xyz/faucet" target="_blank" rel="noopener">explorer.testnet.latheon.xyz/faucet</a></dd><dt>Relayer</dt><dd><code>https://explorer.testnet.latheon.xyz/relay/api</code></dd><dt>Settles to</dt><dd>Arbitrum Sepolia (421614)</dd><dt>V5 withdraw verifier</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x67451b65BD9F0d1486A736927f8ef29d6BE72062" target="_blank" rel="noopener" title="0x67451b65BD9F0d1486A736927f8ef29d6BE72062">0x67451b65BD9F0d1486A736927f8ef29d6BE72062</a></dd><dt>V6 withdraw verifier</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x49694EF1977b4A201b378740557f2aa41BDC3857" target="_blank" rel="noopener" title="0x49694EF1977b4A201b378740557f2aa41BDC3857">0x49694EF1977b4A201b378740557f2aa41BDC3857</a></dd><dt>V7 withdraw verifier</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51" target="_blank" rel="noopener" title="0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51">0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51</a></dd><dt>Disclosure verifier</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xB86360CBDE78664bb1674c367391E9d79c37F294" target="_blank" rel="noopener" title="0xB86360CBDE78664bb1674c367391E9d79c37F294">0xB86360CBDE78664bb1674c367391E9d79c37F294</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Contract</th><th>Address</th><th>Deploy block</th></tr><tr><td>100 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae" target="_blank" rel="noopener" title="0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae">0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae</a></td><td class="mono">1464</td></tr><tr><td>50 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x5A3DA32BCc848a81A3a379620120ae06DfA7C657" target="_blank" rel="noopener" title="0x5A3DA32BCc848a81A3a379620120ae06DfA7C657">0x5A3DA32BCc848a81A3a379620120ae06DfA7C657</a></td><td class="mono">1465</td></tr><tr><td>10 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429" target="_blank" rel="noopener" title="0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429">0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429</a></td><td class="mono">1466</td></tr><tr><td>1 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A" target="_blank" rel="noopener" title="0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A">0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A</a></td><td class="mono">1467</td></tr><tr><td>Router · LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x1D1189D5399B24BB40858AEACDb649977b596Cf2" target="_blank" rel="noopener" title="0x1D1189D5399B24BB40858AEACDb649977b596Cf2">0x1D1189D5399B24BB40858AEACDb649977b596Cf2</a></td><td class="mono">1468</td></tr><tr><td>100 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xB4035F257793bB7323f9373Af41e5298b04A80dF" target="_blank" rel="noopener" title="0xB4035F257793bB7323f9373Af41e5298b04A80dF">0xB4035F257793bB7323f9373Af41e5298b04A80dF</a></td><td class="mono">58</td></tr><tr><td>50 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C" target="_blank" rel="noopener" title="0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C">0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C</a></td><td class="mono">59</td></tr><tr><td>10 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x002B880740926A37da5b6f56faDbFD79400c759d" target="_blank" rel="noopener" title="0x002B880740926A37da5b6f56faDbFD79400c759d">0x002B880740926A37da5b6f56faDbFD79400c759d</a></td><td class="mono">60</td></tr><tr><td>1 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260" target="_blank" rel="noopener" title="0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260">0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260</a></td><td class="mono">61</td></tr><tr><td>Router · LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x93963CF193DD6a961eFEA8311b0834EE31518150" target="_blank" rel="noopener" title="0x93963CF193DD6a961eFEA8311b0834EE31518150">0x93963CF193DD6a961eFEA8311b0834EE31518150</a></td><td class="mono">62</td></tr><tr><td>100 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xf10AF1771450c528fee0c5435D3E4f4214073aFe" target="_blank" rel="noopener" title="0xf10AF1771450c528fee0c5435D3E4f4214073aFe">0xf10AF1771450c528fee0c5435D3E4f4214073aFe</a></td><td class="mono">18</td></tr><tr><td>50 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x4D9b9624418e2E91a38122D53e2A12eE028194b3" target="_blank" rel="noopener" title="0x4D9b9624418e2E91a38122D53e2A12eE028194b3">0x4D9b9624418e2E91a38122D53e2A12eE028194b3</a></td><td class="mono">19</td></tr><tr><td>10 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618" target="_blank" rel="noopener" title="0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618">0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618</a></td><td class="mono">20</td></tr><tr><td>1 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xD01D19B9D296299619f681b842b3b61C79736F3a" target="_blank" rel="noopener" title="0xD01D19B9D296299619f681b842b3b61C79736F3a">0xD01D19B9D296299619f681b842b3b61C79736F3a</a></td><td class="mono">21</td></tr><tr><td>Router · LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x0C3475657D4Bd198efe068dDB064725B6514FB04" target="_blank" rel="noopener" title="0x0C3475657D4Bd198efe068dDB064725B6514FB04">0x0C3475657D4Bd198efe068dDB064725B6514FB04</a></td><td class="mono">22</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Ethereum Sepolia</h3><span>chainId 11155111</span><span>4 V5 pools</span><span class="chip g">deprecated</span></div>
+  <dl class="kv"><dt>Tokens</dt><dd>LTH <a class="addr" href="https://sepolia.etherscan.io/address/0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D" target="_blank" rel="noopener" title="0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D">0x53F7…F67D</a></dd><dt>V5 withdraw verifier</dt><dd><a class="addr" href="https://sepolia.etherscan.io/address/0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD" target="_blank" rel="noopener" title="0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD">0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD</a></dd><dt>Disclosure verifier</dt><dd><a class="addr" href="https://sepolia.etherscan.io/address/0xd56e6125b2dF850D32F8c3538fF840528c53caf5" target="_blank" rel="noopener" title="0xd56e6125b2dF850D32F8c3538fF840528c53caf5">0xd56e6125b2dF850D32F8c3538fF840528c53caf5</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Contract</th><th>Address</th><th>Deploy block</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x851981f6a35EB0D91d927c0e854774f5d0ce6233" target="_blank" rel="noopener" title="0x851981f6a35EB0D91d927c0e854774f5d0ce6233">0x851981f6a35EB0D91d927c0e854774f5d0ce6233</a></td><td class="mono">11842583</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x09d3D081195304FD83bb79e4b5B97344cE5e89b4" target="_blank" rel="noopener" title="0x09d3D081195304FD83bb79e4b5B97344cE5e89b4">0x09d3D081195304FD83bb79e4b5B97344cE5e89b4</a></td><td class="mono">11842590</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x4402b051482B0304A118A4F8A8bb10095127499D" target="_blank" rel="noopener" title="0x4402b051482B0304A118A4F8A8bb10095127499D">0x4402b051482B0304A118A4F8A8bb10095127499D</a></td><td class="mono">11842595</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876" target="_blank" rel="noopener" title="0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876">0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876</a></td><td class="mono">11842601</td></tr><tr><td>Router · LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0xC12095a1e7fAc20E827a93933576469e1122eB61" target="_blank" rel="noopener" title="0xC12095a1e7fAc20E827a93933576469e1122eB61">0xC12095a1e7fAc20E827a93933576469e1122eB61</a></td><td class="mono">11879141</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Arbitrum Sepolia</h3><span>chainId 421614</span><span>4 V5 pools</span><span class="chip g">deprecated</span></div>
+  <dl class="kv"><dt>Tokens</dt><dd>LTH <a class="addr" href="https://sepolia.arbiscan.io/address/0x16b87f399a003E56eA6A680292b7278Df7D7b655" target="_blank" rel="noopener" title="0x16b87f399a003E56eA6A680292b7278Df7D7b655">0x16b8…b655</a></dd><dt>V5 withdraw verifier</dt><dd><a class="addr" href="https://sepolia.arbiscan.io/address/0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9" target="_blank" rel="noopener" title="0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9">0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9</a></dd><dt>Disclosure verifier</dt><dd><a class="addr" href="https://sepolia.arbiscan.io/address/0x247d68Bee78bD2B3082d9380A22cC70c443cbd00" target="_blank" rel="noopener" title="0x247d68Bee78bD2B3082d9380A22cC70c443cbd00">0x247d68Bee78bD2B3082d9380A22cC70c443cbd00</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Contract</th><th>Address</th><th>Deploy block</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7" target="_blank" rel="noopener" title="0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7">0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7</a></td><td class="mono">315679153</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0xded64ec452C95bA69Fe80d51447cb8c4953E52C0" target="_blank" rel="noopener" title="0xded64ec452C95bA69Fe80d51447cb8c4953E52C0">0xded64ec452C95bA69Fe80d51447cb8c4953E52C0</a></td><td class="mono">315679454</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5" target="_blank" rel="noopener" title="0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5">0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5</a></td><td class="mono">315679601</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x4480012096726C670A2C89E05AA37DF7258EF26a" target="_blank" rel="noopener" title="0x4480012096726C670A2C89E05AA37DF7258EF26a">0x4480012096726C670A2C89E05AA37DF7258EF26a</a></td><td class="mono">315679833</td></tr><tr><td>Router · LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x284985291A32cf0cfE48F6CA128615983952350e" target="_blank" rel="noopener" title="0x284985291A32cf0cfE48F6CA128615983952350e">0x284985291A32cf0cfE48F6CA128615983952350e</a></td><td class="mono">317439163</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Robinhood Chain Testnet</h3><span>chainId 46630</span><span>8 V5 pools</span><span class="chip g">deprecated</span></div>
+  <dl class="kv"><dt>Tokens</dt><dd>LTH <a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x19DAD9E8595b5809a600c42273aC2a8360c15BA3" target="_blank" rel="noopener" title="0x19DAD9E8595b5809a600c42273aC2a8360c15BA3">0x19DA…5BA3</a> · USDG <a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x7E955252E15c84f5768B83c41a71F9eba181802F" target="_blank" rel="noopener" title="0x7E955252E15c84f5768B83c41a71F9eba181802F">0x7E95…802F</a></dd><dt>V5 withdraw verifier</dt><dd><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174" target="_blank" rel="noopener" title="0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174">0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174</a></dd><dt>Disclosure verifier</dt><dd><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x28BEd69D013A04066f36EF90F995dc7811AFb672" target="_blank" rel="noopener" title="0x28BEd69D013A04066f36EF90F995dc7811AFb672">0x28BEd69D013A04066f36EF90F995dc7811AFb672</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Contract</th><th>Address</th><th>Deploy block</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C" target="_blank" rel="noopener" title="0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C">0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C</a></td><td class="mono">128804492</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x288b8E0281b85118135F7bd55902f7167EAe5169" target="_blank" rel="noopener" title="0x288b8E0281b85118135F7bd55902f7167EAe5169">0x288b8E0281b85118135F7bd55902f7167EAe5169</a></td><td class="mono">128804841</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6" target="_blank" rel="noopener" title="0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6">0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6</a></td><td class="mono">128805364</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x24a394Fe56464A79A63Adbc57B785d599c3c0074" target="_blank" rel="noopener" title="0x24a394Fe56464A79A63Adbc57B785d599c3c0074">0x24a394Fe56464A79A63Adbc57B785d599c3c0074</a></td><td class="mono">128806055</td></tr><tr><td>100 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x6513862b2153c6AFd56C00B798a859548b0181e7" target="_blank" rel="noopener" title="0x6513862b2153c6AFd56C00B798a859548b0181e7">0x6513862b2153c6AFd56C00B798a859548b0181e7</a></td><td class="mono">128806906</td></tr><tr><td>50 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214" target="_blank" rel="noopener" title="0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214">0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214</a></td><td class="mono">128807418</td></tr><tr><td>10 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xaA16653312E033623a6CD0D1f7DEFDFc21f30461" target="_blank" rel="noopener" title="0xaA16653312E033623a6CD0D1f7DEFDFc21f30461">0xaA16653312E033623a6CD0D1f7DEFDFc21f30461</a></td><td class="mono">128808106</td></tr><tr><td>1 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4" target="_blank" rel="noopener" title="0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4">0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4</a></td><td class="mono">128808711</td></tr><tr><td>Router · LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x006da9E656581A7740856aA89c690b3Abd296c30" target="_blank" rel="noopener" title="0x006da9E656581A7740856aA89c690b3Abd296c30">0x006da9E656581A7740856aA89c690b3Abd296c30</a></td><td class="mono">131756119</td></tr><tr><td>Router · USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xded64ec452C95bA69Fe80d51447cb8c4953E52C0" target="_blank" rel="noopener" title="0xded64ec452C95bA69Fe80d51447cb8c4953E52C0">0xded64ec452C95bA69Fe80d51447cb8c4953E52C0</a></td><td class="mono">131766479</td></tr></table></div>
+</div>
+  <details class="card"><summary style="cursor:pointer;font-weight:500">Legacy V4 pools (deprecated: recipient not bound to the proof)</summary>
+    <div class="scroll" style="margin-top:14px"><table class="tbl"><tr><th>Pool</th><th>Address</th></tr><tr><td>Ethereum Sepolia · 100 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x8f64d930813936599f59De29eDb3B4aE38778f75" target="_blank" rel="noopener" title="0x8f64d930813936599f59De29eDb3B4aE38778f75">0x8f64d930813936599f59De29eDb3B4aE38778f75</a></td></tr><tr><td>Arbitrum Sepolia · 100 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x0fA26142342aA8609fa7AF180DdF91A815A3bE23" target="_blank" rel="noopener" title="0x0fA26142342aA8609fa7AF180DdF91A815A3bE23">0x0fA26142342aA8609fa7AF180DdF91A815A3bE23</a></td></tr><tr><td>Robinhood Chain Testnet · 100 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xDD991cC7E560681e964f693eF5C5eA7f424318A8" target="_blank" rel="noopener" title="0xDD991cC7E560681e964f693eF5C5eA7f424318A8">0xDD991cC7E560681e964f693eF5C5eA7f424318A8</a></td></tr><tr><td>Robinhood Chain Testnet · 100 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC" target="_blank" rel="noopener" title="0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC">0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC</a></td></tr></table></div></details>
+</div></section>
+<section class="s"><div class="wrap">
+  <h2>Circuits and parameters</h2><p class="sub">Groth16 proofs. Proving keys come from a single-operator development setup and are suitable for testnets only.</p>
+  <div class="grid3">
+    <div class="card"><h3><code>withdraw_v5</code></h3><p class="note" style="margin:0">Used by the current V7 pools. Public inputs: <code>root</code>, <code>nullifierHash</code>, <code>recipient</code>, <code>relayer</code>, <code>fee</code>. Every step of the Merkle path is constrained to 0 or 1 (the fix for the pre-V7 flaw). Older pools used <code>withdraw_v3</code> (V5) and <code>withdraw_v4</code> (V6).</p></div>
+    <div class="card"><h3><code>disclose</code></h3><p class="note" style="margin:0">Public inputs: <code>commitment</code>, <code>disclosureTag</code>, <code>auditorNonce</code>. Checked by a read-only call to the disclosure verifier.</p></div>
+    <div class="card"><h3>Pools</h3><p class="note" style="margin:0">Sizes 100 / 50 / 10 / 1. V7: Merkle tree depth 20, up to 1,048,576 deposits per pool, root history 100. Old V5 pools: depth 8, 256 deposits, root history 30.</p></div>
+  </div>
+  <p class="note warn">The JavaScript SDK in <code>sdk/</code> (0.2.0, not on npm) targets V7: pools and the router from <code>deployments.json</code>, <code>withdraw_v5</code> proofs, <code>withdrawMany</code> with recipient, relayer and fee; V5/V6 for withdrawals only. It is tested with real proofs on a local EVM and has not yet been run against the test chain. The demo remains the reference.</p>
+</div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>Solo project, built with AI-assisted development. Public prototype on testnets only. Test tokens have no value.</small></div>
+  <div><h4>Protocol</h4><ul><li><a href="/#how">How it works</a></li><li><a href="/security/">Security</a></li><li><a href="/developers/">Developers</a></li><li><a href="/demo/">Live demo</a></li></ul></div>
+  <div><h4>Project</h4><ul><li><a href="/roadmap/">Roadmap</a></li><li><a href="/tokenomics/">Tokenomics</a><span class="soon">WIP</span></li><li><a href="/partners/">Partners</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>Follow</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<div class="L" data-lang="ru" hidden>
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask_ru" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask_ru)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">Как это работает</a><a class="hide-m" href="/security/">Безопасность</a><a class="hide-m" href="/developers/" aria-current="page">Разработчикам</a><a class="hide-m" href="/roadmap/">Роадмап</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">Живое демо</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">Разработчикам</div>
+  <h1>Развёртывания</h1>
+  <p class="lede">Адреса контрактов во всех поддерживаемых тестовых сетях, включая тестовую сеть Latheon, сгенерированы из <code>deployments.json</code> — реестра, которым пользуется демо. Адрес относится к одной сети: тот же адрес в другой сети — другой контракт.</p>
+  <div class="chips"><span class="chip t">4 пула V7 · открыты</span><span class="chip t">1 активная сеть</span><span class="chip g">V6 / V5: только вывод</span><span class="chip g">3 сети выведены из работы</span><span class="chip g">Только тестовые сети</span></div>
+  <div class="cta-row"><a class="btn btn-gold" href="/demo/deployments.json" target="_blank" rel="noopener">deployments.json</a><a class="btn btn-ghost" href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">Исходный код ↗</a><a class="btn btn-ghost" href="/demo/" target="_blank" rel="noopener">Живое демо</a></div>
+</header>
+<section class="s"><div class="wrap"><div class="net card">
+  <div class="net-hd"><h3>Latheon Testnet</h3><span>chainId 60531373273</span><span>4 V5 + 4 V6 + 4 V7</span><span class="chip t">наша тестовая сеть</span></div>
+  <dl class="kv"><dt>Токены</dt><dd>LTH (родная монета, газ)</dd><dt>RPC</dt><dd><code>https://rpc.testnet.latheon.xyz</code></dd><dt>Обозреватель</dt><dd><a href="https://explorer.testnet.latheon.xyz" target="_blank" rel="noopener">explorer.testnet.latheon.xyz</a></dd><dt>Кран</dt><dd><a href="https://explorer.testnet.latheon.xyz/faucet" target="_blank" rel="noopener">explorer.testnet.latheon.xyz/faucet</a></dd><dt>Релейер</dt><dd><code>https://explorer.testnet.latheon.xyz/relay/api</code></dd><dt>Родительская сеть</dt><dd>Arbitrum Sepolia (421614)</dd><dt>Верификатор вывода V5</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x67451b65BD9F0d1486A736927f8ef29d6BE72062" target="_blank" rel="noopener" title="0x67451b65BD9F0d1486A736927f8ef29d6BE72062">0x67451b65BD9F0d1486A736927f8ef29d6BE72062</a></dd><dt>Верификатор вывода V6</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x49694EF1977b4A201b378740557f2aa41BDC3857" target="_blank" rel="noopener" title="0x49694EF1977b4A201b378740557f2aa41BDC3857">0x49694EF1977b4A201b378740557f2aa41BDC3857</a></dd><dt>Верификатор вывода V7</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51" target="_blank" rel="noopener" title="0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51">0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51</a></dd><dt>Верификатор раскрытия</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xB86360CBDE78664bb1674c367391E9d79c37F294" target="_blank" rel="noopener" title="0xB86360CBDE78664bb1674c367391E9d79c37F294">0xB86360CBDE78664bb1674c367391E9d79c37F294</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Контракт</th><th>Адрес</th><th>Блок развёртывания</th></tr><tr><td>100 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae" target="_blank" rel="noopener" title="0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae">0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae</a></td><td class="mono">1464</td></tr><tr><td>50 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x5A3DA32BCc848a81A3a379620120ae06DfA7C657" target="_blank" rel="noopener" title="0x5A3DA32BCc848a81A3a379620120ae06DfA7C657">0x5A3DA32BCc848a81A3a379620120ae06DfA7C657</a></td><td class="mono">1465</td></tr><tr><td>10 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429" target="_blank" rel="noopener" title="0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429">0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429</a></td><td class="mono">1466</td></tr><tr><td>1 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A" target="_blank" rel="noopener" title="0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A">0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A</a></td><td class="mono">1467</td></tr><tr><td>Router · LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x1D1189D5399B24BB40858AEACDb649977b596Cf2" target="_blank" rel="noopener" title="0x1D1189D5399B24BB40858AEACDb649977b596Cf2">0x1D1189D5399B24BB40858AEACDb649977b596Cf2</a></td><td class="mono">1468</td></tr><tr><td>100 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xB4035F257793bB7323f9373Af41e5298b04A80dF" target="_blank" rel="noopener" title="0xB4035F257793bB7323f9373Af41e5298b04A80dF">0xB4035F257793bB7323f9373Af41e5298b04A80dF</a></td><td class="mono">58</td></tr><tr><td>50 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C" target="_blank" rel="noopener" title="0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C">0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C</a></td><td class="mono">59</td></tr><tr><td>10 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x002B880740926A37da5b6f56faDbFD79400c759d" target="_blank" rel="noopener" title="0x002B880740926A37da5b6f56faDbFD79400c759d">0x002B880740926A37da5b6f56faDbFD79400c759d</a></td><td class="mono">60</td></tr><tr><td>1 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260" target="_blank" rel="noopener" title="0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260">0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260</a></td><td class="mono">61</td></tr><tr><td>Роутер · LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x93963CF193DD6a961eFEA8311b0834EE31518150" target="_blank" rel="noopener" title="0x93963CF193DD6a961eFEA8311b0834EE31518150">0x93963CF193DD6a961eFEA8311b0834EE31518150</a></td><td class="mono">62</td></tr><tr><td>100 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xf10AF1771450c528fee0c5435D3E4f4214073aFe" target="_blank" rel="noopener" title="0xf10AF1771450c528fee0c5435D3E4f4214073aFe">0xf10AF1771450c528fee0c5435D3E4f4214073aFe</a></td><td class="mono">18</td></tr><tr><td>50 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x4D9b9624418e2E91a38122D53e2A12eE028194b3" target="_blank" rel="noopener" title="0x4D9b9624418e2E91a38122D53e2A12eE028194b3">0x4D9b9624418e2E91a38122D53e2A12eE028194b3</a></td><td class="mono">19</td></tr><tr><td>10 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618" target="_blank" rel="noopener" title="0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618">0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618</a></td><td class="mono">20</td></tr><tr><td>1 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xD01D19B9D296299619f681b842b3b61C79736F3a" target="_blank" rel="noopener" title="0xD01D19B9D296299619f681b842b3b61C79736F3a">0xD01D19B9D296299619f681b842b3b61C79736F3a</a></td><td class="mono">21</td></tr><tr><td>Роутер · LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x0C3475657D4Bd198efe068dDB064725B6514FB04" target="_blank" rel="noopener" title="0x0C3475657D4Bd198efe068dDB064725B6514FB04">0x0C3475657D4Bd198efe068dDB064725B6514FB04</a></td><td class="mono">22</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Ethereum Sepolia</h3><span>chainId 11155111</span><span>4 пулов V5</span><span class="chip g">снято с эксплуатации</span></div>
+  <dl class="kv"><dt>Токены</dt><dd>LTH <a class="addr" href="https://sepolia.etherscan.io/address/0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D" target="_blank" rel="noopener" title="0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D">0x53F7…F67D</a></dd><dt>Верификатор вывода V5</dt><dd><a class="addr" href="https://sepolia.etherscan.io/address/0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD" target="_blank" rel="noopener" title="0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD">0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD</a></dd><dt>Верификатор раскрытия</dt><dd><a class="addr" href="https://sepolia.etherscan.io/address/0xd56e6125b2dF850D32F8c3538fF840528c53caf5" target="_blank" rel="noopener" title="0xd56e6125b2dF850D32F8c3538fF840528c53caf5">0xd56e6125b2dF850D32F8c3538fF840528c53caf5</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Контракт</th><th>Адрес</th><th>Блок развёртывания</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x851981f6a35EB0D91d927c0e854774f5d0ce6233" target="_blank" rel="noopener" title="0x851981f6a35EB0D91d927c0e854774f5d0ce6233">0x851981f6a35EB0D91d927c0e854774f5d0ce6233</a></td><td class="mono">11842583</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x09d3D081195304FD83bb79e4b5B97344cE5e89b4" target="_blank" rel="noopener" title="0x09d3D081195304FD83bb79e4b5B97344cE5e89b4">0x09d3D081195304FD83bb79e4b5B97344cE5e89b4</a></td><td class="mono">11842590</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x4402b051482B0304A118A4F8A8bb10095127499D" target="_blank" rel="noopener" title="0x4402b051482B0304A118A4F8A8bb10095127499D">0x4402b051482B0304A118A4F8A8bb10095127499D</a></td><td class="mono">11842595</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876" target="_blank" rel="noopener" title="0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876">0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876</a></td><td class="mono">11842601</td></tr><tr><td>Роутер · LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0xC12095a1e7fAc20E827a93933576469e1122eB61" target="_blank" rel="noopener" title="0xC12095a1e7fAc20E827a93933576469e1122eB61">0xC12095a1e7fAc20E827a93933576469e1122eB61</a></td><td class="mono">11879141</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Arbitrum Sepolia</h3><span>chainId 421614</span><span>4 пулов V5</span><span class="chip g">снято с эксплуатации</span></div>
+  <dl class="kv"><dt>Токены</dt><dd>LTH <a class="addr" href="https://sepolia.arbiscan.io/address/0x16b87f399a003E56eA6A680292b7278Df7D7b655" target="_blank" rel="noopener" title="0x16b87f399a003E56eA6A680292b7278Df7D7b655">0x16b8…b655</a></dd><dt>Верификатор вывода V5</dt><dd><a class="addr" href="https://sepolia.arbiscan.io/address/0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9" target="_blank" rel="noopener" title="0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9">0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9</a></dd><dt>Верификатор раскрытия</dt><dd><a class="addr" href="https://sepolia.arbiscan.io/address/0x247d68Bee78bD2B3082d9380A22cC70c443cbd00" target="_blank" rel="noopener" title="0x247d68Bee78bD2B3082d9380A22cC70c443cbd00">0x247d68Bee78bD2B3082d9380A22cC70c443cbd00</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Контракт</th><th>Адрес</th><th>Блок развёртывания</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7" target="_blank" rel="noopener" title="0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7">0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7</a></td><td class="mono">315679153</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0xded64ec452C95bA69Fe80d51447cb8c4953E52C0" target="_blank" rel="noopener" title="0xded64ec452C95bA69Fe80d51447cb8c4953E52C0">0xded64ec452C95bA69Fe80d51447cb8c4953E52C0</a></td><td class="mono">315679454</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5" target="_blank" rel="noopener" title="0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5">0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5</a></td><td class="mono">315679601</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x4480012096726C670A2C89E05AA37DF7258EF26a" target="_blank" rel="noopener" title="0x4480012096726C670A2C89E05AA37DF7258EF26a">0x4480012096726C670A2C89E05AA37DF7258EF26a</a></td><td class="mono">315679833</td></tr><tr><td>Роутер · LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x284985291A32cf0cfE48F6CA128615983952350e" target="_blank" rel="noopener" title="0x284985291A32cf0cfE48F6CA128615983952350e">0x284985291A32cf0cfE48F6CA128615983952350e</a></td><td class="mono">317439163</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Robinhood Chain Testnet</h3><span>chainId 46630</span><span>8 пулов V5</span><span class="chip g">снято с эксплуатации</span></div>
+  <dl class="kv"><dt>Токены</dt><dd>LTH <a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x19DAD9E8595b5809a600c42273aC2a8360c15BA3" target="_blank" rel="noopener" title="0x19DAD9E8595b5809a600c42273aC2a8360c15BA3">0x19DA…5BA3</a> · USDG <a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x7E955252E15c84f5768B83c41a71F9eba181802F" target="_blank" rel="noopener" title="0x7E955252E15c84f5768B83c41a71F9eba181802F">0x7E95…802F</a></dd><dt>Верификатор вывода V5</dt><dd><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174" target="_blank" rel="noopener" title="0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174">0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174</a></dd><dt>Верификатор раскрытия</dt><dd><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x28BEd69D013A04066f36EF90F995dc7811AFb672" target="_blank" rel="noopener" title="0x28BEd69D013A04066f36EF90F995dc7811AFb672">0x28BEd69D013A04066f36EF90F995dc7811AFb672</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>Контракт</th><th>Адрес</th><th>Блок развёртывания</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C" target="_blank" rel="noopener" title="0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C">0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C</a></td><td class="mono">128804492</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x288b8E0281b85118135F7bd55902f7167EAe5169" target="_blank" rel="noopener" title="0x288b8E0281b85118135F7bd55902f7167EAe5169">0x288b8E0281b85118135F7bd55902f7167EAe5169</a></td><td class="mono">128804841</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6" target="_blank" rel="noopener" title="0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6">0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6</a></td><td class="mono">128805364</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x24a394Fe56464A79A63Adbc57B785d599c3c0074" target="_blank" rel="noopener" title="0x24a394Fe56464A79A63Adbc57B785d599c3c0074">0x24a394Fe56464A79A63Adbc57B785d599c3c0074</a></td><td class="mono">128806055</td></tr><tr><td>100 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x6513862b2153c6AFd56C00B798a859548b0181e7" target="_blank" rel="noopener" title="0x6513862b2153c6AFd56C00B798a859548b0181e7">0x6513862b2153c6AFd56C00B798a859548b0181e7</a></td><td class="mono">128806906</td></tr><tr><td>50 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214" target="_blank" rel="noopener" title="0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214">0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214</a></td><td class="mono">128807418</td></tr><tr><td>10 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xaA16653312E033623a6CD0D1f7DEFDFc21f30461" target="_blank" rel="noopener" title="0xaA16653312E033623a6CD0D1f7DEFDFc21f30461">0xaA16653312E033623a6CD0D1f7DEFDFc21f30461</a></td><td class="mono">128808106</td></tr><tr><td>1 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4" target="_blank" rel="noopener" title="0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4">0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4</a></td><td class="mono">128808711</td></tr><tr><td>Роутер · LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x006da9E656581A7740856aA89c690b3Abd296c30" target="_blank" rel="noopener" title="0x006da9E656581A7740856aA89c690b3Abd296c30">0x006da9E656581A7740856aA89c690b3Abd296c30</a></td><td class="mono">131756119</td></tr><tr><td>Роутер · USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xded64ec452C95bA69Fe80d51447cb8c4953E52C0" target="_blank" rel="noopener" title="0xded64ec452C95bA69Fe80d51447cb8c4953E52C0">0xded64ec452C95bA69Fe80d51447cb8c4953E52C0</a></td><td class="mono">131766479</td></tr></table></div>
+</div>
+  <details class="card"><summary style="cursor:pointer;font-weight:500">Устаревшие пулы V4 (получатель не привязан к доказательству)</summary>
+    <div class="scroll" style="margin-top:14px"><table class="tbl"><tr><th>Пул</th><th>Адрес</th></tr><tr><td>Ethereum Sepolia · 100 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x8f64d930813936599f59De29eDb3B4aE38778f75" target="_blank" rel="noopener" title="0x8f64d930813936599f59De29eDb3B4aE38778f75">0x8f64d930813936599f59De29eDb3B4aE38778f75</a></td></tr><tr><td>Arbitrum Sepolia · 100 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x0fA26142342aA8609fa7AF180DdF91A815A3bE23" target="_blank" rel="noopener" title="0x0fA26142342aA8609fa7AF180DdF91A815A3bE23">0x0fA26142342aA8609fa7AF180DdF91A815A3bE23</a></td></tr><tr><td>Robinhood Chain Testnet · 100 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xDD991cC7E560681e964f693eF5C5eA7f424318A8" target="_blank" rel="noopener" title="0xDD991cC7E560681e964f693eF5C5eA7f424318A8">0xDD991cC7E560681e964f693eF5C5eA7f424318A8</a></td></tr><tr><td>Robinhood Chain Testnet · 100 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC" target="_blank" rel="noopener" title="0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC">0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC</a></td></tr></table></div></details>
+</div></section>
+<section class="s"><div class="wrap">
+  <h2>Схемы и параметры</h2><p class="sub">Доказательства Groth16. Ключи созданы одной стороной для разработки и подходят только для тестовых сетей.</p>
+  <div class="grid3">
+    <div class="card"><h3><code>withdraw_v5</code></h3><p class="note" style="margin:0">Используется текущими пулами V7. Публичные входы: <code>root</code>, <code>nullifierHash</code>, <code>recipient</code>, <code>relayer</code>, <code>fee</code>. Каждый шаг пути в дереве Меркла ограничен значениями 0 или 1 (исправление ошибки до V7). Старые пулы использовали <code>withdraw_v3</code> (V5) и <code>withdraw_v4</code> (V6).</p></div>
+    <div class="card"><h3><code>disclose</code></h3><p class="note" style="margin:0">Публичные входы: <code>commitment</code>, <code>disclosureTag</code>, <code>auditorNonce</code>. Проверяется вызовом верификатора раскрытия только на чтение.</p></div>
+    <div class="card"><h3>Пулы</h3><p class="note" style="margin:0">Номиналы 100 / 50 / 10 / 1. V7: глубина дерева Меркла 20, до 1 048 576 депозитов в пуле, история корней 100. Старые пулы V5: глубина 8, 256 депозитов, история корней 30.</p></div>
+  </div>
+  <p class="note warn">JavaScript SDK в <code>sdk/</code> (0.2.0, не в npm) рассчитан на V7: пулы и роутер из <code>deployments.json</code>, доказательства <code>withdraw_v5</code>, <code>withdrawMany</code> с получателем, релейером и комиссией; V5/V6 только для вывода. Проверен с настоящими доказательствами на локальной EVM, против тестовой сети ещё не запускался. Эталоном остаётся демо.</p>
+</div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask_ru" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask_ru)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>Соло-проект, созданный с помощью ИИ-разработки. Публичный прототип только в тестовых сетях. Тестовые токены ничего не стоят.</small></div>
+  <div><h4>Протокол</h4><ul><li><a href="/#how">Как это работает</a></li><li><a href="/security/">Безопасность</a></li><li><a href="/developers/">Разработчикам</a></li><li><a href="/demo/">Живое демо</a></li></ul></div>
+  <div><h4>Проект</h4><ul><li><a href="/roadmap/">Роадмап</a></li><li><a href="/tokenomics/">Токеномика</a><span class="soon">WIP</span></li><li><a href="/partners/">Партнёры</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>Следить</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<div class="L" data-lang="zh" hidden>
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask_zh" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask_zh)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">工作原理</a><a class="hide-m" href="/security/">安全</a><a class="hide-m" href="/developers/" aria-current="page">开发者</a><a class="hide-m" href="/roadmap/">路线图</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">实时演示</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">开发者</div>
+  <h1>部署</h1>
+  <p class="lede">所有受支持测试网络（包括 Latheon 测试链）上的合约地址，由演示所用的注册表 <code>deployments.json</code> 生成。地址仅对所在网络有效：另一网络上的相同地址是另一个合约。</p>
+  <div class="chips"><span class="chip t">4 个 V7 资金池 · 开放</span><span class="chip t">1 条活跃测试链</span><span class="chip g">V6 / V5：仅可取款</span><span class="chip g">3 个测试网已弃用</span><span class="chip g">仅限测试网</span></div>
+  <div class="cta-row"><a class="btn btn-gold" href="/demo/deployments.json" target="_blank" rel="noopener">deployments.json</a><a class="btn btn-ghost" href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">源代码 ↗</a><a class="btn btn-ghost" href="/demo/" target="_blank" rel="noopener">实时演示</a></div>
+</header>
+<section class="s"><div class="wrap"><div class="net card">
+  <div class="net-hd"><h3>Latheon Testnet</h3><span>chainId 60531373273</span><span>4 个 V5 + 4 个 V6 + 4 个 V7 资金池</span><span class="chip t">我们的测试链</span></div>
+  <dl class="kv"><dt>代币</dt><dd>LTH（原生 Gas 币）</dd><dt>RPC</dt><dd><code>https://rpc.testnet.latheon.xyz</code></dd><dt>区块浏览器</dt><dd><a href="https://explorer.testnet.latheon.xyz" target="_blank" rel="noopener">explorer.testnet.latheon.xyz</a></dd><dt>水龙头</dt><dd><a href="https://explorer.testnet.latheon.xyz/faucet" target="_blank" rel="noopener">explorer.testnet.latheon.xyz/faucet</a></dd><dt>中继器</dt><dd><code>https://explorer.testnet.latheon.xyz/relay/api</code></dd><dt>结算到</dt><dd>Arbitrum Sepolia (421614)</dd><dt>V5 取款验证合约</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x67451b65BD9F0d1486A736927f8ef29d6BE72062" target="_blank" rel="noopener" title="0x67451b65BD9F0d1486A736927f8ef29d6BE72062">0x67451b65BD9F0d1486A736927f8ef29d6BE72062</a></dd><dt>V6 取款验证器</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x49694EF1977b4A201b378740557f2aa41BDC3857" target="_blank" rel="noopener" title="0x49694EF1977b4A201b378740557f2aa41BDC3857">0x49694EF1977b4A201b378740557f2aa41BDC3857</a></dd><dt>V7 取款验证器</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51" target="_blank" rel="noopener" title="0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51">0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51</a></dd><dt>披露验证合约</dt><dd><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xB86360CBDE78664bb1674c367391E9d79c37F294" target="_blank" rel="noopener" title="0xB86360CBDE78664bb1674c367391E9d79c37F294">0xB86360CBDE78664bb1674c367391E9d79c37F294</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>合约</th><th>地址</th><th>部署区块</th></tr><tr><td>100 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae" target="_blank" rel="noopener" title="0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae">0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae</a></td><td class="mono">1464</td></tr><tr><td>50 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x5A3DA32BCc848a81A3a379620120ae06DfA7C657" target="_blank" rel="noopener" title="0x5A3DA32BCc848a81A3a379620120ae06DfA7C657">0x5A3DA32BCc848a81A3a379620120ae06DfA7C657</a></td><td class="mono">1465</td></tr><tr><td>10 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429" target="_blank" rel="noopener" title="0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429">0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429</a></td><td class="mono">1466</td></tr><tr><td>1 LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A" target="_blank" rel="noopener" title="0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A">0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A</a></td><td class="mono">1467</td></tr><tr><td>Router · LTH · V7</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x1D1189D5399B24BB40858AEACDb649977b596Cf2" target="_blank" rel="noopener" title="0x1D1189D5399B24BB40858AEACDb649977b596Cf2">0x1D1189D5399B24BB40858AEACDb649977b596Cf2</a></td><td class="mono">1468</td></tr><tr><td>100 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xB4035F257793bB7323f9373Af41e5298b04A80dF" target="_blank" rel="noopener" title="0xB4035F257793bB7323f9373Af41e5298b04A80dF">0xB4035F257793bB7323f9373Af41e5298b04A80dF</a></td><td class="mono">58</td></tr><tr><td>50 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C" target="_blank" rel="noopener" title="0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C">0xd3915aE31f08549cC957EF6bD9ea9104F24aD60C</a></td><td class="mono">59</td></tr><tr><td>10 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x002B880740926A37da5b6f56faDbFD79400c759d" target="_blank" rel="noopener" title="0x002B880740926A37da5b6f56faDbFD79400c759d">0x002B880740926A37da5b6f56faDbFD79400c759d</a></td><td class="mono">60</td></tr><tr><td>1 LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260" target="_blank" rel="noopener" title="0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260">0x3c1E793714E0af7d9BC30508fEeD3E062Ea5b260</a></td><td class="mono">61</td></tr><tr><td>路由合约 · LTH · V6 (superseded)</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x93963CF193DD6a961eFEA8311b0834EE31518150" target="_blank" rel="noopener" title="0x93963CF193DD6a961eFEA8311b0834EE31518150">0x93963CF193DD6a961eFEA8311b0834EE31518150</a></td><td class="mono">62</td></tr><tr><td>100 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xf10AF1771450c528fee0c5435D3E4f4214073aFe" target="_blank" rel="noopener" title="0xf10AF1771450c528fee0c5435D3E4f4214073aFe">0xf10AF1771450c528fee0c5435D3E4f4214073aFe</a></td><td class="mono">18</td></tr><tr><td>50 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x4D9b9624418e2E91a38122D53e2A12eE028194b3" target="_blank" rel="noopener" title="0x4D9b9624418e2E91a38122D53e2A12eE028194b3">0x4D9b9624418e2E91a38122D53e2A12eE028194b3</a></td><td class="mono">19</td></tr><tr><td>10 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618" target="_blank" rel="noopener" title="0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618">0xc27DfC8A1CfD74D0D5645198Fb0d8B6b50292618</a></td><td class="mono">20</td></tr><tr><td>1 LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0xD01D19B9D296299619f681b842b3b61C79736F3a" target="_blank" rel="noopener" title="0xD01D19B9D296299619f681b842b3b61C79736F3a">0xD01D19B9D296299619f681b842b3b61C79736F3a</a></td><td class="mono">21</td></tr><tr><td>路由合约 · LTH · V5</td><td><a class="addr" href="https://explorer.testnet.latheon.xyz/address/0x0C3475657D4Bd198efe068dDB064725B6514FB04" target="_blank" rel="noopener" title="0x0C3475657D4Bd198efe068dDB064725B6514FB04">0x0C3475657D4Bd198efe068dDB064725B6514FB04</a></td><td class="mono">22</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Ethereum Sepolia</h3><span>chainId 11155111</span><span>4 个 V5 资金池</span><span class="chip g">已弃用</span></div>
+  <dl class="kv"><dt>代币</dt><dd>LTH <a class="addr" href="https://sepolia.etherscan.io/address/0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D" target="_blank" rel="noopener" title="0x53F7f947D150D41FecAC4e3FBE04cdD1bf19F67D">0x53F7…F67D</a></dd><dt>V5 取款验证合约</dt><dd><a class="addr" href="https://sepolia.etherscan.io/address/0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD" target="_blank" rel="noopener" title="0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD">0xb2fd0cfC04cb135194Af9a2EE0f955CD2d877DbD</a></dd><dt>披露验证合约</dt><dd><a class="addr" href="https://sepolia.etherscan.io/address/0xd56e6125b2dF850D32F8c3538fF840528c53caf5" target="_blank" rel="noopener" title="0xd56e6125b2dF850D32F8c3538fF840528c53caf5">0xd56e6125b2dF850D32F8c3538fF840528c53caf5</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>合约</th><th>地址</th><th>部署区块</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x851981f6a35EB0D91d927c0e854774f5d0ce6233" target="_blank" rel="noopener" title="0x851981f6a35EB0D91d927c0e854774f5d0ce6233">0x851981f6a35EB0D91d927c0e854774f5d0ce6233</a></td><td class="mono">11842583</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x09d3D081195304FD83bb79e4b5B97344cE5e89b4" target="_blank" rel="noopener" title="0x09d3D081195304FD83bb79e4b5B97344cE5e89b4">0x09d3D081195304FD83bb79e4b5B97344cE5e89b4</a></td><td class="mono">11842590</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x4402b051482B0304A118A4F8A8bb10095127499D" target="_blank" rel="noopener" title="0x4402b051482B0304A118A4F8A8bb10095127499D">0x4402b051482B0304A118A4F8A8bb10095127499D</a></td><td class="mono">11842595</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876" target="_blank" rel="noopener" title="0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876">0x640A19F322d7D13779AcF8d64f64Efb3fF2cf876</a></td><td class="mono">11842601</td></tr><tr><td>路由合约 · LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0xC12095a1e7fAc20E827a93933576469e1122eB61" target="_blank" rel="noopener" title="0xC12095a1e7fAc20E827a93933576469e1122eB61">0xC12095a1e7fAc20E827a93933576469e1122eB61</a></td><td class="mono">11879141</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Arbitrum Sepolia</h3><span>chainId 421614</span><span>4 个 V5 资金池</span><span class="chip g">已弃用</span></div>
+  <dl class="kv"><dt>代币</dt><dd>LTH <a class="addr" href="https://sepolia.arbiscan.io/address/0x16b87f399a003E56eA6A680292b7278Df7D7b655" target="_blank" rel="noopener" title="0x16b87f399a003E56eA6A680292b7278Df7D7b655">0x16b8…b655</a></dd><dt>V5 取款验证合约</dt><dd><a class="addr" href="https://sepolia.arbiscan.io/address/0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9" target="_blank" rel="noopener" title="0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9">0x2Cc27b22C0f83fCdb01791eD670D42Ca42d62bb9</a></dd><dt>披露验证合约</dt><dd><a class="addr" href="https://sepolia.arbiscan.io/address/0x247d68Bee78bD2B3082d9380A22cC70c443cbd00" target="_blank" rel="noopener" title="0x247d68Bee78bD2B3082d9380A22cC70c443cbd00">0x247d68Bee78bD2B3082d9380A22cC70c443cbd00</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>合约</th><th>地址</th><th>部署区块</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7" target="_blank" rel="noopener" title="0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7">0x5E81DB3aE24B5B6d7E4d853933EF37b55d2ccDC7</a></td><td class="mono">315679153</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0xded64ec452C95bA69Fe80d51447cb8c4953E52C0" target="_blank" rel="noopener" title="0xded64ec452C95bA69Fe80d51447cb8c4953E52C0">0xded64ec452C95bA69Fe80d51447cb8c4953E52C0</a></td><td class="mono">315679454</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5" target="_blank" rel="noopener" title="0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5">0xe41964e7A9CBc9E2fE618a09a3692e8430c25cA5</a></td><td class="mono">315679601</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x4480012096726C670A2C89E05AA37DF7258EF26a" target="_blank" rel="noopener" title="0x4480012096726C670A2C89E05AA37DF7258EF26a">0x4480012096726C670A2C89E05AA37DF7258EF26a</a></td><td class="mono">315679833</td></tr><tr><td>路由合约 · LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x284985291A32cf0cfE48F6CA128615983952350e" target="_blank" rel="noopener" title="0x284985291A32cf0cfE48F6CA128615983952350e">0x284985291A32cf0cfE48F6CA128615983952350e</a></td><td class="mono">317439163</td></tr></table></div>
+</div><div class="net card">
+  <div class="net-hd"><h3>Robinhood Chain Testnet</h3><span>chainId 46630</span><span>8 个 V5 资金池</span><span class="chip g">已弃用</span></div>
+  <dl class="kv"><dt>代币</dt><dd>LTH <a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x19DAD9E8595b5809a600c42273aC2a8360c15BA3" target="_blank" rel="noopener" title="0x19DAD9E8595b5809a600c42273aC2a8360c15BA3">0x19DA…5BA3</a> · USDG <a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x7E955252E15c84f5768B83c41a71F9eba181802F" target="_blank" rel="noopener" title="0x7E955252E15c84f5768B83c41a71F9eba181802F">0x7E95…802F</a></dd><dt>V5 取款验证合约</dt><dd><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174" target="_blank" rel="noopener" title="0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174">0xAb120F3da9D4b55ED5E816dcb2A1e2F191440174</a></dd><dt>披露验证合约</dt><dd><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x28BEd69D013A04066f36EF90F995dc7811AFb672" target="_blank" rel="noopener" title="0x28BEd69D013A04066f36EF90F995dc7811AFb672">0x28BEd69D013A04066f36EF90F995dc7811AFb672</a></dd></dl>
+  <div class="scroll"><table class="tbl"><tr><th>合约</th><th>地址</th><th>部署区块</th></tr><tr><td>100 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C" target="_blank" rel="noopener" title="0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C">0x9d047AdA4e33D28fBd86220f3F899A7Df7e3360C</a></td><td class="mono">128804492</td></tr><tr><td>50 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x288b8E0281b85118135F7bd55902f7167EAe5169" target="_blank" rel="noopener" title="0x288b8E0281b85118135F7bd55902f7167EAe5169">0x288b8E0281b85118135F7bd55902f7167EAe5169</a></td><td class="mono">128804841</td></tr><tr><td>10 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6" target="_blank" rel="noopener" title="0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6">0x362ceAD7a6bB1b99a69b6Eebc75e37a42d82F5F6</a></td><td class="mono">128805364</td></tr><tr><td>1 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x24a394Fe56464A79A63Adbc57B785d599c3c0074" target="_blank" rel="noopener" title="0x24a394Fe56464A79A63Adbc57B785d599c3c0074">0x24a394Fe56464A79A63Adbc57B785d599c3c0074</a></td><td class="mono">128806055</td></tr><tr><td>100 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x6513862b2153c6AFd56C00B798a859548b0181e7" target="_blank" rel="noopener" title="0x6513862b2153c6AFd56C00B798a859548b0181e7">0x6513862b2153c6AFd56C00B798a859548b0181e7</a></td><td class="mono">128806906</td></tr><tr><td>50 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214" target="_blank" rel="noopener" title="0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214">0xF4ab260E65D7c6bEE3D1192d2Cef677199B1f214</a></td><td class="mono">128807418</td></tr><tr><td>10 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xaA16653312E033623a6CD0D1f7DEFDFc21f30461" target="_blank" rel="noopener" title="0xaA16653312E033623a6CD0D1f7DEFDFc21f30461">0xaA16653312E033623a6CD0D1f7DEFDFc21f30461</a></td><td class="mono">128808106</td></tr><tr><td>1 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4" target="_blank" rel="noopener" title="0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4">0xc5C7Aa68BF65df8c7877809C21ceaa7E881ed1C4</a></td><td class="mono">128808711</td></tr><tr><td>路由合约 · LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0x006da9E656581A7740856aA89c690b3Abd296c30" target="_blank" rel="noopener" title="0x006da9E656581A7740856aA89c690b3Abd296c30">0x006da9E656581A7740856aA89c690b3Abd296c30</a></td><td class="mono">131756119</td></tr><tr><td>路由合约 · USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xded64ec452C95bA69Fe80d51447cb8c4953E52C0" target="_blank" rel="noopener" title="0xded64ec452C95bA69Fe80d51447cb8c4953E52C0">0xded64ec452C95bA69Fe80d51447cb8c4953E52C0</a></td><td class="mono">131766479</td></tr></table></div>
+</div>
+  <details class="card"><summary style="cursor:pointer;font-weight:500">旧版 V4 资金池（已弃用：收款人未绑定到证明）</summary>
+    <div class="scroll" style="margin-top:14px"><table class="tbl"><tr><th>资金池</th><th>地址</th></tr><tr><td>Ethereum Sepolia · 100 LTH</td><td><a class="addr" href="https://sepolia.etherscan.io/address/0x8f64d930813936599f59De29eDb3B4aE38778f75" target="_blank" rel="noopener" title="0x8f64d930813936599f59De29eDb3B4aE38778f75">0x8f64d930813936599f59De29eDb3B4aE38778f75</a></td></tr><tr><td>Arbitrum Sepolia · 100 LTH</td><td><a class="addr" href="https://sepolia.arbiscan.io/address/0x0fA26142342aA8609fa7AF180DdF91A815A3bE23" target="_blank" rel="noopener" title="0x0fA26142342aA8609fa7AF180DdF91A815A3bE23">0x0fA26142342aA8609fa7AF180DdF91A815A3bE23</a></td></tr><tr><td>Robinhood Chain Testnet · 100 LTH</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xDD991cC7E560681e964f693eF5C5eA7f424318A8" target="_blank" rel="noopener" title="0xDD991cC7E560681e964f693eF5C5eA7f424318A8">0xDD991cC7E560681e964f693eF5C5eA7f424318A8</a></td></tr><tr><td>Robinhood Chain Testnet · 100 USDG</td><td><a class="addr" href="https://explorer.testnet.chain.robinhood.com/address/0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC" target="_blank" rel="noopener" title="0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC">0xb19557AEb6BA7e4a389474EC56ECbaBDc61B6aaC</a></td></tr></table></div></details>
+</div></section>
+<section class="s"><div class="wrap">
+  <h2>电路与参数</h2><p class="sub">Groth16 证明。证明密钥来自单方开发设置，仅适用于测试网。</p>
+  <div class="grid3">
+    <div class="card"><h3><code>withdraw_v5</code></h3><p class="note" style="margin:0">用于当前的 V7 资金池。公开输入：<code>root</code>, <code>nullifierHash</code>, <code>recipient</code>, <code>relayer</code>, <code>fee</code>。默克尔路径的每一步都被限制为 0 或 1（修复 V7 之前的缺陷）。旧资金池使用 <code>withdraw_v3</code>（V5）和 <code>withdraw_v4</code>（V6）。</p></div>
+    <div class="card"><h3><code>disclose</code></h3><p class="note" style="margin:0">公开输入：<code>commitment</code>, <code>disclosureTag</code>, <code>auditorNonce</code>. 通过对披露验证合约的只读调用核验。</p></div>
+    <div class="card"><h3>资金池</h3><p class="note" style="margin:0">面额 100 / 50 / 10 / 1。V7：默克尔树深度 20，每个资金池最多 1,048,576 笔存款，根历史 100。旧 V5 资金池：深度 8，256 笔存款，根历史 30。</p></div>
+  </div>
+  <p class="note warn"><code>sdk/</code> 中的 JavaScript SDK（0.2.0，未发布到 npm）面向 V7：从 <code>deployments.json</code> 读取资金池和路由合约，生成 <code>withdraw_v5</code> 证明，支持带接收方、中继者和费用的 <code>withdrawMany</code>；V5/V6 仅用于取款。已在本地 EVM 上用真实证明测试，尚未在测试链上运行。参考实现仍是演示。</p>
+</div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask_zh" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask_zh)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>个人项目，借助 AI 辅助开发构建。仅限测试网的公开原型。测试代币没有价值。</small></div>
+  <div><h4>协议</h4><ul><li><a href="/#how">工作原理</a></li><li><a href="/security/">安全</a></li><li><a href="/developers/">开发者</a></li><li><a href="/demo/">实时演示</a></li></ul></div>
+  <div><h4>项目</h4><ul><li><a href="/roadmap/">路线图</a></li><li><a href="/tokenomics/">代币经济</a><span class="soon">WIP</span></li><li><a href="/partners/">合作伙伴</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>关注</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<script>
+(function () {
+  var L = 'en';
+  try { L = localStorage.getItem('latheon-lang') || 'en'; } catch (e) {}
+  if (['en', 'ru', 'zh'].indexOf(L) < 0) L = 'en';
+  function set(l) {
+    document.querySelectorAll('.L').forEach(function (d) { d.hidden = d.getAttribute('data-lang') !== l; });
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : l;
+    document.querySelectorAll('.lang-select').forEach(function (s) { s.value = l; });
+    try { localStorage.setItem('latheon-lang', l); } catch (e) {}
+  }
+  document.querySelectorAll('.lang-select').forEach(function (s) { s.addEventListener('change', function () { set(this.value); }); });
+  set(L);
+})();
+</script>
+
+</body>
+</html>

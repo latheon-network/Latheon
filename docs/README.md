@@ -26,7 +26,7 @@
 - [`incident-response.md`](./incident-response.md): what to do in an incident on the test chain.
 - Load tests on the test chain (simulations, our own wallets): [`loadtest-2026-10-27.md`](./loadtest-2026-10-27.md) (V6), [`loadtest-2026-10-29-v7.md`](./loadtest-2026-10-29-v7.md) (V7, privacy heuristics), [`loadtest-2026-10-31-throughput.md`](./loadtest-2026-10-31-throughput.md) (throughput: deposits, relayer).
 - [`../DEPLOYMENT-CHECKLIST.en.md`](../DEPLOYMENT-CHECKLIST.en.md): the earlier V3 stack.
-- [`gas-benchmark.en.md`](./gas-benchmark.en.md) / [`gas-benchmark.md`](./gas-benchmark.md): gas figures (V3/V4 era; read the update note at the top).
+- [`legacy/gas-benchmark.en.md`](./legacy/gas-benchmark.en.md) / [`legacy/gas-benchmark.md`](./legacy/gas-benchmark.md): gas figures of the first track (V3/V4, history; current V7 figures are in STATUS.md and docs/testnet.md).
 
 **Legacy (V4 generation, deprecated)**
 - [`legacy/arbitrum-sepolia-addresses-and-benchmark.md`](./legacy/arbitrum-sepolia-addresses-and-benchmark.md)

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokenomics · Latheon</title>
+<meta name="description" content="Latheon tokenomics are not designed yet. LTH is a test token with no value.">
+<meta name="twitter:site" content="@Latheon_xyz">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root { --ink:#14121C; --ink-elevated:#1C1927; --ink-card:#221E30; --violet:#7F77DD; --violet-deep:#534AB7; --teal:#5DCAA5; --teal-deep:#0F6E56; --gold:#F6C55A; --gold-deep:#DB9A2C; --text-primary:#F2EFE9; --text-muted:#9793A8; --border:rgba(242,239,233,.1); --border-strong:rgba(242,239,233,.22); --red:#E8838B; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { background:radial-gradient(1000px 520px at 50% -10%, rgba(83,74,183,.16), transparent 62%), var(--ink); color:var(--text-primary); font-family:'IBM Plex Sans', Arial, sans-serif; line-height:1.6; overflow-x:hidden; }
+a { color:var(--teal); }
+:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+.wrap { max-width:1120px; margin:0 auto; padding:0 32px; }
+@media (max-width:480px) { .wrap { padding:0 16px; } }
+code, .mono { font-family:'IBM Plex Mono', monospace; }
+code { font-size:.92em; color:var(--text-primary); background:rgba(242,239,233,.06); padding:1px 6px; border-radius:4px; overflow-wrap:anywhere; }
+.eyebrow { font:12px 'IBM Plex Mono', monospace; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:14px; }
+/* nav */
+.nav { position:sticky; top:0; z-index:50; background:rgba(20,18,28,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+.nav-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:14px; padding-bottom:14px; }
+.brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text-primary); }
+.brand svg { width:34px; height:auto; }
+.brand span { font:600 20px 'Cinzel', Georgia, serif; letter-spacing:.5px; }
+.nav-links { display:flex; align-items:center; gap:24px; }
+.nav-links a { color:var(--text-muted); text-decoration:none; font-size:14px; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color:var(--text-primary); }
+.nav-links a[aria-current="page"] { box-shadow:inset 0 -2px 0 var(--teal); padding-bottom:4px; }
+@media (max-width:860px) { .nav-links .hide-m { display:none; } }
+@media (max-width:480px) { .nav-links { gap:10px; } .nav-links .btn-small { padding:7px 12px; font-size:12.5px; } .brand { gap:8px; } .brand span { font-size:18px; } }
+.btn { display:inline-flex; align-items:center; gap:9px; padding:11px 22px; border-radius:999px; font:600 14px 'IBM Plex Sans', sans-serif; text-decoration:none; border:1px solid transparent; white-space:nowrap; transition:transform .15s, background .2s, border-color .2s; }
+.btn-gold { background:var(--gold); color:var(--ink); }
+.btn-gold:hover { transform:translateY(-1px); }
+.btn-ghost { color:var(--text-primary); border-color:var(--border-strong); font-weight:500; }
+.btn-ghost:hover { background:var(--ink-elevated); }
+.btn-small { padding:7px 16px; font-size:13px; }
+.nav-links a.btn-ghost { color:var(--text-primary); }
+.lang-select { background:var(--ink-elevated); color:var(--text-primary); border:1px solid var(--border); border-radius:999px; padding:7px 10px; font:12px 'IBM Plex Mono', monospace; }
+/* page head */
+.ph { padding-top:88px; padding-bottom:48px; }
+.ph h1 { font:600 clamp(32px,5vw,54px)/1.12 'Cinzel', Georgia, serif; margin-bottom:18px; max-width:18ch; }
+.ph p.lede { font-size:18px; color:var(--text-muted); max-width:60ch; }
+.ph .src { margin-top:16px; font:12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:28px; }
+.chip { font:12px 'IBM Plex Mono', monospace; padding:5px 12px; border-radius:999px; border:1px solid var(--border-strong); color:var(--text-primary); }
+.chip.g { border-color:rgba(246,197,90,.55); color:var(--gold); }
+.chip.t { border-color:rgba(93,202,165,.55); color:var(--teal); }
+section.s { padding:40px 0; }
+section.s > .wrap > h2 { font-size:clamp(22px,2.6vw,28px); font-weight:600; margin-bottom:8px; }
+section.s > .wrap > p.sub { color:var(--text-muted); margin-bottom:24px; max-width:68ch; }
+.card { background:var(--ink-card); border:1px solid var(--border); border-radius:14px; padding:24px; }
+.grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+@media (max-width:860px) { .grid2, .grid3 { grid-template-columns:1fr; } }
+.card h3 { font-size:17px; margin-bottom:12px; }
+.card .k { font:12px 'IBM Plex Mono', monospace; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
+ul.l { list-style:none; display:grid; gap:10px; font-size:15px; color:var(--text-muted); }
+ul.l li { padding-left:22px; position:relative; }
+ul.l li::before { position:absolute; left:0; top:0; font-family:'IBM Plex Mono', monospace; }
+ul.l.ok li::before { content:'✓'; color:var(--teal); }
+ul.l.pub li::before { content:'◎'; color:var(--gold); }
+ul.l.open li::before { content:'○'; color:var(--gold); }
+ul.l.dash li::before { content:'—'; color:var(--violet); }
+ul.l b { color:var(--text-primary); font-weight:500; }
+.tbl { width:100%; border-collapse:collapse; font-size:14px; }
+.tbl th { text-align:left; font:12px 'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); font-weight:400; padding:10px 12px; border-bottom:1px solid var(--border-strong); }
+.tbl td { padding:12px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text-muted); }
+.tbl td:first-child { color:var(--text-primary); }
+.scroll { overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--ink-card); }
+.scroll .tbl td, .scroll .tbl th { white-space:nowrap; }
+.note { font-size:13.5px; color:var(--text-muted); margin-top:14px; }
+.note.warn { border-left:3px solid var(--gold); padding:10px 14px; background:rgba(246,197,90,.06); border-radius:0 8px 8px 0; }
+a.addr { font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--teal); text-decoration:none; }
+a.addr:hover { text-decoration:underline; }
+.ok-t { color:var(--teal) !important; }
+/* network cards */
+.net { margin-bottom:28px; }
+.net-hd { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 18px; margin-bottom:14px; }
+.net-hd h3 { font-size:20px; }
+.net-hd span { font:12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.kv { display:grid; grid-template-columns:200px minmax(0,1fr); gap:8px 18px; font-size:14px; margin-bottom:16px; }
+.kv dt { color:var(--text-muted); }
+.kv dd { overflow-wrap:anywhere; }
+@media (max-width:600px) { .kv { grid-template-columns:1fr; gap:2px; } .kv dd { margin-bottom:8px; } }
+/* roadmap */
+.phase { display:grid; grid-template-columns:180px minmax(0,1fr); gap:28px; padding:28px 0; border-top:1px solid var(--border); }
+@media (max-width:760px) { .phase { grid-template-columns:1fr; gap:10px; } }
+.phase .when b { display:block; font:600 22px 'Cinzel', Georgia, serif; }
+.phase .when span { display:block; font:11.5px 'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-top:6px; }
+.phase .when .st { display:inline-block; margin-top:10px; }
+.timeline { position:relative; display:grid; gap:14px; padding-left:22px; border-left:2px solid rgba(93,202,165,.35); }
+.timeline li { list-style:none; position:relative; font-size:15px; color:var(--text-muted); }
+.timeline li::before { content:''; position:absolute; left:-29px; top:7px; width:12px; height:12px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(93,202,165,.15); }
+.timeline li b { display:block; font:500 12.5px 'IBM Plex Mono', monospace; color:var(--teal); }
+.timeline li b.tbd { color:var(--gold); }
+.bar { height:8px; border-radius:999px; background:rgba(242,239,233,.08); overflow:hidden; margin:6px 0 14px; max-width:420px; }
+.bar i { display:block; height:100%; width:75%; background:linear-gradient(90deg,var(--teal),var(--violet)); }
+/* under construction */
+.uc { position:relative; margin:8px 0 8px; border-radius:20px; overflow:hidden; border:1px solid var(--border); background:var(--ink-elevated); min-height:380px; }
+.uc .ghost { padding:36px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; filter:blur(3px); opacity:.45; }
+@media (max-width:760px) { .uc .ghost { grid-template-columns:1fr; padding:20px; } }
+.uc .ghost div { height:120px; border-radius:12px; background:linear-gradient(135deg, rgba(127,119,221,.35), rgba(93,202,165,.18)); }
+.uc .ghost div:nth-child(2) { background:linear-gradient(135deg, rgba(246,197,90,.30), rgba(127,119,221,.15)); }
+.uc .ghost div.wide { grid-column:1/-1; height:80px; }
+.tape { position:absolute; left:-10%; width:120%; height:46px; display:flex; align-items:center; overflow:hidden; color:var(--ink); font:600 14px 'IBM Plex Mono', monospace; letter-spacing:2px; white-space:nowrap; box-shadow:0 10px 30px rgba(0,0,0,.45);
+  background:repeating-linear-gradient(-45deg, var(--gold) 0 26px, #14121C 26px 52px); }
+.tape span { display:inline-block; padding-left:100%; animation:tapeRun 26s linear infinite; }
+.tape span em { font-style:normal; background:var(--gold); padding:4px 14px; margin-right:28px; border-radius:3px; }
+.tape.a { top:38%; transform:rotate(-6deg); }
+.tape.b { top:52%; transform:rotate(5deg); }
+.tape.b span { animation-duration:32s; animation-direction:reverse; }
+@keyframes tapeRun { to { transform:translateX(-100%); } }
+.uc .sign { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:2; display:flex; align-items:center; gap:10px; background:rgba(20,18,28,.92); border:1px solid rgba(246,197,90,.5); border-radius:999px; padding:8px 18px; font:12px 'IBM Plex Mono', monospace; color:var(--gold); white-space:nowrap; }
+.uc .sign i { width:8px; height:8px; border-radius:50%; background:var(--gold); animation:blink 1.6s ease-in-out infinite; }
+@keyframes blink { 50% { opacity:.25; } }
+@media (prefers-reduced-motion: reduce) { .tape span, .uc .sign i { animation:none; } .tape span { padding-left:24px; } }
+.cta-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+.x-badge { display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; font:600 11px 'IBM Plex Mono', monospace; color:var(--ink); }
+html:not([lang="en"]) .ph h1, html:not([lang="en"]) .phase .when b { font-family:'IBM Plex Sans', Arial, sans-serif; font-weight:600; }
+/* footer */
+footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48px; }
+.foot { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:28px; font-size:14px; }
+@media (max-width:760px) { .foot { grid-template-columns:1fr 1fr; } .foot > div:first-child { grid-column:1/-1; } }
+.foot h4 { font:12px 'IBM Plex Mono', monospace; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); font-weight:400; margin-bottom:12px; }
+.foot ul { list-style:none; display:grid; gap:8px; }
+.foot a { color:var(--text-muted); text-decoration:none; }
+.foot a:hover { color:var(--text-primary); }
+.foot .soc a { color:var(--text-primary); }
+.foot small { display:block; color:var(--text-muted); margin-top:10px; max-width:36ch; }
+.foot .soon { font:10px 'IBM Plex Mono', monospace; color:var(--gold); border:1px solid rgba(246,197,90,.45); border-radius:999px; padding:0 6px; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="L" data-lang="en">
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">How it works</a><a class="hide-m" href="/security/">Security</a><a class="hide-m" href="/developers/">Developers</a><a class="hide-m" href="/roadmap/">Roadmap</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">Live demo</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">Project</div>
+  <h1>Tokenomics</h1>
+  <div class="chips" style="margin:0 0 20px"><span class="chip g">Not yet published</span></div>
+  <p class="lede">Supply, distribution and emissions have not been designed. There is no token sale and no airdrop. Once a model exists, it will be published here together with its rationale.</p>
+</header>
+<section class="s"><div class="wrap"><div class="uc" role="img" aria-label="tokenomics · work in progress">
+  <div class="ghost"><div></div><div></div><div></div><div class="wide"></div></div>
+  <div class="tape a"><span><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em></span></div><div class="tape b"><span><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em><em>WORK IN PROGRESS · NOT AVAILABLE YET</em></span></div>
+  <div class="sign"><i></i>tokenomics · work in progress</div>
+</div></div></section>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k ok-t">LTH today</div><ul class="l dash">
+    <li>A test token on testnets, with no monetary value.</li><li>The owner can mint more (<code>mint</code>, owner only).</li><li>Pays for gas on the Latheon test chain.</li><li>Faucet: 100 LTH per address a day on the Latheon test chain. The older faucets on the public testnets (500 LTH a day) belong to the deprecated deployments.</li></ul></div>
+  <div class="card"><div class="k" style="color:var(--violet)">Intended role (long term)</div><ul class="l dash">
+    <li>Gas token of Latheon's production chain, as decided in <a href="https://github.com/latheon-network/latheon/blob/main/ROADMAP.md" target="_blank" rel="noopener">ROADMAP.md</a>.</li><li>Supply, distribution and emissions: not decided.</li></ul></div>
+</div><div class="wrap"><p class="note warn">Nothing on this site is an offer to sell or buy any token.</p></div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>Solo project, built with AI-assisted development. Public prototype on testnets only. Test tokens have no value.</small></div>
+  <div><h4>Protocol</h4><ul><li><a href="/#how">How it works</a></li><li><a href="/security/">Security</a></li><li><a href="/developers/">Developers</a></li><li><a href="/demo/">Live demo</a></li></ul></div>
+  <div><h4>Project</h4><ul><li><a href="/roadmap/">Roadmap</a></li><li><a href="/tokenomics/">Tokenomics</a><span class="soon">WIP</span></li><li><a href="/partners/">Partners</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>Follow</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<div class="L" data-lang="ru" hidden>
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask_ru" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask_ru)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">Как это работает</a><a class="hide-m" href="/security/">Безопасность</a><a class="hide-m" href="/developers/">Разработчикам</a><a class="hide-m" href="/roadmap/">Роадмап</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">Живое демо</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">Проект</div>
+  <h1>Токеномика</h1>
+  <div class="chips" style="margin:0 0 20px"><span class="chip g">Пока не опубликована</span></div>
+  <p class="lede">Эмиссия, распределение и выпуск ещё не спроектированы. Продажи токенов и раздач нет. Когда модель появится, она будет опубликована здесь вместе с обоснованием.</p>
+</header>
+<section class="s"><div class="wrap"><div class="uc" role="img" aria-label="токеномика · в работе">
+  <div class="ghost"><div></div><div></div><div></div><div class="wide"></div></div>
+  <div class="tape a"><span><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em></span></div><div class="tape b"><span><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em><em>В РАБОТЕ · ПОКА НЕДОСТУПНО</em></span></div>
+  <div class="sign"><i></i>токеномика · в работе</div>
+</div></div></section>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k ok-t">LTH сейчас</div><ul class="l dash">
+    <li>Тестовый токен в тестовых сетях, ничего не стоит.</li><li>Владелец может выпускать новые (<code>mint</code>, только владелец).</li><li>Им платят газ в тестовой сети Latheon.</li><li>Кран: 100 LTH на адрес в сутки в тестовой сети Latheon. Старые краны в публичных тестовых сетях (500 LTH в сутки) относятся к выведенным из работы развёртываниям.</li></ul></div>
+  <div class="card"><div class="k" style="color:var(--violet)">Будущая роль (долгосрочно)</div><ul class="l dash">
+    <li>Газовый токен боевой сети Latheon, как решено в <a href="https://github.com/latheon-network/latheon/blob/main/ROADMAP.md" target="_blank" rel="noopener">ROADMAP.md</a>.</li><li>Эмиссия, распределение и выпуск: не решены.</li></ul></div>
+</div><div class="wrap"><p class="note warn">Ничто на этом сайте не является предложением купить или продать токены.</p></div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask_ru" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask_ru)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>Соло-проект, созданный с помощью ИИ-разработки. Публичный прототип только в тестовых сетях. Тестовые токены ничего не стоят.</small></div>
+  <div><h4>Протокол</h4><ul><li><a href="/#how">Как это работает</a></li><li><a href="/security/">Безопасность</a></li><li><a href="/developers/">Разработчикам</a></li><li><a href="/demo/">Живое демо</a></li></ul></div>
+  <div><h4>Проект</h4><ul><li><a href="/roadmap/">Роадмап</a></li><li><a href="/tokenomics/">Токеномика</a><span class="soon">WIP</span></li><li><a href="/partners/">Партнёры</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>Следить</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<div class="L" data-lang="zh" hidden>
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="/" aria-label="Latheon home"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="pgMask_zh" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#pgMask_zh)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a>
+  <div class="nav-links"><a class="hide-m" href="/#how">工作原理</a><a class="hide-m" href="/security/">安全</a><a class="hide-m" href="/developers/">开发者</a><a class="hide-m" href="/roadmap/">路线图</a>
+    <select class="lang-select" aria-label="Language"><option value="en">EN</option><option value="ru">RU</option><option value="zh">中文</option></select>
+    <a class="btn btn-ghost btn-small" href="/demo/" target="_blank" rel="noopener">实时演示</a>
+  </div>
+</div></nav>
+<main>
+
+<header class="wrap ph">
+  <div class="eyebrow">项目</div>
+  <h1>代币经济</h1>
+  <div class="chips" style="margin:0 0 20px"><span class="chip g">尚未公布</span></div>
+  <p class="lede">供应量、分配和发行尚未设计。没有代币销售，也没有空投。模型确定后，将连同其理由在此公布。</p>
+</header>
+<section class="s"><div class="wrap"><div class="uc" role="img" aria-label="代币经济 · 建设中">
+  <div class="ghost"><div></div><div></div><div></div><div class="wide"></div></div>
+  <div class="tape a"><span><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em></span></div><div class="tape b"><span><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em><em>建设中 · 暂未开放</em></span></div>
+  <div class="sign"><i></i>代币经济 · 建设中</div>
+</div></div></section>
+<section class="s"><div class="wrap grid2">
+  <div class="card"><div class="k ok-t">LTH 现状</div><ul class="l dash">
+    <li>测试网上的测试代币，没有货币价值。</li><li>所有者可以增发（<code>mint</code>，仅限所有者）。</li><li>在 Latheon 测试链上用于支付 Gas。</li><li>水龙头：Latheon 测试链上每个地址每天 100 LTH。公共测试网上的旧水龙头（每天 500 LTH）属于已弃用的部署。</li></ul></div>
+  <div class="card"><div class="k" style="color:var(--violet)">预期作用（长期）</div><ul class="l dash">
+    <li>Latheon 正式链的 Gas 代币，决定见 <a href="https://github.com/latheon-network/latheon/blob/main/ROADMAP.md" target="_blank" rel="noopener">ROADMAP.md</a>.</li><li>供应量、分配和发行：尚未决定。</li></ul></div>
+</div><div class="wrap"><p class="note warn">本网站上的任何内容都不构成买卖任何代币的要约。</p></div></section>
+
+</main>
+<footer><div class="wrap foot">
+  <div><a class="brand" href="/"><svg width="280" height="150" viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="ftMask_zh" maskUnits="userSpaceOnUse" x="0" y="0" width="280" height="150">
+            <rect width="280" height="150" fill="#fff"/>
+            <polygon points="141,91 105,112 69,91 105,70" fill="#000"/>
+            <polygon points="211,91 175,112 139,91 175,70" fill="#000"/>
+            <polygon points="166,85 140,100 114,85 140,70" fill="#000"/>
+          </mask>
+        </defs>
+        <g mask="url(#ftMask_zh)">
+          <polygon points="105,28 141,49 141,91 105,70" fill="#7F77DD"/>
+          <polygon points="69,91 69,49 105,28 105,70" fill="#AFA9EC"/>
+          <polygon points="105,28 141,49 141,91 105,112 69,91 69,49" fill="none" stroke="#3C3489" stroke-width="4"/>
+          <polygon points="175,28 211,49 211,91 175,70" fill="#0F6E56"/>
+          <polygon points="139,91 139,49 175,28 175,70" fill="#5DCAA5"/>
+          <polygon points="175,28 211,49 211,91 175,112 139,91 139,49" fill="none" stroke="#0B5443" stroke-width="4"/>
+          <polygon points="140,40 166,55 166,85 140,70" fill="#F6C55A"/>
+          <polygon points="114,85 114,55 140,40 140,70" fill="#DB9A2C"/>
+          <polygon points="140,40 166,55 166,85 140,100 114,85 114,55" fill="none" stroke="#9C6414" stroke-width="4"/>
+        </g>
+        <polygon points="141,99 105,120 69,99 105,78" fill="#3C3489"/>
+        <polygon points="211,99 175,120 139,99 175,78" fill="#0B5443"/>
+        <polygon points="166,90 140,105 114,90 140,75" fill="#9C6414"/>
+      </svg><span>Latheon</span></a><small>个人项目，借助 AI 辅助开发构建。仅限测试网的公开原型。测试代币没有价值。</small></div>
+  <div><h4>协议</h4><ul><li><a href="/#how">工作原理</a></li><li><a href="/security/">安全</a></li><li><a href="/developers/">开发者</a></li><li><a href="/demo/">实时演示</a></li></ul></div>
+  <div><h4>项目</h4><ul><li><a href="/roadmap/">路线图</a></li><li><a href="/tokenomics/">代币经济</a><span class="soon">WIP</span></li><li><a href="/partners/">合作伙伴</a><span class="soon">WIP</span></li><li><a href="/genesis/">Genesis Cohort</a><span class="soon">PAUSED</span></li></ul></div>
+  <div class="soc"><h4>关注</h4><ul><li><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X @Latheon_xyz</a></li><li><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a></li><li><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+</div></footer>
+</div>
+<script>
+(function () {
+  var L = 'en';
+  try { L = localStorage.getItem('latheon-lang') || 'en'; } catch (e) {}
+  if (['en', 'ru', 'zh'].indexOf(L) < 0) L = 'en';
+  function set(l) {
+    document.querySelectorAll('.L').forEach(function (d) { d.hidden = d.getAttribute('data-lang') !== l; });
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : l;
+    document.querySelectorAll('.lang-select').forEach(function (s) { s.value = l; });
+    try { localStorage.setItem('latheon-lang', l); } catch (e) {}
+  }
+  document.querySelectorAll('.lang-select').forEach(function (s) { s.addEventListener('change', function () { set(this.value); }); });
+  set(L);
+})();
+</script>
+
+</body>
+</html>

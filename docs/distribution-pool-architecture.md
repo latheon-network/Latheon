@@ -167,7 +167,7 @@ separate transaction (the saving is the per-transaction base cost, not the proof
 The figures differ by a few dozen gas between runs (random commitments change the call data), so they are rounded.
 
 These are local-EVM figures, not live-network readings. Gas on each live network is priced differently (see
-`docs/gas-benchmark.en.md` for the V5 withdraw readings), so `MAX_NOTES` should be revisited after a measurement there.
+`docs/legacy/gas-benchmark.en.md` for the V5 withdraw readings), so `MAX_NOTES` should be revisited after a measurement there.
 
 **What this does not do (read this before relying on it):**
 
