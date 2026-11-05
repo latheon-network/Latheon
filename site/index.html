@@ -329,6 +329,11 @@ html[lang="en"] .head h2 { font-family: 'Cinzel', Georgia, serif; } /* Cinzel ha
 .x-pages a { color: var(--text-muted); text-decoration: none; }
 .x-pages a:hover { color: var(--text-primary); }
 .x-pages .x-soon { font: 10px 'IBM Plex Mono', monospace; color: var(--gold); border: 1px solid rgba(246,197,90,.45); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
+/* support line: Quicknode logo used as provided (white variant on dark), sharp corners, clear space >= the Q height */
+.x-sup .wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-top: 18px; padding-bottom: 18px; font: 12px 'IBM Plex Mono', monospace; color: var(--text-muted); letter-spacing: .3px; }
+.x-sup a { display: inline-block; padding: 4px 0; line-height: 0; }
+@media (max-width: 600px) { .x-sup .wrap { gap: 16px; } }
+.x-sup img { display: block; width: 102px; height: 16px; }
 </style>
 <style id="portal-theme">
 /* ===== Portal layer (v34): WebGL hex tunnel, custom cursor, 3D tilt, word reveals, scroll progress. Delete this block, the x-portal markup and the last script to return to v33. ===== */
@@ -718,6 +723,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
 
 <footer>
   <!-- x-begin --><nav class="x-pages" aria-label="Pages"><div class="wrap"><a href="/security/" data-xi18n="pg.n.sec">Security</a><a href="/developers/" data-xi18n="pg.n.dev">Developers</a><a href="/roadmap/" data-xi18n="pg.n.road">Roadmap</a><span><a href="/tokenomics/" data-xi18n="pg.n.tok">Tokenomics</a><span class="x-soon">WIP</span></span><span><a href="/partners/" data-xi18n="pg.n.par">Partners</a><span class="x-soon">WIP</span></span><span><a href="/genesis/">Genesis Cohort</a><span class="x-soon">PAUSED</span></span></div></nav><!-- x-end -->
+  <!-- x-begin --><div class="x-sup"><div class="wrap"><span data-xi18n="sup.t">Supported by the Quicknode Startup Program</span><a href="https://www.quicknode.com" target="_blank" rel="noopener" aria-label="Quicknode"><img src="/brand/quicknode-logo-white.svg" alt="Quicknode" width="102" height="16" loading="lazy" decoding="async"></a></div></div><!-- x-end -->
   <div class="wrap foot">
     <span data-i18n="footer.text">Latheon · solo project, built with AI-assisted development</span>
     <span><a href="https://x.com/Latheon_xyz" target="_blank" rel="noopener">X</a><a href="https://t.me/Latheon" target="_blank" rel="noopener">Telegram</a><a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">GitHub</a></span>
@@ -1179,7 +1185,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       'nw.4t': 'Relayer live on the test chain', 'nw.4d': 'Withdraw to a fresh address without a wallet or gas: the chain\'s relayer sends the transaction. It cannot change the recipient, which the proof binds.',
       'nw.all': 'Full roadmap →', 'nw.exp': 'Open the explorer ↗',
       'pg.sec': 'Full security model →', 'pg.road': 'Roadmap →', 'pg.dev': 'All deployments →',
-      'pg.n.sec': 'Security', 'pg.n.dev': 'Developers', 'pg.n.road': 'Roadmap', 'pg.n.tok': 'Tokenomics', 'pg.n.par': 'Partners'
+      'sup.t': 'Supported by the Quicknode Startup Program', 'pg.n.sec': 'Security', 'pg.n.dev': 'Developers', 'pg.n.road': 'Roadmap', 'pg.n.tok': 'Tokenomics', 'pg.n.par': 'Partners'
     },
     ru: {
       'why.eyebrow': 'Зачем это нужно', 'why.h2': 'Приватность и доказательство одновременно',
@@ -1211,7 +1217,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       'nw.4t': 'Релейер в тестовой сети', 'nw.4d': 'Вывод на новый адрес без кошелька и газа: транзакцию отправляет релейер сети. Сменить получателя он не может, получатель привязан к доказательству.',
       'nw.all': 'Весь роадмап →', 'nw.exp': 'Открыть обозреватель ↗',
       'pg.sec': 'Модель безопасности →', 'pg.road': 'Роадмап →', 'pg.dev': 'Все развёртывания →',
-      'pg.n.sec': 'Безопасность', 'pg.n.dev': 'Разработчикам', 'pg.n.road': 'Роадмап', 'pg.n.tok': 'Токеномика', 'pg.n.par': 'Партнёры'
+      'sup.t': 'При поддержке Quicknode Startup Program', 'pg.n.sec': 'Безопасность', 'pg.n.dev': 'Разработчикам', 'pg.n.road': 'Роадмап', 'pg.n.tok': 'Токеномика', 'pg.n.par': 'Партнёры'
     },
     zh: {
       'why.eyebrow': '为什么重要', 'why.h2': '隐私与证明，兼而有之',
@@ -1243,7 +1249,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: 9000; pointer-ev
       'nw.4t': '测试链中继器上线', 'nw.4d': '无需钱包和 Gas 即可取款到新地址：由链的中继器发送交易。它无法更改收款人，收款人已绑定在证明中。',
       'nw.all': '完整路线图 →', 'nw.exp': '打开区块浏览器 ↗',
       'pg.sec': '完整安全模型 →', 'pg.road': '路线图 →', 'pg.dev': '全部部署 →',
-      'pg.n.sec': '安全', 'pg.n.dev': '开发者', 'pg.n.road': '路线图', 'pg.n.tok': '代币经济', 'pg.n.par': '合作伙伴'
+      'sup.t': '获得 Quicknode Startup Program 支持', 'pg.n.sec': '安全', 'pg.n.dev': '开发者', 'pg.n.road': '路线图', 'pg.n.tok': '代币经济', 'pg.n.par': '合作伙伴'
     }
   };
   function lang() { var l = 'en'; try { l = localStorage.getItem('latheon-lang') || (navigator.language || 'en').slice(0, 2); } catch (e) {} return X[l] ? l : 'en'; }
