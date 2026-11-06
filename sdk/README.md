@@ -122,7 +122,7 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
   `{ note, spendKey, viewKey, commitment, leafIndex, txHash, receipt }`
 - `isSpent(provider, pool, noteOrSpendKey)`, `isKnownRoot(provider, pool, root)`, `verifyOnChain(provider, pool, proof)`
 - `withdraw(signer, pool, proof, recipient, { relayer, fee })`: the raw call for the pool's generation
-- `withdrawNote(signerOrProvider, pool, note, recipient, { relayer, fee, viaRelayer, circuit, circuitOpts, scanOpts, log })`:
+- `withdrawNote(signerOrProvider, pool, note, recipient, { relayer, fee, viaRelayer, circuit, circuitOpts, scanOpts, minBlock, log })`:
   scan, path, unspent and known-root checks, proof, verifier check, send (or relay). Proves again when the pool
   forgot the root meanwhile (`ROOT_RETRIES` = 3).
 
@@ -133,6 +133,9 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
 - `depositAny(signer, router, amount, { mode, step, master })` (V7 only) → `{ masterKey, master, plan, notes, txHash, receipt }`
 - `findNotes(provider, router, masterKey)` → `{ notes, unspent, total, deposits }`; each note has `pool`, `poolIndex`,
   `leafIndex`, `value` (tokens), keys, `note` text, `spent`
+- Right after a deposit, pass `{ minBlock: receipt.blockNumber }` to `findNotes` or `withdrawNote`: a node can still
+  report the block before the deposit as latest for a moment (seen on the Latheon test chain), and the scan then
+  waits for it (`waitForBlock`, up to 30 s) instead of missing the new notes.
 - `selectNotesForAmount(notes, tokens)` → `{ chosen | null, nearest }` (fewest notes, exact sum, no change)
 - `buildWithdrawManyItem(router, poolIndex, proof, fee)`, `batchItems(items, 16)`
 - `withdrawMany(signer, router, items, recipient, { relayer })`: one batch, simulated first

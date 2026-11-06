@@ -83,6 +83,7 @@ async function depositAny(signer, router, amount, opts = {}) {
  * The notes of a master key in a router's four pools, with their spent status.
  * Scans the pools' deposits, derives notes 0 .. MASTER_SCAN_LIMIT-1 and keeps those found on chain.
  * @param {string|object} masterKey   text or parseMasterKey() result; its router must be `router`
+ * @param {object} [opts]  { scanOpts, scanLimit, minBlock }: minBlock = the deposit's receipt.blockNumber when scanning right after depositing
  * @returns {Promise<{notes: object[], deposits: object[][], unspent: object[], total: bigint}>}
  *   notes[i] = { index, poolIndex, pool, leafIndex, value (whole tokens), spendKey, viewKey, commitment, nullifierHash, note, spent }
  */
@@ -90,7 +91,8 @@ async function findNotes(provider, router, masterKey, opts = {}) {
   const mk = typeof masterKey === 'string' ? parseMasterKey(masterKey) : masterKey;
   if (mk.chainId !== router.net.chainId || mk.router.toLowerCase() !== router.address.toLowerCase()) throw new Error(`This master key belongs to router ${mk.router} on chain ${mk.chainId}, not to ${router.id || router.address}`);
   const p = providerOf(provider);
-  const deposits = await Promise.all(router.pools.map((pool) => fetchDeposits(p, pool, opts.scanOpts)));
+  const scanOpts = Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {});
+  const deposits = await Promise.all(router.pools.map((pool) => fetchDeposits(p, pool, scanOpts)));
   const byCommit = new Map();
   deposits.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex, timestamp: d.timestamp })));
   const notes = [];
@@ -153,7 +155,7 @@ async function withdrawMany(signer, router, items, recipient, opts = {}) {
  * Proofs are made per note against each pool's current root; a pool that forgets a root before a batch is sent
  * ("Unknown root") gets fresh proofs for the notes not yet paid (ROOT_RETRIES attempts in all).
  *
- * @param {object} [opts]  { relayer, fee (per note, V7/V6), viaRelayer, circuit, circuitOpts, scanOpts, notes (a findNotes() result to reuse), log, onProof }
+ * @param {object} [opts]  { relayer, fee (per note, V7/V6), viaRelayer, circuit, circuitOpts, scanOpts, minBlock, notes (a findNotes() result to reuse), log, onProof }
  * @returns {Promise<{txHashes: string[], notes: object[], batches: number, relayed: boolean}>}
  */
 async function withdrawByAmount(signerOrProvider, router, masterKey, amountTokens, recipient, opts = {}) {

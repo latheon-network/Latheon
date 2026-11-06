@@ -20,13 +20,18 @@ const versionOf = (pool) => (pool && pool.version) || 'v7';
  *
  * @param {import('ethers').Provider} provider
  * @param {object} pool          registry pool (address, version, startBlock), or { address, version?, startBlock? }
- * @param {object} [opts]        { fromBlock, toBlock, minSpan = 1000, parallel = 4, log }
+ * @param {object} [opts]        { fromBlock, toBlock, minBlock, minSpan = 1000, parallel = 4, log }
+ *   minBlock: scan at least up to this block (pass the deposit's receipt.blockNumber right after depositing)
  * @returns {Promise<Array<{commitment: bigint, leafIndex: number, timestamp: number}>>}
  */
 async function fetchDeposits(provider, pool, opts = {}) {
   const contract = new Contract(pool.address, POOL_ABI[versionOf(pool)], provider);
   const filter = contract.filters.Deposit();
-  const toBlock = opts.toBlock !== undefined ? Number(opts.toBlock) : await provider.getBlockNumber();
+  let toBlock = opts.toBlock !== undefined ? Number(opts.toBlock) : Number(await provider.getBlockNumber());
+  // Right after a deposit, a node can still report the block before it as latest (seen on the Arbitrum Orbit test
+  // chain): the scan and nextIndex() then agree on the older block and the new deposit is silently missing.
+  // minBlock (the deposit's receipt.blockNumber) makes the scan wait until the RPC has reached that block.
+  if (opts.toBlock === undefined && opts.minBlock !== undefined) toBlock = await waitForBlock(provider, Number(opts.minBlock), toBlock, opts);
   const fromBlock = opts.fromBlock !== undefined ? Number(opts.fromBlock) : Number(pool.startBlock || 0);
   const minSpan = opts.minSpan || 1000;
   const log = opts.log || (() => {});
@@ -45,6 +50,22 @@ async function fetchDeposits(provider, pool, opts = {}) {
     }
   }
   return deposits;
+}
+
+/**
+ * Waits until the RPC reports at least block `minBlock`. Returns the reported block number.
+ * opts: { waitMs = 30000, pollMs = 500 }. Throws if the RPC is still behind after waitMs.
+ */
+async function waitForBlock(provider, minBlock, head, opts = {}) {
+  const waitMs = opts.waitMs !== undefined ? opts.waitMs : 30000, pollMs = opts.pollMs !== undefined ? opts.pollMs : 500;
+  let h = head !== undefined ? Number(head) : Number(await provider.getBlockNumber());
+  const t0 = Date.now();
+  while (h < minBlock) {
+    if (Date.now() - t0 >= waitMs) throw new Error(`The RPC still reports block ${h}, behind block ${minBlock}; try again in a moment or use another RPC`);
+    await new Promise((r) => setTimeout(r, pollMs));
+    h = Number(await provider.getBlockNumber());
+  }
+  return h;
 }
 
 // Splits a refused range in two until it is accepted or smaller than minSpan; results keep block order.
@@ -145,4 +166,4 @@ async function getProofInputsForCommitment(provider, pool, commitment, opts) {
   return Object.assign(merkleProofFromDeposits(deposits, mine.leafIndex, levelsOf(versionOf(pool))), { deposits, timestamp: mine.timestamp });
 }
 
-module.exports = { fetchDeposits, buildTreeLevels, getMerklePath, rootFromPath, merkleProofFromDeposits, findDeposit, getProofInputsForCommitment };
+module.exports = { fetchDeposits, waitForBlock, buildTreeLevels, getMerklePath, rootFromPath, merkleProofFromDeposits, findDeposit, getProofInputsForCommitment };
