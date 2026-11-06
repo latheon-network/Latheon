@@ -415,7 +415,18 @@ async function retry(fn, n = 3) { for (let i = 0; ; i++) { try { return await fn
 async function sendTx(addr, abi, method, args, readProvider, overrides = {}) {
   const ro = new ethers.Contract(addr, abi, readProvider);
   const gas = await retry(() => ro[method].estimateGas(...args, Object.assign({ from: userAddress }, overrides)));
-  return new ethers.Contract(addr, abi, signer)[method](...args, Object.assign({ gasLimit: gas * 13n / 10n }, overrides));
+  const fees = overrides.maxFeePerGas || overrides.gasPrice ? {} : await feeCaps(readProvider);
+  return new ethers.Contract(addr, abi, signer)[method](...args, Object.assign({ gasLimit: gas * 13n / 10n }, fees, overrides));
+}
+// Fee cap: twice the latest base fee (read on the public RPC), no tip. Arbitrum chains charge the base fee actually in
+// effect, so the margin costs nothing; without it a wallet's slightly stale estimate can fall below the next block's
+// base fee and the wallet refuses the transaction ("max fee per gas less than block base fee"). Seen 5 November 2026.
+async function feeCaps(readProvider) {
+  try {
+    const b = await retry(() => readProvider.getBlock('latest'));
+    if (!b || b.baseFeePerGas == null) return {};
+    return { maxFeePerGas: b.baseFeePerGas * 2n, maxPriorityFeePerGas: 0n };
+  } catch (e) { return {}; }
 }
 function parseAmount(s) {
   s = String(s || '').trim().replace(',', '.');

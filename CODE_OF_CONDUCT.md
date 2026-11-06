@@ -19,7 +19,7 @@ Latheon is open-source privacy infrastructure, built in public. This code applie
 
 ## Reporting
 
-Write to latheon.protocol@gmail.com. Reports are read by the maintainer and kept confidential as far as possible.
+Write to hello@latheon.xyz. Reports are read by the maintainer and kept confidential as far as possible.
 
 ## Enforcement
 

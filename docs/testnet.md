@@ -131,4 +131,4 @@ At the chain's minimum price of 0.1 gwei these cost about 0.001 to 0.005 LTH. A 
 
 ## Report a problem
 
-Open an issue on GitHub or write to latheon.protocol@gmail.com. Security issues: see `SECURITY.md`.
+Open an issue on GitHub or write to hello@latheon.xyz. Security issues: see `SECURITY.md`.
