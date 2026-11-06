@@ -105,7 +105,7 @@ const isStaleRoot = (e) => !!(e && (e.staleRoot || /Unknown root/i.test(e.shortM
  * @param {object} pool          registry pool the note belongs to
  * @param {string|object} note   note text or decodeNote() result
  * @param {string} recipient
- * @param {object} [opts]        { relayer, fee, viaRelayer, circuit (loadCircuit result), circuitOpts, scanOpts, log }
+ * @param {object} [opts]        { relayer, fee, viaRelayer, circuit (loadCircuit result), circuitOpts, scanOpts, minBlock (the deposit's receipt.blockNumber when withdrawing right after it), log }
  * @returns {Promise<{txHash: string, proof: object, leafIndex: number, relayed: boolean}>}
  */
 async function withdrawNote(signerOrProvider, pool, note, recipient, opts = {}) {
@@ -124,7 +124,7 @@ async function withdrawNote(signerOrProvider, pool, note, recipient, opts = {}) 
 
   for (let attempt = 1; ; attempt++) {
     try {
-      const { leafIndex, pathElements, pathIndices, root } = await getProofInputsForCommitment(provider, pool, computeCommitment(n.spendKey, n.viewKey), opts.scanOpts);
+      const { leafIndex, pathElements, pathIndices, root } = await getProofInputsForCommitment(provider, pool, computeCommitment(n.spendKey, n.viewKey), Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {}));
       log(`Found deposit at leaf ${leafIndex} of ${pool.id || pool.address}`);
       if (await read.nullifierHashes(nullifierHash)) throw new Error('This note is already spent');
       if (!(await read.isKnownRoot(root))) throw Object.assign(new Error('Unknown root'), { staleRoot: true });

@@ -33,7 +33,7 @@ async function main() {
   console.log('MASTER KEY (save it; it is the only way to withdraw):', dep.masterKey);
 
   // 2. the notes of the master key
-  const found = await sdk.findNotes(provider, router, dep.masterKey);
+  const found = await sdk.findNotes(provider, router, dep.masterKey, { minBlock: dep.receipt.blockNumber });   // the node may still report the block before the deposit
   console.log('Notes:', found.notes.map((n) => n.value + (n.spent ? ' (spent)' : '')).join(', '), '· unspent total', sdk.fromUnits(router, found.total), router.token);
 
   // 3. withdraw 111 LTH (100 + 10 + 1) to a fresh address through the relayer: no gas, no wallet in the transaction
@@ -45,7 +45,7 @@ async function main() {
   const pool10 = sdk.listPools(reg, { depositable: true, amount: 10 })[0];
   const note = await sdk.deposit(signer, pool10);
   console.log('NOTE (save it):', note.note);
-  const w = await sdk.withdrawNote(signer, pool10, note.note, ethers.Wallet.createRandom().address, { circuit, log: console.log });
+  const w = await sdk.withdrawNote(signer, pool10, note.note, ethers.Wallet.createRandom().address, { circuit, log: console.log, minBlock: note.receipt.blockNumber });
   console.log('Withdrawn in', w.txHash);
 }
 

@@ -169,6 +169,13 @@ ok('assertDepositable refuses the frozen V5 router', throws(() => sdk.assertDepo
   ok('findNotes refuses a master key of another router; loadCircuit names the missing directory', e1 && e2);
   try { await sdk.loadCircuit('withdraw_v5', { wasm: Buffer.from('x'), zkey: Buffer.from('y') }); ok('loadCircuit refuses files that do not match the published hash', false); } catch (e) { ok('loadCircuit refuses files that do not match the published hash', /SHA-256/.test(e.message)); }
   ok('loadCircuit accepts unknown files with verify: false', (await sdk.loadCircuit('v7', { wasm: Buffer.from('x'), zkey: Buffer.from('y'), verify: false })).name === 'withdraw_v5');
+  { // waitForBlock: an RPC that still reports the block before a deposit is waited for, a stuck one is refused
+    const seq = [5, 5, 6, 7]; let calls = 0;
+    const lag = { getBlockNumber: async () => seq[Math.min(calls++, seq.length - 1)] };
+    const h = await sdk.waitForBlock(lag, 7, undefined, { pollMs: 1, waitMs: 1000 });
+    let stuck = false; try { await sdk.waitForBlock({ getBlockNumber: async () => 3 }, 4, undefined, { pollMs: 1, waitMs: 20 }); } catch (e) { stuck = /behind block 4/.test(e.message); }
+    ok('waitForBlock(): waits for a lagging RPC to reach the deposit block, refuses one that stays behind', h === 7 && calls === 4 && stuck);
+  }
   console.log(fails ? '\n' + fails + ' of ' + n + ' FAILED' : '\nALL ' + n + ' CHECKS PASSED');
   process.exit(fails ? 1 : 0);
 })();
