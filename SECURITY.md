@@ -19,7 +19,7 @@ Security-sensitive areas include:
 
 Please do **not** disclose security vulnerabilities through public GitHub issues.
 
-**Security contact:** latheon.protocol@gmail.com
+**Security contact:** hello@latheon.xyz
 
 Please include:
 

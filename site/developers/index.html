@@ -204,7 +204,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <div class="card"><h3><code>disclose</code></h3><p class="note" style="margin:0">Public inputs: <code>commitment</code>, <code>disclosureTag</code>, <code>auditorNonce</code>. Checked by a read-only call to the disclosure verifier.</p></div>
     <div class="card"><h3>Pools</h3><p class="note" style="margin:0">Sizes 100 / 50 / 10 / 1. V7: Merkle tree depth 20, up to 1,048,576 deposits per pool, root history 100. Old V5 pools: depth 8, 256 deposits, root history 30.</p></div>
   </div>
-  <p class="note warn">The JavaScript SDK in <code>sdk/</code> (0.2.0, not on npm) targets V7: pools and the router from <code>deployments.json</code>, <code>withdraw_v5</code> proofs, <code>withdrawMany</code> with recipient, relayer and fee; V5/V6 for withdrawals only. It is tested with real proofs on a local EVM and has not yet been run against the test chain. The demo remains the reference.</p>
+  <p class="note warn">The JavaScript SDK in <code>sdk/</code> (0.2.0, not on npm) targets V7: pools and the router from <code>deployments.json</code>, <code>withdraw_v5</code> proofs, <code>withdrawMany</code> with recipient, relayer and fee; V5/V6 for withdrawals only. It is tested with real proofs on a local EVM and was run against the test chain on 6 November 2026 (router deposit, withdrawMany through the relayer, a single-pool withdrawal; transactions in STATUS.md). The demo remains the reference.</p>
 </div></section>
 
 </main>
@@ -305,7 +305,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <div class="card"><h3><code>disclose</code></h3><p class="note" style="margin:0">Публичные входы: <code>commitment</code>, <code>disclosureTag</code>, <code>auditorNonce</code>. Проверяется вызовом верификатора раскрытия только на чтение.</p></div>
     <div class="card"><h3>Пулы</h3><p class="note" style="margin:0">Номиналы 100 / 50 / 10 / 1. V7: глубина дерева Меркла 20, до 1 048 576 депозитов в пуле, история корней 100. Старые пулы V5: глубина 8, 256 депозитов, история корней 30.</p></div>
   </div>
-  <p class="note warn">JavaScript SDK в <code>sdk/</code> (0.2.0, не в npm) рассчитан на V7: пулы и роутер из <code>deployments.json</code>, доказательства <code>withdraw_v5</code>, <code>withdrawMany</code> с получателем, релейером и комиссией; V5/V6 только для вывода. Проверен с настоящими доказательствами на локальной EVM, против тестовой сети ещё не запускался. Эталоном остаётся демо.</p>
+  <p class="note warn">JavaScript SDK в <code>sdk/</code> (0.2.0, не в npm) рассчитан на V7: пулы и роутер из <code>deployments.json</code>, доказательства <code>withdraw_v5</code>, <code>withdrawMany</code> с получателем, релейером и комиссией; V5/V6 только для вывода. Проверен с настоящими доказательствами на локальной EVM и 6 ноября 2026 года запущен в тестовой сети (депозит через роутер, withdrawMany через релейер, вывод из одного пула; транзакции в STATUS.md). Эталоном остаётся демо.</p>
 </div></section>
 
 </main>
@@ -406,7 +406,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <div class="card"><h3><code>disclose</code></h3><p class="note" style="margin:0">公开输入：<code>commitment</code>, <code>disclosureTag</code>, <code>auditorNonce</code>. 通过对披露验证合约的只读调用核验。</p></div>
     <div class="card"><h3>资金池</h3><p class="note" style="margin:0">面额 100 / 50 / 10 / 1。V7：默克尔树深度 20，每个资金池最多 1,048,576 笔存款，根历史 100。旧 V5 资金池：深度 8，256 笔存款，根历史 30。</p></div>
   </div>
-  <p class="note warn"><code>sdk/</code> 中的 JavaScript SDK（0.2.0，未发布到 npm）面向 V7：从 <code>deployments.json</code> 读取资金池和路由合约，生成 <code>withdraw_v5</code> 证明，支持带接收方、中继者和费用的 <code>withdrawMany</code>；V5/V6 仅用于取款。已在本地 EVM 上用真实证明测试，尚未在测试链上运行。参考实现仍是演示。</p>
+  <p class="note warn"><code>sdk/</code> 中的 JavaScript SDK（0.2.0，未发布到 npm）面向 V7：从 <code>deployments.json</code> 读取资金池和路由合约，生成 <code>withdraw_v5</code> 证明，支持带接收方、中继者和费用的 <code>withdrawMany</code>；V5/V6 仅用于取款。已在本地 EVM 上用真实证明测试，并于 2026 年 11 月 6 日在测试链上运行（通过路由合约存款、经中继者 withdrawMany、单个资金池取款；交易见 STATUS.md）。参考实现仍是演示。</p>
 </div></section>
 
 </main>

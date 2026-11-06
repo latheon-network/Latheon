@@ -30,7 +30,7 @@ Where alerts come from:
 
 - **Outside monitor** (GitHub Actions `testnet monitor`, every 15 minutes; `monitor/check.sh`, thresholds in `monitor/targets.env`): RPC, explorer API and pages, faucet page and balance, relayer status and balance, ETH of the batch poster and validator. Alerts go to Telegram. A manual run with the summary box ticked sends the current summary. Scheduled runs can be delayed by GitHub.
 - **Telegram bot** `/status` and the dashboard `https://explorer.testnet.latheon.xyz/ops/`: chain block, batches and latest confirmed assertion on Arbitrum Sepolia, balances, faucet, pools, warnings.
-- **Users:** GitHub issues, e-mail (latheon.protocol@gmail.com), messages.
+- **Users:** GitHub issues, e-mail (hello@latheon.xyz), messages.
 
 **Not monitored today** (check by hand during an incident): time since the last batch and last confirmed assertion; the pool invariant (each pool's balance = denomination × (deposits − withdrawals)); owner or admin calls on the rollup, ProxyAdmin or token.
 
@@ -116,7 +116,7 @@ If anything differs, keep a copy for the review, restore with `git checkout -- r
 - **First notice within the hour for S1, same day for S2:** what is affected, what users should not do (for example: do not deposit into pool X, do not use the bridge page), what is safe (for example: notes stay withdrawable), when the next update will come. No speculation about cause, no blame.
 - **Channels:** explorer banner (§2.1), a pinned GitHub issue in `latheon-network/Latheon` (no exploit details), the project's X account, and the website if an archive is uploaded.
 - **Vulnerability details stay private** until a fix is deployed and users had time to act (`SECURITY.md`, responsible disclosure). Do not paste proofs of concept, transactions that teach the attack, or key material into issues, commits or chats.
-- **Reporters:** acknowledge reports to latheon.protocol@gmail.com and agree on disclosure timing.
+- **Reporters:** acknowledge reports to hello@latheon.xyz and agree on disclosure timing.
 
 ## 4. Fix
 

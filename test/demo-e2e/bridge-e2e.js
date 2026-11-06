@@ -88,7 +88,7 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
       return page;
     };
     let current = 'ethereum-sepolia';
-    let failNextSend = false; const sentGas = [];
+    let failNextSend = false; const sentGas = [], sentFee = [];
     const known = new Set(['parent']); const added = [];
     const ctxs = [];
     const newCtx = async () => {
@@ -105,7 +105,7 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
             current = k; return JSON.stringify({ result: null });
           }
           if (current === 'ethereum-sepolia') return JSON.stringify({ error: { code: -32000, message: 'wallet on a chain this test does not run' } });
-          if (method === 'eth_sendTransaction') { sentGas.push(params[0].gas); if (failNextSend) { failNextSend = false; return JSON.stringify({ error: { code: -32603, message: 'Internal JSON-RPC error.', data: { code: -32000, message: 'header not found' } } }); } }
+          if (method === 'eth_sendTransaction') { sentGas.push(params[0].gas); sentFee.push({ max: params[0].maxFeePerGas, base: (await prov[current].request({ method: 'eth_getBlockByNumber', params: ['latest', false] })).baseFeePerGas }); if (failNextSend) { failNextSend = false; return JSON.stringify({ error: { code: -32603, message: 'Internal JSON-RPC error.', data: { code: -32000, message: 'header not found' } } }); } }
           return JSON.stringify({ result: await prov[current].request({ method, params }) });
         } catch (e) { return JSON.stringify({ error: { code: e.code || -32000, message: e.message || String(e) } }); }
       });
@@ -171,6 +171,7 @@ const ARBSYS = '0x0000000000000000000000000000000000000064', NODE = '0x000000000
       (await tokenBal(await inbox.getAddress())) === 255n * E18 / 10n && allow === 0n && (await childBal(user)) - childBefore === 255n * E18 / 10n && current === 'parent' && credited.length === 1,
       (await page.textContent('#depStatus')).slice(0, 90));
     rec('B4a. Every wallet transaction carried a gas limit estimated by the page (the wallet need not estimate)', sentGas.length >= 3 && sentGas.every((g) => g && BigInt(g) > 21000n), sentGas.join(','));
+    rec('B4b. Every wallet transaction carried a fee cap of about twice the base fee (a stale wallet estimate cannot fall below it)', sentFee.length >= 3 && sentFee.every((f) => f.max && f.base && BigInt(f.max) >= BigInt(f.base) * 3n / 2n), sentFee.map((f) => f.max + '/' + f.base).join(','));
 
     await page.click('#tab-withdraw');
     await page.fill('#wdAmount', '40'); await page.click('#withdrawBtn');
