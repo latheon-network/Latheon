@@ -9,6 +9,7 @@
 **Design**
 - [`architecture.md`](./architecture.md): overview and current flow.
 - [`selective-disclosure-design.md`](./selective-disclosure-design.md): the `spendKey` / `viewKey` split and the disclosure proof.
+- [`v8-design.md`](./v8-design.md): the next circuit and contract revision in one step (proof bound to chain and pool, domain tags, `disclose_link` for receipts and reserves, extData hash, optional association set), with measured constraint counts and proof times of prototypes (`../circuits/drafts/v8/`). Draft, nothing decided.
 - [`disclosure-v2-design.md`](./disclosure-v2-design.md): disclosure scope chosen by the user, many notes at once, and where withdrawn funds went. Layers 1 and 1b (the report for an accountant or auditor) are built and released on the site since 1 November 2026; the `disclose_withdrawal` circuit (layer 2) and standing view access are design only.
 - [`distribution-pool-architecture.md`](./distribution-pool-architecture.md): arbitrary deposit amounts over fixed pools (design, a simulation, and the router contract).
 - [`distribution-pool-deployments.md`](./distribution-pool-deployments.md): router addresses on the four external testnet token sets (deprecated, withdrawals only) and what was checked; the current V7 router is in [`testnet.md`](./testnet.md).
