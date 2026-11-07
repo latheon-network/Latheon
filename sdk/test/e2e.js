@@ -7,6 +7,7 @@
  *   deploy   4 pools (100 / 50 / 10 / 1) + router per generation, described in a deployments.json-shaped config
  *   SDK      deposit, fetchDeposits, withdrawNote (fee 0; relayer + fee; stale-root retry; through a relayer),
  *            depositAny (master key), findNotes, withdrawByAmount (one batch; 23 notes = 16 + 7; through a relayer),
+ *            planPayout / depositPayout / payOut (three recipients, resumable, through a relayer),
  *            withdrawMany limits, recipient binding, refusals of pre-V7 deposits, V6 / V5 withdrawals only
  *
  * `node test/e2e.js` (several minutes: a few dozen proofs). Exit code 0 means every check passed.
@@ -227,6 +228,21 @@ async function main() {
   const wm = await sdk.withdrawMany(bob, r7, items, to3);
   ok('withdrawMany() with hand-built items (50 + 10): one transaction, recipient +60', !!wm.txHash && items.length === 2 && (await bal(to3)) === 171n * E18);
   ok('withdrawMany(): the same items again are refused by the simulation ("Note already spent")', await rejects(async () => sdk.withdrawMany(bob, r7, items, to3), /already spent/));
+
+  // ------------------------------------------------------------------ payouts to a list of recipients
+  console.log('\nV7 router: payout to three recipients (111, 61, 1234), deposits packed greedy-exact, one record');
+  const payees = [111, 61, 1234].map((a) => ({ recipient: fresh(), amount: sdk.toUnits(r7, String(a)) }));
+  const plan = sdk.planPayout(r7, payees);
+  const rec = sdk.payoutFromJson(sdk.payoutToJson(await sdk.depositPayout(alice, r7, plan)));
+  ok('depositPayout(): one router deposit per chunk, one master key each, router holds nothing; record names router and chain', rec.masterKeys.length === plan.chunks.length && rec.depositTxs.length === plan.chunks.length && plan.chunks.length >= 2 && rec.chainId === 1337 && rec.router === r7.address && (await bal(r7.address)) === 0n && rec.minBlock > 0);
+  const first = await sdk.payOut(bob, r7, rec, opts('v7', { only: [0] }));
+  ok('payOut(only payee 1, from a signer): 111 arrives; the others are skipped', first[0].status === 'paid' && first[1].status === 'skipped' && first[2].status === 'skipped' && (await bal(payees[0].recipient)) === 111n * E18 && (await bal(payees[1].recipient)) === 0n);
+  const payRelayBefore = relayLog.length;
+  const rest = await sdk.payOut(provider, r7, rec, opts('v7', { viaRelayer: true }));
+  ok('payOut(again, through the relayer): payee 1 already paid; 61 in one batch, 1234 (19 notes) in two; exact amounts', rest[0].status === 'already paid' && rest[1].status === 'paid' && rest[1].txHashes.length === 1 && rest[2].status === 'paid' && rest[2].txHashes.length === 2 && (await bal(payees[1].recipient)) === 61n * E18 && (await bal(payees[2].recipient)) === 1234n * E18 && relayLog.length === payRelayBefore + 3);
+  const again = await sdk.payOut(provider, r7, rec, opts('v7', { viaRelayer: true }));
+  ok('payOut() a third time: everyone already paid, nothing sent', again.every((x) => x.status === 'already paid') && relayLog.length === payRelayBefore + 3);
+  ok('payOut(): a record of another router is refused', await rejects(async () => sdk.payOut(bob, R('v6'), rec, opts('v6')), /belongs to router/));
 
   // ------------------------------------------------------------------ pre-V7: withdrawals only
   console.log('\nV6 and V5: deposits refused, withdrawals of existing notes work');

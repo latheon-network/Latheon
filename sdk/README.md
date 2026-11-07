@@ -143,6 +143,25 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
   scan the four pools, pick notes, one proof per note, batches of 16, each simulated, then sent or relayed; re-proves
   the unpaid notes when a pool forgot a root.
 
+### Payouts to a list of recipients (payroll, vendors)
+
+- `planPayout(router, [{ recipient, amount }])` (amounts in base units) → `{ payees, counts, amount, notes, chunks }`.
+  Every amount is split on its own (the greedy split of a total does not divide back into the payees' amounts:
+  10 × 1,234 LTH = 12,340 = 123 × 100 + 4 × 10, no 1s), and the union of those notes is packed into router deposits
+  whose own greedy split is exactly their part (at most 32 notes each, `packChunks`).
+- `depositPayout(signer, router, plan)` → a **payout record**: one router deposit per chunk, each under a fresh master
+  key, plus the payees and their notes per pool. **The record holds the master keys: keep it secret** (`payoutToJson`,
+  `payoutFromJson`, `checkPayoutRecord`).
+- `payOut(signerOrProvider, router, record, { viaRelayer, relayer, fee, circuit, only, delayMs, onPayee, log })`: notes are
+  assigned to payees in a fixed order (`assignPayoutNotes`), each payee is paid with `withdrawByAmount` (16 notes per
+  transaction). Payees whose notes are spent are reported `already paid`, so a payout can be run again after an
+  interruption; `only` pays chosen payees, `delayMs` waits between payees.
+- **Privacy limit:** amounts are public. Each router deposit shows its amount and sender, each payee's withdrawal the
+  amount received. With few users and unusual amounts a payout can be matched to its payer; spreading payouts over
+  time weakens this, only hidden amounts would remove it. Testnet, no audit.
+- For the accountant: after payment, the keys of the spent notes connect each deposit to its withdrawal and recipient
+  (disclosure layer 1b, `docs/disclosure-v2-design.md` §5); never hand over keys of unspent notes.
+
 ### Relayer
 
 - `hasRelayer(net)`, `relayStatus(net)`, `relayWithdraw(pool, proof, recipient, { relayer, fee })`,
@@ -156,15 +175,16 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
 ## Tests
 
 ```bash
-npm test                # unit (71 checks, no network, no proofs) + proof (12 checks, real withdraw_v5 / v4 / v3 / disclose proofs)
-npm run test:e2e        # 40 checks: the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
+npm test                # unit (80 checks, no network, no proofs) + proof (12 checks, real withdraw_v5 / v4 / v3 / disclose proofs)
+npm run test:e2e        # 45 checks: the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
 ```
 
 The e2e test compiles `LatheonShieldedPoolV7Native`, `LatheonDistributionPoolV7Native`, `WithdrawVerifierV5` (and the
 V6 / V5 sets), deploys four pools and a router per generation, describes them in a `deployments.json`-shaped config
 and runs the SDK through: deposit, scan, `withdrawNote` (fee 0; relayer + fee; stale-root retry; through a local
 relayer), `depositAny`, `findNotes`, `withdrawByAmount` (one batch; 23 notes as 16 + 7; through the relayer with a
-fee), `withdrawMany` limits, recipient binding, refusal of pre-V7 deposits, and V6 / V5 withdrawals. It takes several
+fee), a payout to three recipients (`planPayout`, `depositPayout`, `payOut`: partial, then the rest through the relayer,
+then nothing left), `withdrawMany` limits, recipient binding, refusal of pre-V7 deposits, and V6 / V5 withdrawals. It takes several
 minutes. Nothing talks to a public network.
 
 ## Not in this SDK

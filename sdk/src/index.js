@@ -12,6 +12,7 @@ const prove = require('./prove');
 const relayer = require('./relayer');
 const pool = require('./pool');
 const router = require('./router');
+const payout = require('./payout');
 const distribution = require('../distribution');
 
 module.exports = Object.assign({},
@@ -55,6 +56,11 @@ module.exports = Object.assign({},
     toUnits: router.toUnits, fromUnits: router.fromUnits, planDeposit: router.planDeposit, checkRouterOnChain: router.checkRouterOnChain, depositAny: router.depositAny,
     findNotes: router.findNotes, selectNotesForAmount: router.selectNotesForAmount, buildWithdrawManyItem: router.buildWithdrawManyItem, batchItems: router.batchItems,
     withdrawMany: router.withdrawMany, withdrawByAmount: router.withdrawByAmount,
+  },
+  // payouts to a list of recipients
+  {
+    planPayout: payout.planPayout, packChunks: payout.packChunks, depositPayout: payout.depositPayout, payOut: payout.payOut, assignPayoutNotes: payout.assignPayoutNotes,
+    checkPayoutRecord: payout.checkRecord, payoutToJson: payout.payoutToJson, payoutFromJson: payout.payoutFromJson,
   },
   // relayer
   { hasRelayer: relayer.hasRelayer, relayStatus: relayer.relayStatus, relayWithdraw: relayer.relayWithdraw, relayWithdrawMany: relayer.relayWithdrawMany },
