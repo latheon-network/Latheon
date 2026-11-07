@@ -338,7 +338,7 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       const sh = (a) => a.slice(0, 6) + '…' + a.slice(-4), recips = rowsP.map((c) => c[8]);
       rec('P6. Report from the payout file pasted as is: every note valid, each recipient appears with its own notes, labelled as the payout',
         /Every note in the report is valid/.test(await page.textContent('#auditStatus')) && rowsP.length === 15 && recips.filter((x) => x === sh(p1)).length === 3 && recips.filter((x) => x === sh(p2)).length === 3 && recips.filter((x) => x === sh(p3)).length === 9 && rowsP.every((c) => /payout to 3 recipients/.test(c[11])),
-        rowsP.length + ' rows');
+        rowsP.length + ' rows · ' + (await page.textContent('#reportStatus')).trim().slice(0, 120) + ' · ' + (await page.textContent('#auditStatus')).trim().slice(0, 120));
       await page.click('#tab-payout');
       await page.fill('#poRecordInput', '{"kind":"latheon-payout","version":1,"chainId":1,"router":"0x0000000000000000000000000000000000000001","masterKeys":["x"],"payees":[{}]}');
       await page.evaluate(() => { document.getElementById('poPayStatus').textContent = ''; });
