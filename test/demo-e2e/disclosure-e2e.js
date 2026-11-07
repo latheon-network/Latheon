@@ -254,6 +254,36 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     const repK = rK.text ? JSON.parse(rK.text) : { items: [] };
     rec('D24. Withdrawal events unreachable while building: no keys added, the user is told why', repK.items.length === 6 && !repK.items.some((x) => x.keys) && /Keys not added for 4/.test(rK.status), rK.status.slice(-90));
 
+    // a payout (Payouts tab, from the wallet), then the accountant's report from the payout file pasted as is
+    const q1 = fresh(31), q2 = fresh(32);
+    await page.click('#tab-payout'); await page.fill('#poInput', q1 + ', 111\n' + q2 + ', 23');
+    await page.click('#poPlanBtn'); await page.waitForTimeout(300); await page.click('#poDepositBtn');
+    await waitText(page, '#poStatus', /deposits made|failed/, 600000);
+    const payoutText = await page.evaluate(() => window.__latheonLastPayout) || '';
+    await page.check('#poRecSaved');
+    if (await page.locator('#poUseRelay').count() && await page.isVisible('#poUseRelay')) await page.uncheck('#poUseRelay');
+    await page.click('#poPayBtn'); await waitText(page, '#poPayStatus', /Done:|stopped/, 900000);
+    const paidQ = (await eth.getBalance(q1)) === 111n * E18 && (await eth.getBalance(q2)) === 23n * E18;
+    const rQ = await buildReport([payoutText], code, true);
+    const vQ = rQ.text ? await verify(rQ.text) : { status: '', rows: [] };
+    const sQ = (a) => a.slice(0, 6) + '…' + a.slice(-4), colQ = vQ.rows.map((c) => c[8]);
+    rec('D26. Payout to two recipients from the wallet (111, 23 LTH), then the report from the payout file pasted as is: 8 notes valid, each recipient with exactly its own notes, labelled as the payout',
+      paidQ && /Report ready: 8 notes, 134 LTH/.test(rQ.status) && /Every note in the report is valid/.test(vQ.status) && vQ.rows.length === 8 &&
+      colQ.filter((x) => x === sQ(q1)).length === 3 && colQ.filter((x) => x === sQ(q2)).length === 5 && vQ.rows.every((c) => c[11] === 'payout to 2 recipients'),
+      rQ.status.slice(0, 50) + ' · ' + vQ.rows.length + ' rows');
+
+    // labels after "#": the user's own text, carried into the report and shown to the auditor as not proven
+    const rL = await buildReport([key + ' # Project A, Q4', noteA + ' #=HYPERLINK("x")\u0007', noteB], code, false);
+    const repL = rL.text ? JSON.parse(rL.text) : { items: [] };
+    const vL = rL.text ? await verify(rL.text) : { rows: [], csv: '' };
+    const byLabel = rL.text ? (await aud.$$eval('#auditReport p.muted', (els) => els.map((e) => e.textContent).join(' | '))) : '';
+    const csvLast = (vL.csv || '').trim().split('\n').map((l) => l.split(',').pop());
+    rec('D25. Labels: the 4 notes of the master key carry "Project A, Q4", note B none; the auditor sees a Label column, totals by label and a "not proven" note; CSV label column quoted against formulas',
+      repL.items.length === 6 && repL.items.filter((x) => x.label === 'Project A, Q4').length === 4 && repL.items.filter((x) => !x.label).length === 1 &&
+      vL.rows.filter((c) => c[11] === 'Project A, Q4').length === 4 && /Project A, Q4: 161 LTH/.test(byLabel) && (await aud.textContent('#auditReport')).includes('not proven') &&
+      csvLast[0] === 'label_user_stated' && !csvLast.some((c) => /^"?[=+@]/.test(c)) && !/\u0007/.test(vL.csv || ''),
+      byLabel.slice(0, 90));
+
     await page.selectOption('#langSelect', 'ru'); await page.click('#tab-disclose'); await page.waitForTimeout(300);
     const ruH = (await page.textContent('#reportBlock h4')).trim();
     rec('D15. Russian text for the report block', /Отчёт для бухгалтера/.test(ruH), ruH);

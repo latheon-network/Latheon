@@ -126,6 +126,54 @@ function selectNotes(notes, target) {
   }
   return { chosen: chosen.reverse(), nearest: target };
 }
+/**
+ * Payouts: packs note counts (per denomination, largest first) into router deposits whose greedy split is exactly the
+ * chunk, each with at most `maxNotes` notes. Greedy-exact: the notes of the smaller denominations in a chunk add up to
+ * less than the next larger denomination. Smaller notes are placed first, the largest denomination fills the room left.
+ * @returns {{counts: bigint[], amount: bigint, total: bigint}[]}
+ */
+function packChunks(counts, denominations, maxNotes) {
+  const rest = counts.map(BigInt), k = denominations.length, chunks = [];
+  const cap = BigInt(maxNotes === undefined ? 32 : maxNotes);
+  while (rest.some((c) => c > 0n)) {
+    const c = denominations.map(() => 0n);
+    let room = cap, carry = 0n;
+    for (let i = k - 1; i >= 0 && room > 0n; i--) {
+      let take = rest[i] < room ? rest[i] : room;
+      if (i > 0) { const limit = (denominations[i - 1] - 1n - carry) / denominations[i]; if (take > limit) take = limit; }
+      c[i] = take; rest[i] -= take; room -= take; carry += take * denominations[i];
+    }
+    const amount = c.reduce((s, x, i) => s + x * denominations[i], 0n);
+    const check = canonicalSplit(amount, denominations);
+    if (check.counts.some((x, i) => x !== c[i])) throw new Error('internal: chunk is not greedy-exact');
+    chunks.push({ counts: c, amount, total: check.total });
+  }
+  return chunks;
+}
+
+/**
+ * Payouts: assigns notes to payees in a fixed order (by pool, then by master key `mk`, then by `index`); payee i takes
+ * countsList[i][pool] notes of each pool. The same input always gives the same assignment, so a payout can be resumed.
+ * @param {(bigint|number|string)[][]} countsList  per payee, notes per pool
+ * @param {{poolIndex: number, mk: number, index: number}[]} notes
+ * @returns {object[][]} notes per payee; throws when a pool holds fewer notes than planned
+ */
+function assignNotes(countsList, notes, poolCount) {
+  const queues = [];
+  for (let i = 0; i < poolCount; i++) queues.push([]);
+  notes.slice().sort((a, b) => a.poolIndex - b.poolIndex || a.mk - b.mk || a.index - b.index).forEach((n) => queues[n.poolIndex].push(n));
+  return countsList.map((counts, pi) => {
+    const mine = [];
+    counts.forEach((c, i) => {
+      for (let j = 0n; j < BigInt(c); j++) {
+        const n = queues[i].shift();
+        if (!n) throw new Error('Payee ' + (pi + 1) + ': fewer notes in pool ' + i + ' than planned');
+        mine.push(n);
+      }
+    });
+    return mine;
+  });
+}
 // distribution-core:end
 
-module.exports = { canonicalSplit, noteOrder, roundDown, MASTER_SCAN_LIMIT, deriveNoteKeys, formatMasterKey, parseMasterKey, planDeposit, selectNotes };
+module.exports = { canonicalSplit, noteOrder, roundDown, MASTER_SCAN_LIMIT, deriveNoteKeys, formatMasterKey, parseMasterKey, planDeposit, selectNotes, packChunks, assignNotes };

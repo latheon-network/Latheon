@@ -63,7 +63,7 @@ deposit steps say "Check the pool" and "No approval needed"; a 10 LTH deposit se
 withdrawn to an empty address that then holds exactly 10; a router deposit of 161 as 1+1+1+1 notes with nothing left in
 the router; withdrawal by amount and master key to an empty address; the separate gas-coin row hidden on the native
 network and shown again on the ERC-20 one; the faucet-page link (`faucetPage`) and its Russian text; no raw i18n keys;
-no JavaScript errors; and the network's relayer (`relayer` in `deployments.json`, simulated by the test): a withdrawal by amount and key sent by the relayer's account while the user pays nothing, and a visitor with no wallet at all withdrawing a note through it. 16 of 16 passed on 2026-10-21.
+no JavaScript errors; and the network's relayer (`relayer` in `deployments.json`, simulated by the test): a withdrawal by amount and key sent by the relayer's account while the user pays nothing, and a visitor with no wallet at all withdrawing a note through it. 16 of 16 passed on 2026-10-21. With `V6=1` or `V7=1` the run also covers the Payouts tab (P1–P5, added 7 November 2026): a plan for three recipients (each amount split on its own, the warning that amounts are public), the router deposits and the payout file, payment through the relayer with exact amounts and nothing paid by the user, a second run that sends nothing ("already paid"), and a payout file for an unknown router refused before anything is sent.
 
 (Commands above.)
 
@@ -115,7 +115,9 @@ auditor's code); keys only for the 4 withdrawn notes, never for the unspent ones
 wallet) accepts the report, shows where each withdrawn note went (recipient, relayer, fee, transaction) and exports CSV;
 without the option the file holds no keys and no recipients are shown; a proof edited to another code, keys swapped between
 notes and a report made for another code are all refused; a line that is not a note is refused with its line number; the
-single-note disclosure still works; RU text; no raw translation keys; no JavaScript errors.
+single-note disclosure still works; RU text; no raw translation keys; no JavaScript errors. Later checks (25 in all on
+7 November 2026) add repeated notes, network errors, CSV formula quoting, and labels after `#` (carried into the report,
+shown to the auditor in a Label column with totals per label, marked as the user's own text, not proven). D26 (26 in all) pays two recipients from the Payouts tab and builds the report from the payout file pasted as is: every note valid, each recipient with exactly its own notes.
 
 ```
 DEMO=/path/to/demo node disclosure-e2e.js

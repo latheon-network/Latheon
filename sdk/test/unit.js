@@ -198,7 +198,7 @@ ok('assertDepositable refuses the frozen V5 router', throws(() => sdk.assertDepo
     const fake = [[0, 0, 0], [2, 0, 1], [3, 0, 2], [1, 0, 3], [2, 1, 0], [3, 1, 1]].map(([poolIndex, mk, index]) => ({ poolIndex, mk, index, value: [100, 50, 10, 1][poolIndex] }));
     const as = sdk.assignPayoutNotes(record, fake, 4);
     ok('assignPayoutNotes(): each payee gets its counts per pool, in a fixed order; the same input gives the same assignment', as[0].map((x) => x.value).join() === '100,10,1' && as[1].map((x) => x.value).join() === '50,10,1' && as[0][1].mk === 0 && as[1][1].mk === 1 && JSON.stringify(sdk.assignPayoutNotes(record, fake.slice().reverse(), 4)) === JSON.stringify(as));
-    ok('assignPayoutNotes(): fewer notes on chain than planned is refused', throws(() => sdk.assignPayoutNotes(record, fake.slice(1), 4), /fewer notes in pool 0/));
+    ok('assignPayoutNotes(): fewer notes on chain than planned is refused', throws(() => sdk.assignPayoutNotes(record, fake.slice(1), 4), /fewer notes in pool 0 than planned/));
     ok('checkPayoutRecord(): accepts its own router, refuses another router or a non-record', sdk.checkPayoutRecord(r, record) && throws(() => sdk.checkPayoutRecord(Object.assign({}, r, { address: addr(9) }), record), /belongs to router/) && throws(() => sdk.checkPayoutRecord(r, { kind: 'x' }), /Not a Latheon payout record/));
     ok('payoutToJson()/payoutFromJson(): a record survives the round trip', JSON.stringify(sdk.payoutFromJson(sdk.payoutToJson(record))) === JSON.stringify(record));
   }
