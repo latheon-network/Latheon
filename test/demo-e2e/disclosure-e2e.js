@@ -254,6 +254,18 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     const repK = rK.text ? JSON.parse(rK.text) : { items: [] };
     rec('D24. Withdrawal events unreachable while building: no keys added, the user is told why', repK.items.length === 6 && !repK.items.some((x) => x.keys) && /Keys not added for 4/.test(rK.status), rK.status.slice(-90));
 
+    // labels after "#": the user's own text, carried into the report and shown to the auditor as not proven
+    const rL = await buildReport([key + ' # Project A, Q4', noteA + ' #=HYPERLINK("x")\u0007', noteB], code, false);
+    const repL = rL.text ? JSON.parse(rL.text) : { items: [] };
+    const vL = rL.text ? await verify(rL.text) : { rows: [], csv: '' };
+    const byLabel = rL.text ? (await aud.$$eval('#auditReport p.muted', (els) => els.map((e) => e.textContent).join(' | '))) : '';
+    const csvLast = (vL.csv || '').trim().split('\n').map((l) => l.split(',').pop());
+    rec('D25. Labels: the 4 notes of the master key carry "Project A, Q4", note B none; the auditor sees a Label column, totals by label and a "not proven" note; CSV label column quoted against formulas',
+      repL.items.length === 6 && repL.items.filter((x) => x.label === 'Project A, Q4').length === 4 && repL.items.filter((x) => !x.label).length === 1 &&
+      vL.rows.filter((c) => c[11] === 'Project A, Q4').length === 4 && /Project A, Q4: 161 LTH/.test(byLabel) && (await aud.textContent('#auditReport')).includes('not proven') &&
+      csvLast[0] === 'label_user_stated' && !csvLast.some((c) => /^"?[=+@]/.test(c)) && !/\u0007/.test(vL.csv || ''),
+      byLabel.slice(0, 90));
+
     await page.selectOption('#langSelect', 'ru'); await page.click('#tab-disclose'); await page.waitForTimeout(300);
     const ruH = (await page.textContent('#reportBlock h4')).trim();
     rec('D15. Russian text for the report block', /Отчёт для бухгалтера/.test(ruH), ruH);
