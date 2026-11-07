@@ -306,7 +306,7 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       const poolsBefore = await Promise.all([100, 50, 10, 1].map(poolCoin));
       await page.click('#poDepositBtn'); await waitText('#poStatus', /deposits made|failed/, 600000);
       const stP = (await page.textContent('#poStatus')).trim();
-      const recP = JSON.parse(await page.evaluate(() => window.__latheonLastPayout) || '{}');
+      const recPText = await page.evaluate(() => window.__latheonLastPayout) || '{}', recP = JSON.parse(recPText); recP.payoutText = recPText;
       const poolsAfter = await Promise.all([100, 50, 10, 1].map(poolCoin));
       const added = poolsAfter.reduce((x, b, i) => x + b - poolsBefore[i], 0n);
       rec('P2. Deposits made: the pools hold 406 LTH more, the router nothing; the payout file names the router, one master key per deposit, the three payees',
@@ -325,6 +325,21 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       await page.click('#poPayBtn'); await waitText('#poPayStatus', /Done:|stopped/, 600000);
       const againP = (await page.textContent('#poPayStatus')).trim(), cellsP = await page.$$eval('#poPayTable tbody tr td:nth-child(4)', (e) => e.map((x) => x.textContent.trim()));
       rec('P4. Paying again sends nothing: every recipient "already paid"', /0 paid now/.test(againP) && cellsP.length === 3 && cellsP.every((x) => x === 'already paid') && relayed.length === relayP + 3, cellsP.join(', '));
+      // the accountant's report: the payout file pasted as is, with "where withdrawn notes went"
+      await page.click('#tab-auditor'); await page.click('#genNonceBtn'); const codeP = (await page.textContent('#nonceOut')).trim();
+      await page.click('#tab-disclose'); await page.fill('#reportInput', recP.payoutText); await page.fill('#reportNonceInput', codeP); await page.check('#reportKeys');
+      await page.evaluate(() => { document.getElementById('reportStatus').textContent = ''; window.__latheonLastReport = null; });
+      await page.click('#reportBtn'); await waitText('#reportStatus', /Report ready|Failed/, 600000);
+      const repTextP = await page.evaluate(() => window.__latheonLastReport) || '';
+      await page.click('#tab-auditor'); await page.fill('#auditBlockInput', repTextP);
+      await page.evaluate(() => { document.getElementById('auditStatus').textContent = ''; });
+      await page.click('#auditVerifyBtn'); await page.waitForFunction(() => /\S/.test(document.getElementById('auditStatus').textContent), null, { timeout: 300000 });
+      const rowsP = await page.$$eval('#auditReport table.rep tbody tr', (trs) => trs.map((tr) => [...tr.children].map((td) => td.textContent.trim())));
+      const sh = (a) => a.slice(0, 6) + '…' + a.slice(-4), recips = rowsP.map((c) => c[8]);
+      rec('P6. Report from the payout file pasted as is: every note valid, each recipient appears with its own notes, labelled as the payout',
+        /Every note in the report is valid/.test(await page.textContent('#auditStatus')) && rowsP.length === 15 && recips.filter((x) => x === sh(p1)).length === 3 && recips.filter((x) => x === sh(p2)).length === 3 && recips.filter((x) => x === sh(p3)).length === 9 && rowsP.every((c) => /payout to 3 recipients/.test(c[11])),
+        rowsP.length + ' rows');
+      await page.click('#tab-payout');
       await page.fill('#poRecordInput', '{"kind":"latheon-payout","version":1,"chainId":1,"router":"0x0000000000000000000000000000000000000001","masterKeys":["x"],"payees":[{}]}');
       await page.evaluate(() => { document.getElementById('poPayStatus').textContent = ''; });
       await page.click('#poPayBtn'); await waitText('#poPayStatus', /stopped/, 60000);

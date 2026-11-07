@@ -523,7 +523,7 @@ const I18N = {
     'po.recPartial': 'Payout file so far: save it, it holds the master keys of the deposits already made',
     'po.recSub': 'It holds the master keys of all {d} deposits: whoever has it can take the money. Keep it as secret as a note. Paying uses only this file.',
     'po.recSaved': 'I saved the payout file somewhere safe.',
-    'po.download': 'Download .json',
+    'po.download': 'Download .json', 'po.label': 'payout to {n} recipients',
     'po.s1': 'Check the router and your balance',
     'po.s3': 'Router deposits',
     'po.depN': 'deposit {i} of {n}',
@@ -608,7 +608,7 @@ const I18N = {
     'au.fail': 'Not verified. See the details below.',
     'au.passNoCode': 'Proof valid and the deposit exists, but not verified against a code you issued: no code was generated on this page in this session. Only accept it if {code} is the code you gave; otherwise generate a code and ask for a new proof.',
     'rp.h4': 'Report for an accountant or auditor: many notes at once', 'rp.lead': 'Paste notes and master keys, one per line. One proof is made for every note and all of them go into one file that the auditor checks in one step. Only notes you paste are included.',
-    'rp.field': 'Notes and master keys, one per line; optionally a label after “#” (project, period, department)', 'rp.keys': 'Also show where withdrawn notes went', 'rp.btn': 'Build report',
+    'rp.field': 'Notes and master keys, one per line, or a payout file; optionally a label after “#” (project, period, department)', 'rp.keys': 'Also show where withdrawn notes went', 'rp.btn': 'Build report',
     'rp.keysWarn': 'This adds the keys of notes that are already withdrawn, so the auditor can see the recipient, relayer and fee of each withdrawal. Those keys can no longer spend anything, but unlike a proof they are not tied to this auditor: whoever holds them can show them to anyone and can make new disclosures for those notes. Use it for your own accountant, not for strangers. Keys of notes that are not withdrawn are never added.',
     'rp.s1': 'Find the notes on chain', 'rp.s2': 'Generate the proofs in your browser', 'rp.s3': 'Check them on-chain (free)',
     'rp.errEmpty': 'Paste at least one note or master key.', 'rp.errLine': 'Line {n}: {err}', 'rp.errV5': 'Only latheon-v5 notes and master keys can go into a report.',
@@ -737,7 +737,7 @@ const I18N = {
     'po.recPartial': 'Файл выплаты на данный момент: сохраните его, в нём мастер-ключи уже сделанных депозитов',
     'po.recSub': 'В нём мастер-ключи всех {d} депозитов: у кого файл, тот может забрать деньги. Храните его как ноту. Для выплат нужен только этот файл.',
     'po.recSaved': 'Я сохранил файл выплаты в надёжном месте.',
-    'po.download': 'Скачать .json',
+    'po.download': 'Скачать .json', 'po.label': 'выплата {n} получателям',
     'po.s1': 'Проверка роутера и баланса',
     'po.s3': 'Депозиты через роутер',
     'po.depN': 'депозит {i} из {n}',
@@ -822,7 +822,7 @@ const I18N = {
     'au.fail': 'Не подтверждено. Подробности ниже.',
     'au.passNoCode': 'Доказательство верно и депозит существует, но не сверено с выданным вами кодом: на этой странице в этой сессии код не создавался. Принимайте, только если {code} — код, который вы дали; иначе создайте код и попросите новое доказательство.',
     'rp.h4': 'Отчёт для бухгалтера или аудитора: много нот сразу', 'rp.lead': 'Вставьте ноты и мастер-ключи, по одному на строку. На каждую ноту строится доказательство, и все они попадают в один файл, который аудитор проверяет за один шаг. В отчёт попадают только вставленные ноты.',
-    'rp.field': 'Ноты и мастер-ключи, по одному на строку; после «#» можно добавить метку (проект, период, отдел)', 'rp.keys': 'Также показать, куда ушли выведенные ноты', 'rp.btn': 'Собрать отчёт',
+    'rp.field': 'Ноты и мастер-ключи, по одному на строку, или файл выплаты; после «#» можно добавить метку (проект, период, отдел)', 'rp.keys': 'Также показать, куда ушли выведенные ноты', 'rp.btn': 'Собрать отчёт',
     'rp.keysWarn': 'В отчёт добавятся ключи уже выведенных нот, чтобы аудитор увидел получателя, релейер и комиссию каждого вывода. Эти ключи больше ничего не могут потратить, но, в отличие от доказательства, они не привязаны к этому аудитору: владелец ключей может показать их кому угодно и создавать новые раскрытия этих нот. Используйте для своего бухгалтера, не для посторонних. Ключи невыведенных нот не добавляются никогда.',
     'rp.s1': 'Найти ноты в сети', 'rp.s2': 'Построить доказательства в браузере', 'rp.s3': 'Проверить их в сети (бесплатно)',
     'rp.errEmpty': 'Вставьте хотя бы одну ноту или мастер-ключ.', 'rp.errLine': 'Строка {n}: {err}', 'rp.errV5': 'В отчёт можно добавить только ноты latheon-v5 и мастер-ключи.',
@@ -951,7 +951,7 @@ const I18N = {
     'po.recPartial': '目前的付款文件：请保存，其中有已完成存款的主密钥',
     'po.recSub': '其中包含全部 {d} 笔存款的主密钥：持有者可以取走资金。请像凭证一样保密。付款只需要此文件。',
     'po.recSaved': '我已将付款文件保存在安全的地方。',
-    'po.download': '下载 .json',
+    'po.download': '下载 .json', 'po.label': '向 {n} 位收款人付款',
     'po.s1': '检查路由器和余额',
     'po.s3': '路由器存款',
     'po.depN': '第 {i} / {n} 笔存款',
@@ -1036,7 +1036,7 @@ const I18N = {
     'au.fail': '未通过验证。详情见下方。',
     'au.passNoCode': '证明有效且存款存在，但未与您签发的代码核对：本次会话中未在此页面生成代码。仅当 {code} 是您给出的代码时才接受；否则请生成代码并要求新的证明。',
     'rp.h4': '给会计或审计方的报告：一次多个凭证', 'rp.lead': '粘贴凭证和主密钥，每行一个。每个凭证生成一个证明，全部放入一个文件，审计方一步即可核验。只包含您粘贴的凭证。',
-    'rp.field': '凭证和主密钥，每行一个；可在 “#” 后添加标签（项目、期间、部门）', 'rp.keys': '同时显示已取出凭证的去向', 'rp.btn': '生成报告',
+    'rp.field': '凭证和主密钥，每行一个，或付款文件；可在 “#” 后添加标签（项目、期间、部门）', 'rp.keys': '同时显示已取出凭证的去向', 'rp.btn': '生成报告',
     'rp.keysWarn': '这会加入已取出凭证的密钥，让审计方看到每笔取款的收款人、中继和手续费。这些密钥已无法再花费任何资金，但与证明不同，它们不绑定此审计方：持有者可以向任何人出示，并可为这些凭证生成新的披露。请只用于您自己的会计，不要给陌生人。未取出凭证的密钥永远不会加入。',
     'rp.s1': '在链上查找凭证', 'rp.s2': '在浏览器中生成证明', 'rp.s3': '在链上核验（免费）',
     'rp.errEmpty': '请至少粘贴一个凭证或主密钥。', 'rp.errLine': '第 {n} 行：{err}', 'rp.errV5': '报告中只能包含 latheon-v5 凭证和主密钥。',
@@ -2744,10 +2744,20 @@ async function withdrawalMap(pool) {
   return m;
 }
 // Every line: a latheon-v5 note or a master key. Returns notes with their pool, keys and commitment (no duplicates).
+/** If `text` is a payout file, returns its master keys as report lines ("latheon-master:… # payout"), else null. */
+function reportPayoutLines(text) {
+  const tt = text.trim();
+  if (!tt.startsWith('{')) return null;
+  let rec; try { rec = JSON.parse(tt); } catch (e) { return null; }
+  if (!rec || rec.kind !== PAYOUT_KIND || !Array.isArray(rec.masterKeys) || !rec.masterKeys.length) return null;
+  return rec.masterKeys.map((m) => String(m).trim() + ' # ' + t('po.label', { n: (rec.payees || []).length }));
+}
 /** A report label: the user's own text after "#", single line, no control characters, at most 60 characters. */
 const reportLabel = (v) => String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
 async function reportNotes(text) {
-  const lines = String(text).split('\n').map((x) => x.trim()).filter(Boolean);
+  // A payout file (Payouts tab) may be pasted as is: its master keys are taken, each note labelled with its payee.
+  const payoutLines = reportPayoutLines(String(text));
+  const lines = payoutLines || String(text).split('\n').map((x) => x.trim()).filter(Boolean);
   if (!lines.length) throw new Error(t('rp.errEmpty'));
   const notes = new Map();
   for (let i = 0; i < lines.length; i++) {
