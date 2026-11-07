@@ -176,6 +176,32 @@ ok('assertDepositable refuses the frozen V5 router', throws(() => sdk.assertDepo
     let stuck = false; try { await sdk.waitForBlock({ getBlockNumber: async () => 3 }, 4, undefined, { pollMs: 1, waitMs: 20 }); } catch (e) { stuck = /behind block 4/.test(e.message); }
     ok('waitForBlock(): waits for a lagging RPC to reach the deposit block, refuses one that stays behind', h === 7 && calls === 4 && stuck);
   }
+  { // payouts: plan, pack, assign (no network)
+    console.log('-- payouts to a list of recipients');
+    const r = sdk.listRouters(sdk.loadDeployments()).find((x) => x.version === 'v7');
+    const addr = (i) => ethers.getAddress('0x' + (i + 1).toString(16).padStart(40, '0'));
+    const pay = (amts) => amts.map((a, i) => ({ recipient: addr(i), amount: sdk.toUnits(r, String(a)) }));
+    const greedyExact = (c) => { const s = D.canonicalSplit(c.amount, r.denominations); return s.counts.every((x, i) => x === c.counts[i]); };
+    const p = sdk.planPayout(r, pay(Array(10).fill(1234)));
+    ok('planPayout(10 x 1234): union of own splits 120 x 100, 30 x 10, 40 x 1; total 12340; the greedy split of 12340 would have no 1s', p.counts.join() === '120,0,30,40' && p.amount === 12340n * E18 && p.notes === 190n && D.canonicalSplit(p.amount, r.denominations).counts.join() === '123,0,4,0');
+    ok('… packed into router deposits that are each greedy-exact, at most 32 notes, and add up to the union', p.chunks.every((c) => greedyExact(c) && c.total <= 32n) && [0, 1, 2, 3].every((i) => p.chunks.reduce((s, c) => s + c.counts[i], 0n) === p.counts[i]) && p.chunks.length === 8);
+    let rnd = 7; const next = () => (rnd = (rnd * 1103515245 + 12345) % 2147483648);
+    let fine = true;
+    for (let t = 0; t < 200 && fine; t++) {
+      const amts = Array.from({ length: 1 + (next() % 12) }, () => 1 + (next() % 3000));
+      const q = sdk.planPayout(r, pay(amts));
+      fine = q.chunks.every((c) => greedyExact(c) && c.total <= 32n && c.total > 0n) && q.amount === amts.reduce((s, a) => s + BigInt(a), 0n) * E18 && [0, 1, 2, 3].every((i) => q.chunks.reduce((s, c) => s + c.counts[i], 0n) === q.counts[i]);
+    }
+    ok('planPayout(): 200 random lists (1..12 payees, 1..3000 LTH): every chunk greedy-exact and <= 32 notes, nothing lost', fine);
+    ok('planPayout(): refuses an empty list, a bad address, zero and a fraction of the smallest note', throws(() => sdk.planPayout(r, []), /No payees/) && throws(() => sdk.planPayout(r, [{ recipient: '0x12', amount: E18 }]), /bad address/) && throws(() => sdk.planPayout(r, [{ recipient: addr(0), amount: 0n }]), /positive/) && throws(() => sdk.planPayout(r, [{ recipient: addr(0), amount: E18 / 2n }]), /multiple of the smallest/));
+    const record = { kind: 'latheon-payout', version: 1, chainId: r.net.chainId, router: r.address, masterKeys: [sdk.formatMasterKey(r.net.chainId, r.address, 5n)], payees: [{ recipient: addr(0), amount: String(111n * E18), counts: ['1', '0', '1', '1'] }, { recipient: addr(1), amount: String(61n * E18), counts: ['0', '1', '1', '1'] }] };
+    const fake = [[0, 0, 0], [2, 0, 1], [3, 0, 2], [1, 0, 3], [2, 1, 0], [3, 1, 1]].map(([poolIndex, mk, index]) => ({ poolIndex, mk, index, value: [100, 50, 10, 1][poolIndex] }));
+    const as = sdk.assignPayoutNotes(record, fake, 4);
+    ok('assignPayoutNotes(): each payee gets its counts per pool, in a fixed order; the same input gives the same assignment', as[0].map((x) => x.value).join() === '100,10,1' && as[1].map((x) => x.value).join() === '50,10,1' && as[0][1].mk === 0 && as[1][1].mk === 1 && JSON.stringify(sdk.assignPayoutNotes(record, fake.slice().reverse(), 4)) === JSON.stringify(as));
+    ok('assignPayoutNotes(): fewer notes on chain than planned is refused', throws(() => sdk.assignPayoutNotes(record, fake.slice(1), 4), /fewer notes in pool 0/));
+    ok('checkPayoutRecord(): accepts its own router, refuses another router or a non-record', sdk.checkPayoutRecord(r, record) && throws(() => sdk.checkPayoutRecord(Object.assign({}, r, { address: addr(9) }), record), /belongs to router/) && throws(() => sdk.checkPayoutRecord(r, { kind: 'x' }), /Not a Latheon payout record/));
+    ok('payoutToJson()/payoutFromJson(): a record survives the round trip', JSON.stringify(sdk.payoutFromJson(sdk.payoutToJson(record))) === JSON.stringify(record));
+  }
   console.log(fails ? '\n' + fails + ' of ' + n + ' FAILED' : '\nALL ' + n + ' CHECKS PASSED');
   process.exit(fails ? 1 : 0);
 })();

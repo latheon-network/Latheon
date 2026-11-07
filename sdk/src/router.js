@@ -83,7 +83,8 @@ async function depositAny(signer, router, amount, opts = {}) {
  * The notes of a master key in a router's four pools, with their spent status.
  * Scans the pools' deposits, derives notes 0 .. MASTER_SCAN_LIMIT-1 and keeps those found on chain.
  * @param {string|object} masterKey   text or parseMasterKey() result; its router must be `router`
- * @param {object} [opts]  { scanOpts, scanLimit, minBlock }: minBlock = the deposit's receipt.blockNumber when scanning right after depositing
+ * @param {object} [opts]  { scanOpts, scanLimit, minBlock, deposits }: minBlock = the deposit's receipt.blockNumber when scanning right after depositing;
+ *   deposits = the four pools' fetchDeposits() results, to reuse one scan for several master keys
  * @returns {Promise<{notes: object[], deposits: object[][], unspent: object[], total: bigint}>}
  *   notes[i] = { index, poolIndex, pool, leafIndex, value (whole tokens), spendKey, viewKey, commitment, nullifierHash, note, spent }
  */
@@ -92,7 +93,7 @@ async function findNotes(provider, router, masterKey, opts = {}) {
   if (mk.chainId !== router.net.chainId || mk.router.toLowerCase() !== router.address.toLowerCase()) throw new Error(`This master key belongs to router ${mk.router} on chain ${mk.chainId}, not to ${router.id || router.address}`);
   const p = providerOf(provider);
   const scanOpts = Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {});
-  const deposits = await Promise.all(router.pools.map((pool) => fetchDeposits(p, pool, scanOpts)));
+  const deposits = opts.deposits || await Promise.all(router.pools.map((pool) => fetchDeposits(p, pool, scanOpts)));
   const byCommit = new Map();
   deposits.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex, timestamp: d.timestamp })));
   const notes = [];
