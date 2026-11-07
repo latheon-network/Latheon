@@ -523,6 +523,7 @@ const I18N = {
     'po.recPartial': 'Payout file so far: save it, it holds the master keys of the deposits already made',
     'po.recSub': 'It holds the master keys of all {d} deposits: whoever has it can take the money. Keep it as secret as a note. Paying uses only this file.',
     'po.recSaved': 'I saved the payout file somewhere safe.',
+    'po.download': 'Download .json',
     'po.s1': 'Check the router and your balance',
     'po.s3': 'Router deposits',
     'po.depN': 'deposit {i} of {n}',
@@ -736,6 +737,7 @@ const I18N = {
     'po.recPartial': 'Файл выплаты на данный момент: сохраните его, в нём мастер-ключи уже сделанных депозитов',
     'po.recSub': 'В нём мастер-ключи всех {d} депозитов: у кого файл, тот может забрать деньги. Храните его как ноту. Для выплат нужен только этот файл.',
     'po.recSaved': 'Я сохранил файл выплаты в надёжном месте.',
+    'po.download': 'Скачать .json',
     'po.s1': 'Проверка роутера и баланса',
     'po.s3': 'Депозиты через роутер',
     'po.depN': 'депозит {i} из {n}',
@@ -949,6 +951,7 @@ const I18N = {
     'po.recPartial': '目前的付款文件：请保存，其中有已完成存款的主密钥',
     'po.recSub': '其中包含全部 {d} 笔存款的主密钥：持有者可以取走资金。请像凭证一样保密。付款只需要此文件。',
     'po.recSaved': '我已将付款文件保存在安全的地方。',
+    'po.download': '下载 .json',
     'po.s1': '检查路由器和余额',
     'po.s3': '路由器存款',
     'po.depN': '第 {i} / {n} 笔存款',
@@ -2551,11 +2554,11 @@ function poShowRecord(rec, complete) {
   const text = poRecordText(rec);
   $('poRecordBox').innerHTML = '<div class="secret-box"><strong>' + esc(t(complete ? 'po.recTitle' : 'po.recPartial')) + '</strong>' +
     '<div class="muted small" style="margin-top:4px">' + esc(t('po.recSub', { d: rec.masterKeys.length })) + '</div>' +
-    '<div class="btn-row"><button id="poRecDl" class="small">' + esc(t('btn.download')) + '</button><button id="poRecCopy" class="secondary small">' + esc(t('btn.copy')) + '</button></div>' +
+    '<div class="btn-row"><button id="poRecDl" class="small">' + esc(t('po.download')) + '</button><button id="poRecCopy" class="secondary small">' + esc(t('btn.copy')) + '</button></div>' +
     (complete ? '<label class="check"><input type="checkbox" id="poRecSaved"><span>' + esc(t('po.recSaved')) + '</span></label>' : '') + '</div>';
   $('poRecDl').addEventListener('click', () => downloadFile('latheon-payout-' + rec.chainId + '-' + (rec.depositTxs[0] || '').slice(2, 10) + '.json', text, 'application/json'));
   $('poRecCopy').addEventListener('click', () => copyText(text, 'what.key'));
-  if (complete) $('poRecSaved').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked) $('poRecordInput').value = text; });
+  if (complete) $('poRecSaved').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked) { $('poRecordInput').value = text; $('poRecordInput').dispatchEvent(new Event('input')); } });
   window.__latheonLastPayout = text;   // for the browser tests
 }
 $('poDepositBtn').addEventListener('click', async () => {
@@ -2589,7 +2592,7 @@ $('poDepositBtn').addEventListener('click', async () => {
       log('Payout deposit ' + (k + 1) + '/' + chunks.length + ': ' + n + ' notes, tx ' + tx.hash);
     }
     depositWallets.add(userAddress.toLowerCase());
-    st.done(); poShowRecord(rec, true);
+    st.extra(2, ''); st.done(); poShowRecord(rec, true);
     setStatus('poStatus', t('po.depOk', { d: chunks.length, total: fmt(total, dec), token: router.token }), 'ok');
     await refreshBalances();
   } catch (e) {

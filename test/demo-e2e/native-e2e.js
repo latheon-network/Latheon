@@ -315,15 +315,18 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       await page.check('#poRecSaved');
       const relayP = relayed.length, userP = await coin(accounts[0]);
       const relayRowP = await page.isVisible('#poRelayRow') && await page.isChecked('#poUseRelay');
+      await page.evaluate(() => { document.getElementById('poPayStatus').textContent = ''; });
       await page.click('#poPayBtn'); await waitText('#poPayStatus', /Done:|stopped/, 1200000);
       const payP = (await page.textContent('#poPayStatus')).trim();
       rec('P3. Pay through the relayer: each recipient holds exactly its amount (111, 61, 234), three relayed transactions, the user paid nothing',
         relayRowP && /3 recipients checked, 3 paid now/.test(payP) && (await coin(p1)) === 111n * E18 && (await coin(p2)) === 61n * E18 && (await coin(p3)) === 234n * E18 && relayed.length === relayP + 3 && (await coin(accounts[0])) === userP,
-        payP.slice(0, 70));
+        payP.slice(0, 50) + ' · row ' + relayRowP + ' · relayed ' + (relayed.length - relayP) + ' · ' + [p1, p2, p3].length);
+      await page.evaluate(() => { document.getElementById('poPayStatus').textContent = ''; });
       await page.click('#poPayBtn'); await waitText('#poPayStatus', /Done:|stopped/, 600000);
       const againP = (await page.textContent('#poPayStatus')).trim(), cellsP = await page.$$eval('#poPayTable tbody tr td:nth-child(4)', (e) => e.map((x) => x.textContent.trim()));
       rec('P4. Paying again sends nothing: every recipient "already paid"', /0 paid now/.test(againP) && cellsP.length === 3 && cellsP.every((x) => x === 'already paid') && relayed.length === relayP + 3, cellsP.join(', '));
       await page.fill('#poRecordInput', '{"kind":"latheon-payout","version":1,"chainId":1,"router":"0x0000000000000000000000000000000000000001","masterKeys":["x"],"payees":[{}]}');
+      await page.evaluate(() => { document.getElementById('poPayStatus').textContent = ''; });
       await page.click('#poPayBtn'); await waitText('#poPayStatus', /stopped/, 60000);
       rec('P5. A payout file for an unknown router is refused before anything is sent', /stopped/.test(await page.textContent('#poPayStatus')) && relayed.length === relayP + 3, (await page.textContent('#poPayStatus')).trim().slice(0, 80));
       await page.screenshot({ path: SHOTS + '/payout.png', fullPage: true });
