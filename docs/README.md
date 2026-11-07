@@ -18,6 +18,7 @@
 - [`withdraw-recipient-binding.md`](./withdraw-recipient-binding.md): the V3/V4 flaw and the V5 fix.
 - [`dev-ceremony-v5.md`](./dev-ceremony-v5.md): the development keys of the current circuit (`withdraw_v5`, V7) and the pre-V7 flaw it fixes; earlier keys: [`dev-ceremony-v4.md`](./dev-ceremony-v4.md) (V6), [`dev-ceremony-v3.md`](./dev-ceremony-v3.md) (V5; also why development keys are not enough for real value).
 - [`self-review-2026-11-06.md`](./self-review-2026-11-06.md): pre-audit self-review of the V7 contracts and circuits with Slither, Aderyn and Circomspect (internal, not an audit): every tool finding triaged against the source, hardening items for the next contract version.
+- [`withdraw-without-our-interface.md`](./withdraw-without-our-interface.md): how to withdraw if our page or relayer refuses (your own copy of the page, the SDK from your wallet, a proof without a relayer), and what still depends on the test chain's operator.
 - [`operator-rights.md`](./operator-rights.md): which key or service on the test chain can do what, and how to limit it.
 - [`mainnet-readiness.md`](./mainnet-readiness.md): conditions before any real value, with their status today.
 
