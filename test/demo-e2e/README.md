@@ -117,7 +117,7 @@ without the option the file holds no keys and no recipients are shown; a proof e
 notes and a report made for another code are all refused; a line that is not a note is refused with its line number; the
 single-note disclosure still works; RU text; no raw translation keys; no JavaScript errors. Later checks (25 in all on
 7 November 2026) add repeated notes, network errors, CSV formula quoting, and labels after `#` (carried into the report,
-shown to the auditor in a Label column with totals per label, marked as the user's own text, not proven).
+shown to the auditor in a Label column with totals per label, marked as the user's own text, not proven). D26 (26 in all) pays two recipients from the Payouts tab and builds the report from the payout file pasted as is: every note valid, each recipient with exactly its own notes.
 
 ```
 DEMO=/path/to/demo node disclosure-e2e.js
