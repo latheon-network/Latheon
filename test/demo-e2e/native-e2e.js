@@ -292,6 +292,43 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       /no longer knows the root/.test(log15) && relayCalls - calls15 === 2 && (await coin(r3)) === 1n * E18, 'relayer calls ' + (relayCalls - calls15));
     await page2.close();
 
+    // ---- payouts to a list of recipients (Payouts tab): plan, router deposits, payout file, pay through the relayer, repeat
+    if (V6) {
+      const p1 = fresh(11), p2 = fresh(12), p3 = fresh(13);
+      await pickNT(N, 'LTH');
+      await page.click('#tab-payout');
+      const warnP = (await page.textContent('#poWarnings')).trim();
+      await page.fill('#poInput', p1 + ', 111\n' + p2 + '; 61\n' + p3 + ' 234');
+      await page.click('#poPlanBtn'); await page.waitForTimeout(300);
+      const planP = (await page.textContent('#poPlanBox')).replace(/\s+/g, ' ').trim();
+      rec('P1. Payout plan: 3 recipients, 406 LTH, each amount split on its own (234 = 2×100 + 3×10 + 4×1); the warning says amounts are public',
+        /3 recipients, 406 LTH in all: 15 notes in \d+ router deposits/.test(planP) && planP.includes('2×100 + 3×10 + 4×1') && /Amounts are public/.test(warnP), planP.slice(0, 90));
+      const poolsBefore = await Promise.all([100, 50, 10, 1].map(poolCoin));
+      await page.click('#poDepositBtn'); await waitText('#poStatus', /deposits made|failed/, 600000);
+      const stP = (await page.textContent('#poStatus')).trim();
+      const recP = JSON.parse(await page.evaluate(() => window.__latheonLastPayout) || '{}');
+      const poolsAfter = await Promise.all([100, 50, 10, 1].map(poolCoin));
+      const added = poolsAfter.reduce((x, b, i) => x + b - poolsBefore[i], 0n);
+      rec('P2. Deposits made: the pools hold 406 LTH more, the router nothing; the payout file names the router, one master key per deposit, the three payees',
+        /deposits made, 406 LTH/.test(stP) && added === 406n * E18 && (await eth[N].getBalance(dep[N].router.addr)) === 0n && recP.kind === 'latheon-payout' && recP.router === dep[N].router.addr && recP.masterKeys.length === recP.depositTxs.length && recP.masterKeys.length >= 1 && recP.payees.length === 3,
+        stP.slice(0, 70) + ' · keys ' + (recP.masterKeys || []).length);
+      await page.check('#poRecSaved');
+      const relayP = relayed.length, userP = await coin(accounts[0]);
+      const relayRowP = await page.isVisible('#poRelayRow') && await page.isChecked('#poUseRelay');
+      await page.click('#poPayBtn'); await waitText('#poPayStatus', /Done:|stopped/, 1200000);
+      const payP = (await page.textContent('#poPayStatus')).trim();
+      rec('P3. Pay through the relayer: each recipient holds exactly its amount (111, 61, 234), three relayed transactions, the user paid nothing',
+        relayRowP && /3 recipients checked, 3 paid now/.test(payP) && (await coin(p1)) === 111n * E18 && (await coin(p2)) === 61n * E18 && (await coin(p3)) === 234n * E18 && relayed.length === relayP + 3 && (await coin(accounts[0])) === userP,
+        payP.slice(0, 70));
+      await page.click('#poPayBtn'); await waitText('#poPayStatus', /Done:|stopped/, 600000);
+      const againP = (await page.textContent('#poPayStatus')).trim(), cellsP = await page.$$eval('#poPayTable tbody tr td:nth-child(4)', (e) => e.map((x) => x.textContent.trim()));
+      rec('P4. Paying again sends nothing: every recipient "already paid"', /0 paid now/.test(againP) && cellsP.length === 3 && cellsP.every((x) => x === 'already paid') && relayed.length === relayP + 3, cellsP.join(', '));
+      await page.fill('#poRecordInput', '{"kind":"latheon-payout","version":1,"chainId":1,"router":"0x0000000000000000000000000000000000000001","masterKeys":["x"],"payees":[{}]}');
+      await page.click('#poPayBtn'); await waitText('#poPayStatus', /stopped/, 60000);
+      rec('P5. A payout file for an unknown router is refused before anything is sent', /stopped/.test(await page.textContent('#poPayStatus')) && relayed.length === relayP + 3, (await page.textContent('#poPayStatus')).trim().slice(0, 80));
+      await page.screenshot({ path: SHOTS + '/payout.png', fullPage: true });
+    }
+
     // ---- back to the ERC-20 network: approval step and gas row are back
     await pickNT('ethereum-sepolia', 'LTH');
     rec('N11. Back on the ERC-20 network the gas row is shown again', await page.isVisible('#gasRow'), '');

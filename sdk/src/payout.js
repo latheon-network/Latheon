@@ -29,34 +29,8 @@ const RECORD_VERSION = 1;
 const sumCounts = (counts, denominations) => counts.reduce((s, c, i) => s + c * denominations[i], 0n);
 const noteCount = (counts) => counts.reduce((s, c) => s + c, 0n);
 
-/**
- * Packs note counts (per denomination, largest first) into chunks whose greedy split is exactly the chunk, each with at
- * most `maxNotes` notes. Greedy-exact means: the notes of the smaller denominations in a chunk add up to less than the
- * next larger denomination. Smaller notes are placed first, the largest denomination fills the remaining room.
- * @returns {{counts: bigint[], amount: bigint, total: bigint}[]}
- */
-function packChunks(counts, denominations, maxNotes = MAX_NOTES) {
-  const rest = counts.map(BigInt);
-  const k = denominations.length;
-  const chunks = [];
-  while (rest.some((c) => c > 0n)) {
-    const c = Array(k).fill(0n);
-    let room = BigInt(maxNotes), carry = 0n;
-    for (let i = k - 1; i >= 0 && room > 0n; i--) {
-      let take = rest[i] < room ? rest[i] : room;
-      if (i > 0) {
-        const limit = (denominations[i - 1] - 1n - carry) / denominations[i];   // carry + take * d[i] < d[i-1]
-        if (take > limit) take = limit;
-      }
-      c[i] = take; rest[i] -= take; room -= take; carry += take * denominations[i];
-    }
-    const amount = sumCounts(c, denominations);
-    const check = dist.canonicalSplit(amount, denominations);
-    if (check.counts.some((x, i) => x !== c[i])) throw new Error('internal: chunk is not greedy-exact');
-    chunks.push({ counts: c, amount, total: noteCount(c) });
-  }
-  return chunks;
-}
+/** Packs note counts into greedy-exact router deposits (shared with the demo: distribution.js packChunks). */
+const packChunks = (counts, denominations, maxNotes = MAX_NOTES) => dist.packChunks(counts, denominations, maxNotes);
 
 /**
  * Plans a payout. payees: [{ recipient, amount }], amount in base units of the router's token (sdk.toUnits).
@@ -114,26 +88,13 @@ function checkRecord(router, record) {
 }
 
 /**
- * Assigns the payout's notes to its payees, deterministically: notes are ordered by pool, then by master key, then by
- * index, and each payee in turn takes its counts per pool. The same record always gives the same assignment, so a
- * payout can be resumed and checked later.
+ * Assigns the payout's notes to its payees, deterministically (by pool, then master key, then index; shared with the
+ * demo: distribution.js assignNotes). The same record always gives the same assignment, so a payout can be resumed.
  * @param {object[]} notes  findNotes() notes of all master keys, each with `.mk` (index of its master key)
- * @returns {object[][]}    notes per payee
  */
 function assignPayoutNotes(record, notes, poolCount) {
-  const queues = Array.from({ length: poolCount }, () => []);
-  notes.slice().sort((a, b) => a.poolIndex - b.poolIndex || a.mk - b.mk || a.index - b.index).forEach((n) => queues[n.poolIndex].push(n));
-  return record.payees.map((p, pi) => {
-    const mine = [];
-    p.counts.forEach((c, i) => {
-      for (let k = 0n; k < BigInt(c); k++) {
-        const n = queues[i].shift();
-        if (!n) throw new Error(`Payee ${pi + 1}: the payout's deposits hold fewer notes in pool ${i} than planned (deposits not found yet?)`);
-        mine.push(n);
-      }
-    });
-    return mine;
-  });
+  try { return dist.assignNotes(record.payees.map((p) => p.counts), notes, poolCount); }
+  catch (e) { throw new Error(e.message + ' (deposits not found yet?)'); }
 }
 
 /**

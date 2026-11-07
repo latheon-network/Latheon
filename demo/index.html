@@ -278,6 +278,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
   <div class="tabs" role="tablist" aria-label="Actions">
     <button class="tab" role="tab" id="tab-deposit" aria-controls="panel-deposit" aria-selected="true"><span class="num">1</span><span data-i18n="tab.deposit">Deposit</span></button>
     <button class="tab" role="tab" id="tab-withdraw" aria-controls="panel-withdraw" aria-selected="false"><span class="num">2</span><span data-i18n="tab.withdraw">Withdraw</span></button>
+    <button class="tab" role="tab" id="tab-payout" aria-controls="panel-payout" aria-selected="false"><span class="num">⇉</span><span data-i18n="tab.payout">Payouts</span></button>
     <button class="tab" role="tab" id="tab-disclose" aria-controls="panel-disclose" aria-selected="false"><span class="num">3</span><span data-i18n="tab.disclose">Disclose</span></button>
     <button class="tab" role="tab" id="tab-auditor" aria-controls="panel-auditor" aria-selected="false"><span class="num">·</span><span data-i18n="tab.auditor">I'm an auditor</span></button>
   </div>
@@ -368,6 +369,35 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
       <div id="waPlan"></div>
       <div id="waSep"></div>
     </div>
+  </section>
+
+  <!-- payouts to a list of recipients -->
+  <section class="panel" id="panel-payout" role="tabpanel" aria-labelledby="tab-payout" hidden>
+    <h3 data-i18n="po.h3">Payouts to a list of recipients</h3>
+    <p class="lead" data-i18n="po.lead">For payroll or vendors: one deposit session, then every recipient is paid from the pool. The accountant can later get a report of where each payment went (Disclose tab).</p>
+    <label class="field-label" for="poInput" data-i18n="po.field">Recipients: address and amount, one per line</label>
+    <textarea id="poInput" placeholder="0x1111…1111, 1234&#10;0x2222…2222, 610" spellcheck="false" autocomplete="off"></textarea>
+    <ul class="warns" id="poWarnings" aria-live="polite"></ul>
+    <div class="btn-row">
+      <button id="poPlanBtn" class="secondary" data-i18n="po.plan">Plan</button>
+      <button id="poDepositBtn" data-i18n="po.deposit" disabled>Deposit for this payout</button>
+    </div>
+    <div id="poPlanBox"></div>
+    <ul class="steps" id="poSteps" aria-live="polite"></ul>
+    <div id="poStatus" class="status info" style="display:none;"></div>
+    <div id="poRecordBox"></div>
+    <h4 style="margin-top:22px" data-i18n="po.payH">Pay the recipients</h4>
+    <label class="field-label" for="poRecordInput" data-i18n="po.recField">Payout file</label>
+    <textarea id="poRecordInput" placeholder='{"kind": "latheon-payout", …}' spellcheck="false" autocomplete="off"></textarea>
+    <div class="opt-row" id="poRelayRow" hidden><label class="check"><input type="checkbox" id="poUseRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label></div>
+    <label class="field-label" for="poDelay" data-i18n="po.delay">Pause between recipients, minutes (0 = none)</label>
+    <input id="poDelay" inputmode="numeric" value="0" autocomplete="off" style="max-width:120px">
+    <div class="btn-row">
+      <button id="poPayBtn" data-i18n="po.pay">Pay everyone not yet paid</button>
+    </div>
+    <ul class="steps" id="poPaySteps" aria-live="polite"></ul>
+    <div id="poPayStatus" class="status info" style="display:none;"></div>
+    <div id="poPayTable"></div>
   </section>
 
   <!-- 3. disclose -->
@@ -468,6 +498,50 @@ const I18N = {
     'btn.download': 'Download .txt', 'btn.downloaded': 'Downloaded', 'btn.copyNote': 'Copy note', 'btn.copied': 'Copied',
     'faucet.external': 'This token has its own official faucet, not ours:', 'faucet.page': 'Test {token} for this network comes from its faucet page:', 'faucet.pageStatus': 'Get test {token} on the faucet page (link above).', 'faucet.open': 'open faucet ↗', 'faucet.externalStatus': '{token} uses an external faucet — see the link above.',
     'faucet.claiming': 'Claiming…', 'faucet.claimed': 'Claimed test {token}.', 'faucet.failed': 'Claim failed: ',
+    'tab.payout': 'Payouts',
+    'po.h3': 'Payouts to a list of recipients',
+    'po.lead': 'For payroll or vendors: one deposit session, then every recipient is paid from the pools. Later the accountant can get a report of where each payment went (Disclose tab, keys of withdrawn notes).',
+    'po.field': 'Recipients: address and amount, one per line',
+    'po.plan': 'Plan',
+    'po.deposit': 'Deposit for this payout',
+    'po.payH': 'Pay the recipients',
+    'po.recField': 'Payout file',
+    'po.delay': 'Pause between recipients, minutes (0 = none)',
+    'po.pay': 'Pay everyone not yet paid',
+    'po.errEmpty': 'Add at least one line: address, amount.',
+    'po.errMany': 'At most {max} recipients in one payout.',
+    'po.errLine': 'Line {n}: expected "0x… address, amount".',
+    'po.errAmount': 'Line {n}: the amount must be a whole number of {token}, above zero.',
+    'po.public': 'Amounts are public: each deposit shows its amount and your wallet, each payment shows the amount received. With few users and unusual amounts, a payment can be matched to you by amount and time. A pause between recipients weakens this; it does not remove it. Testnet, no audit.',
+    'po.planOk': '{n} recipients, {total} {token} in all: {notes} notes in {d} router deposits on {net} (one wallet confirmation each).',
+    'po.colTo': 'Recipient',
+    'po.colAmt': 'Amount',
+    'po.colNotes': 'Notes',
+    'po.colState': 'State',
+    'po.colTx': 'Transactions',
+    'po.recTitle': 'Payout file: save it now',
+    'po.recPartial': 'Payout file so far: save it, it holds the master keys of the deposits already made',
+    'po.recSub': 'It holds the master keys of all {d} deposits: whoever has it can take the money. Keep it as secret as a note. Paying uses only this file.',
+    'po.recSaved': 'I saved the payout file somewhere safe.',
+    'po.s1': 'Check the router and your balance',
+    'po.s3': 'Router deposits',
+    'po.depN': 'deposit {i} of {n}',
+    'po.depOk': '{d} deposits made, {total} {token} in the pools. Save the payout file, then pay below (now or later).',
+    'po.depFail': 'Payout deposit failed: ',
+    'po.depFailKeys': '{d} deposit(s) were made: their master keys are in the file shown; the notes can also be withdrawn by master key in the Withdraw tab.',
+    'po.errRec': 'This is not a valid payout file for a known router.',
+    'po.errDelay': 'Pause: a number of minutes from 0 to 1440.',
+    'po.errNotes': 'The deposits of this payout hold fewer notes than the file plans (not found on chain yet?). Try again in a minute.',
+    'po.p3': 'Assign notes to recipients',
+    'po.stWait': 'waiting',
+    'po.stAlready': 'already paid',
+    'po.stPause': 'pause',
+    'po.stPaying': 'paying…',
+    'po.stPaid': 'paid',
+    'po.stResumed': 'paid (rest of an interrupted payment)',
+    'po.stFail': 'failed',
+    'po.payOk': 'Done: {n} recipients checked, {k} paid now; the others were already paid.',
+    'po.payFail': 'Payout stopped: ',
     'tab.deposit': 'Deposit', 'tab.withdraw': 'Withdraw', 'tab.disclose': 'Disclose', 'tab.auditor': "I'm an auditor",
     'dep.h3': 'Deposit', 'dep.lead1': 'Locks', 'dep.lead2': 'into the pool. A <code>spendKey</code> and a <code>viewKey</code> are generated in your browser; only their fingerprint (the commitment) goes on-chain.',
     'dep.hint': 'Confirm that you saved the note below before making another deposit.', 'dep.failed': 'Deposit failed: ',
@@ -637,6 +711,50 @@ const I18N = {
     'btn.download': 'Скачать .txt', 'btn.downloaded': 'Скачано', 'btn.copyNote': 'Копировать ноту', 'btn.copied': 'Скопировано',
     'faucet.external': 'У этого токена свой официальный фаусет, не наш:', 'faucet.page': 'Тестовые {token} этой сети выдаёт страница фаусета:', 'faucet.pageStatus': 'Тестовые {token} можно получить на странице фаусета (ссылка выше).', 'faucet.open': 'открыть фаусет ↗', 'faucet.externalStatus': 'Для {token} нужен внешний фаусет — ссылка выше.',
     'faucet.claiming': 'Получаю…', 'faucet.claimed': 'Тестовые {token} получены.', 'faucet.failed': 'Не удалось получить: ',
+    'tab.payout': 'Выплаты',
+    'po.h3': 'Выплаты списку получателей',
+    'po.lead': 'Для зарплат и поставщиков: один сеанс депозитов, затем каждому получателю платят из пулов. Потом бухгалтер может получить отчёт, куда ушла каждая выплата (вкладка «Раскрытие», ключи выведенных нот).',
+    'po.field': 'Получатели: адрес и сумма, по одному на строку',
+    'po.plan': 'Рассчитать',
+    'po.deposit': 'Внести депозиты для выплаты',
+    'po.payH': 'Заплатить получателям',
+    'po.recField': 'Файл выплаты',
+    'po.delay': 'Пауза между получателями, минуты (0 — без паузы)',
+    'po.pay': 'Заплатить всем, кому ещё не заплачено',
+    'po.errEmpty': 'Добавьте хотя бы одну строку: адрес, сумма.',
+    'po.errMany': 'Не больше {max} получателей в одной выплате.',
+    'po.errLine': 'Строка {n}: нужен формат «адрес 0x…, сумма».',
+    'po.errAmount': 'Строка {n}: сумма должна быть целым числом {token} больше нуля.',
+    'po.public': 'Суммы видны всем: каждый депозит показывает сумму и ваш кошелёк, каждая выплата — полученную сумму. Пока пользователей мало, выплату с необычной суммой можно сопоставить с вами по сумме и времени. Пауза между получателями ослабляет это, но не убирает. Тестовая сеть, аудита нет.',
+    'po.planOk': '{n} получателей, всего {total} {token}: {notes} нот в {d} депозитах через роутер в сети {net} (на каждый — подтверждение в кошельке).',
+    'po.colTo': 'Получатель',
+    'po.colAmt': 'Сумма',
+    'po.colNotes': 'Ноты',
+    'po.colState': 'Состояние',
+    'po.colTx': 'Транзакции',
+    'po.recTitle': 'Файл выплаты: сохраните его сейчас',
+    'po.recPartial': 'Файл выплаты на данный момент: сохраните его, в нём мастер-ключи уже сделанных депозитов',
+    'po.recSub': 'В нём мастер-ключи всех {d} депозитов: у кого файл, тот может забрать деньги. Храните его как ноту. Для выплат нужен только этот файл.',
+    'po.recSaved': 'Я сохранил файл выплаты в надёжном месте.',
+    'po.s1': 'Проверка роутера и баланса',
+    'po.s3': 'Депозиты через роутер',
+    'po.depN': 'депозит {i} из {n}',
+    'po.depOk': 'Сделано депозитов: {d}, в пулах {total} {token}. Сохраните файл выплаты и платите ниже (сейчас или позже).',
+    'po.depFail': 'Депозит выплаты не прошёл: ',
+    'po.depFailKeys': 'Сделано депозитов: {d}. Их мастер-ключи в показанном файле; эти ноты можно вывести и по мастер-ключу во вкладке «Вывод».',
+    'po.errRec': 'Это не файл выплаты для известного роутера.',
+    'po.errDelay': 'Пауза: число минут от 0 до 1440.',
+    'po.errNotes': 'В депозитах этой выплаты меньше нот, чем в файле (ещё не найдены в сети?). Попробуйте через минуту.',
+    'po.p3': 'Распределение нот по получателям',
+    'po.stWait': 'ждёт',
+    'po.stAlready': 'уже оплачено',
+    'po.stPause': 'пауза',
+    'po.stPaying': 'платим…',
+    'po.stPaid': 'оплачено',
+    'po.stResumed': 'оплачено (остаток прерванной выплаты)',
+    'po.stFail': 'ошибка',
+    'po.payOk': 'Готово: проверено получателей {n}, оплачено сейчас {k}; остальным уже было заплачено.',
+    'po.payFail': 'Выплата остановлена: ',
     'tab.deposit': 'Депозит', 'tab.withdraw': 'Вывод', 'tab.disclose': 'Раскрытие', 'tab.auditor': 'Я аудитор',
     'dep.h3': 'Депозит', 'dep.lead1': 'Блокирует', 'dep.lead2': 'в пуле. Пара <code>spendKey</code> и <code>viewKey</code> создаётся в вашем браузере; в блокчейн попадает только их отпечаток (commitment).',
     'dep.hint': 'Подтвердите ниже, что сохранили ноту, прежде чем делать следующий депозит.', 'dep.failed': 'Депозит не удался: ',
@@ -806,6 +924,50 @@ const I18N = {
     'btn.download': '下载 .txt', 'btn.downloaded': '已下载', 'btn.copyNote': '复制凭证', 'btn.copied': '已复制',
     'faucet.external': '该代币使用其官方水龙头，而非我们的：', 'faucet.page': '本网络的测试 {token} 由其水龙头页面发放：', 'faucet.pageStatus': '请在水龙头页面领取测试 {token}（见上方链接）。', 'faucet.open': '打开水龙头 ↗', 'faucet.externalStatus': '{token} 使用外部水龙头——见上方链接。',
     'faucet.claiming': '正在领取…', 'faucet.claimed': '已领取测试 {token}。', 'faucet.failed': '领取失败：',
+    'tab.payout': '批量付款',
+    'po.h3': '向收款人列表付款',
+    'po.lead': '用于工资或供应商：先完成一次存款，然后从资金池向每位收款人付款。之后会计可以获得每笔付款去向的报告（“披露”标签，已取出凭证的密钥）。',
+    'po.field': '收款人：地址和金额，每行一个',
+    'po.plan': '计算',
+    'po.deposit': '为此付款存款',
+    'po.payH': '向收款人付款',
+    'po.recField': '付款文件',
+    'po.delay': '收款人之间的间隔，分钟（0 = 无）',
+    'po.pay': '向所有尚未付款的人付款',
+    'po.errEmpty': '请至少添加一行：地址, 金额。',
+    'po.errMany': '一次付款最多 {max} 位收款人。',
+    'po.errLine': '第 {n} 行：格式应为“0x… 地址, 金额”。',
+    'po.errAmount': '第 {n} 行：金额必须是大于零的整数 {token}。',
+    'po.public': '金额是公开的：每笔存款显示金额和您的钱包，每笔付款显示收到的金额。用户少、金额特殊时，可以按金额和时间把付款与您对应起来。收款人之间的间隔会减弱这一点，但不能消除。测试网，未经审计。',
+    'po.planOk': '{n} 位收款人，共 {total} {token}：{net} 上 {d} 笔路由器存款中的 {notes} 个凭证（每笔需在钱包确认一次）。',
+    'po.colTo': '收款人',
+    'po.colAmt': '金额',
+    'po.colNotes': '凭证',
+    'po.colState': '状态',
+    'po.colTx': '交易',
+    'po.recTitle': '付款文件：请立即保存',
+    'po.recPartial': '目前的付款文件：请保存，其中有已完成存款的主密钥',
+    'po.recSub': '其中包含全部 {d} 笔存款的主密钥：持有者可以取走资金。请像凭证一样保密。付款只需要此文件。',
+    'po.recSaved': '我已将付款文件保存在安全的地方。',
+    'po.s1': '检查路由器和余额',
+    'po.s3': '路由器存款',
+    'po.depN': '第 {i} / {n} 笔存款',
+    'po.depOk': '已完成 {d} 笔存款，资金池中有 {total} {token}。请保存付款文件，然后在下方付款（现在或以后）。',
+    'po.depFail': '付款存款失败：',
+    'po.depFailKeys': '已完成 {d} 笔存款：其主密钥在显示的文件中；这些凭证也可以在“取款”标签中按主密钥取出。',
+    'po.errRec': '这不是已知路由器的有效付款文件。',
+    'po.errDelay': '间隔：0 到 1440 之间的分钟数。',
+    'po.errNotes': '此付款的存款中的凭证少于文件计划的数量（链上尚未找到？）。请一分钟后重试。',
+    'po.p3': '将凭证分配给收款人',
+    'po.stWait': '等待',
+    'po.stAlready': '已付款',
+    'po.stPause': '间隔',
+    'po.stPaying': '付款中…',
+    'po.stPaid': '已付款',
+    'po.stResumed': '已付款（中断付款的剩余部分）',
+    'po.stFail': '失败',
+    'po.payOk': '完成：已检查 {n} 位收款人，本次付款 {k} 位；其余已付过。',
+    'po.payFail': '付款已停止：',
     'tab.deposit': '存款', 'tab.withdraw': '取款', 'tab.disclose': '披露', 'tab.auditor': '我是审计方',
     'dep.h3': '存款', 'dep.lead1': '将', 'dep.lead2': '锁入资金池。<code>spendKey</code> 和 <code>viewKey</code> 在您的浏览器中生成；只有它们的指纹（commitment）上链。',
     'dep.hint': '请先在下方确认已保存凭证，再进行下一笔存款。', 'dep.failed': '存款失败：',
@@ -1215,6 +1377,54 @@ function selectNotes(notes, target) {
   }
   return { chosen: chosen.reverse(), nearest: target };
 }
+/**
+ * Payouts: packs note counts (per denomination, largest first) into router deposits whose greedy split is exactly the
+ * chunk, each with at most `maxNotes` notes. Greedy-exact: the notes of the smaller denominations in a chunk add up to
+ * less than the next larger denomination. Smaller notes are placed first, the largest denomination fills the room left.
+ * @returns {{counts: bigint[], amount: bigint, total: bigint}[]}
+ */
+function packChunks(counts, denominations, maxNotes) {
+  const rest = counts.map(BigInt), k = denominations.length, chunks = [];
+  const cap = BigInt(maxNotes === undefined ? 32 : maxNotes);
+  while (rest.some((c) => c > 0n)) {
+    const c = denominations.map(() => 0n);
+    let room = cap, carry = 0n;
+    for (let i = k - 1; i >= 0 && room > 0n; i--) {
+      let take = rest[i] < room ? rest[i] : room;
+      if (i > 0) { const limit = (denominations[i - 1] - 1n - carry) / denominations[i]; if (take > limit) take = limit; }
+      c[i] = take; rest[i] -= take; room -= take; carry += take * denominations[i];
+    }
+    const amount = c.reduce((s, x, i) => s + x * denominations[i], 0n);
+    const check = canonicalSplit(amount, denominations);
+    if (check.counts.some((x, i) => x !== c[i])) throw new Error('internal: chunk is not greedy-exact');
+    chunks.push({ counts: c, amount, total: check.total });
+  }
+  return chunks;
+}
+
+/**
+ * Payouts: assigns notes to payees in a fixed order (by pool, then by master key `mk`, then by `index`); payee i takes
+ * countsList[i][pool] notes of each pool. The same input always gives the same assignment, so a payout can be resumed.
+ * @param {(bigint|number|string)[][]} countsList  per payee, notes per pool
+ * @param {{poolIndex: number, mk: number, index: number}[]} notes
+ * @returns {object[][]} notes per payee; throws when a pool holds fewer notes than planned
+ */
+function assignNotes(countsList, notes, poolCount) {
+  const queues = [];
+  for (let i = 0; i < poolCount; i++) queues.push([]);
+  notes.slice().sort((a, b) => a.poolIndex - b.poolIndex || a.mk - b.mk || a.index - b.index).forEach((n) => queues[n.poolIndex].push(n));
+  return countsList.map((counts, pi) => {
+    const mine = [];
+    counts.forEach((c, i) => {
+      for (let j = 0n; j < BigInt(c); j++) {
+        const n = queues[i].shift();
+        if (!n) throw new Error('Payee ' + (pi + 1) + ': fewer notes in pool ' + i + ' than planned');
+        mine.push(n);
+      }
+    });
+    return mine;
+  });
+}
 // distribution-core:end
 
 (function selfCheck() {
@@ -1314,7 +1524,7 @@ function syncPoolControls() {
 // The pool list only matters where a single fixed pool is used; in the any-amount modes the router picks the pools.
 function updatePoolRow() {
   const sel = (id) => $(id).getAttribute('aria-selected') === 'true';
-  const any = (sel('tab-deposit') && !$('depAny').hidden) || (sel('tab-withdraw') && !$('wdAny').hidden) || sel('tab-auditor');
+  const any = (sel('tab-deposit') && !$('depAny').hidden) || (sel('tab-withdraw') && !$('wdAny').hidden) || sel('tab-payout') || sel('tab-auditor');
   $('poolRow').hidden = any;
   $('poolInfo').style.display = any ? 'none' : '';
 }
@@ -1688,13 +1898,14 @@ function updateWarnings() {
 $('recipientInput').addEventListener('input', updateWarnings);
 
 // ---------- tabs ----------
-const TABS = ['deposit', 'withdraw', 'disclose', 'auditor'];
+const TABS = ['deposit', 'withdraw', 'payout', 'disclose', 'auditor'];
 function showTab(name) {
   for (const tb of TABS) {
     $('tab-' + tb).setAttribute('aria-selected', String(tb === name));
     $('panel-' + tb).hidden = tb !== name;
   }
   updatePoolRow();
+  if (name === 'payout') { poWarnings(); poSync(); }
 }
 TABS.forEach((tb, i) => {
   $('tab-' + tb).addEventListener('click', () => showTab(tb));
@@ -2209,6 +2420,69 @@ $('waSepBtn').addEventListener('click', () => {
   }).join('');
   $('waSep').innerHTML = '<div class="secret-box"><strong>' + esc(t('wa.sepTitle')) + '</strong><div class="muted small" style="margin:4px 0 8px">' + esc(t('wa.sepSub')) + '</div><div class="note-list">' + rows + '</div></div>';
 });
+// Proves and sends notes of one router to one recipient: withdrawMany in batches of MAX_WITHDRAWALS, from the wallet or
+// through the relayer. Steps s0, s0+1, s0+2 of `st` show proving, simulating and sending. Returns the transaction hashes.
+async function sendNotesTo(router, rp, deps, notes, recipient, viaRelay, st, s0, statusId) {
+  const tok = router.token, v6 = feeVer(router.version), circ = await loadCircuit(router.circuit);
+  const zeros = computeZeroCascade(levelsOf(router.version));
+  let pending = notes.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);   // notes not yet paid out
+  let depsNow = deps; const txs = [];
+  const rr = new ethers.Contract(router.address, routerAbi(router), rp), relayArg = v6 ? [ethers.ZeroAddress] : [];
+  const max = Number(await withRetry(() => rr.MAX_WITHDRAWALS(), 'reading the batch limit'));
+  // Proofs name each pool's current root. If a pool forgets that root before a batch is sent (many deposits meanwhile),
+  // the batch is refused as a whole with "Unknown root": the notes of the batches already paid stay paid, the rest are
+  // proven again against fresh roots and sent (ROOT_RETRIES attempts in all).
+  for (let attempt = 1; ; attempt++) {
+   try {
+    const levelsByPool = {}, rootChecked = {}, items = [];
+    st.go(s0); st.tick(s0);
+    for (let i = 0; i < pending.length; i++) {
+      const n = pending[i], pool = router.pools[n.pi];
+      st.extra(s0, t('wa.proving', { i: i + 1, n: pending.length }));
+      if (!levelsByPool[n.pi]) { const leaves = []; for (const d of depsNow[n.pi]) leaves[d.leafIndex] = d.commitment; levelsByPool[n.pi] = buildTreeLevels(leaves, zeros); }
+      const { pathElements, pathIndices, root } = getMerklePath(levelsByPool[n.pi], n.leafIndex, zeros);
+      if (rootChecked[n.pi] !== root) {   // one check per pool: every note of a pool is proven against the same root
+        if (!(await new ethers.Contract(pool.address, POOL_ABI.v5, rp).isKnownRoot(root))) throw staleRootErr();
+        rootChecked[n.pi] = root;
+      }
+      const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
+      if (v6) { input.relayer = '0'; input.fee = '0'; }
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
+      const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
+      if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+      items.push(v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
+      log('Proof ' + (i + 1) + '/' + pending.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
+    }
+    st.stopTick(); st.extra(s0, '');
+    st.go(s0 + 1);
+    const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
+    for (const b of batches) await rr.withdrawMany.staticCall(b, recipient, ...relayArg);   // refuses early, before any gas is spent (the sender does not matter)
+    st.go(s0 + 2, viaRelay ? t('x.block') : t('x.confirm'));
+    for (let i = 0; i < batches.length; i++) {
+      if (batches.length > 1) st.extra(s0 + 2, t('wa.batch', { i: i + 1, n: batches.length }));
+      if (viaRelay) {
+        const r = await relayPost(router.net, '/withdrawMany', Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {})); txs.push(r.tx);
+        log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+      } else {
+        const tx = await new ethers.Contract(router.address, routerAbi(router), signer).withdrawMany(batches[i], recipient, ...relayArg, await feeOverrides(router.net)); txs.push(tx.hash);
+        log('withdrawMany tx: ' + tx.hash);
+        const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+      }
+      pending = pending.slice(batches[i].length);   // this batch is paid
+    }
+    break;
+   } catch (e) {
+    st.stopTick();
+    if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
+    log('A pool no longer knows the root of these proofs (' + errText(e).slice(0, 80) + '); ' + pending.length + ' note(s) left: scanning again and making new proofs (attempt ' + (attempt + 1) + ' of ' + ROOT_RETRIES + ').');
+    setStatus(statusId, t('wd.rootRetry'), 'info');
+    depsNow = await Promise.all(router.pools.map((p) => fetchDeposits(p, false)));
+   }
+  }
+  st.extra(s0 + 2, '');
+  return txs;
+}
+
 $('waGoBtn').addEventListener('click', async () => {
   const btn = $('waGoBtn'); btn.disabled = true; $('waSep').innerHTML = '';
   const st = Steps('waSteps', ['wa.s1', 'wa.s2', 'wa.s3', 'wa.s4', 'wa.s5', 'wa.s6']);
@@ -2219,70 +2493,166 @@ $('waGoBtn').addEventListener('click', async () => {
     st.go(2);
     const plan = waRenderPlan(sc, target);
     if (!plan || !plan.chosen) throw new Error(t('wa.noplanShort'));
-    const { router, rp, deps } = sc, tok = router.token, v6 = feeVer(router.version), circ = await loadCircuit(router.circuit);
+    const { router, rp, deps } = sc, tok = router.token;
     const viaRelay = relayOn(router.net, 'waUseRelay');   // no wallet needed
     if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
-    const zeros = computeZeroCascade(levelsOf(router.version));
-    let pending = plan.chosen.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);   // notes not yet paid out
-    let depsNow = deps, lastTx = null;
-    const rr = new ethers.Contract(router.address, routerAbi(router), rp), relayArg = v6 ? [ethers.ZeroAddress] : [];
-    const max = Number(await withRetry(() => rr.MAX_WITHDRAWALS(), 'reading the batch limit'));
-    // Proofs name each pool's current root. If a pool forgets that root before a batch is sent (many deposits meanwhile),
-    // the batch is refused as a whole with "Unknown root": the notes of the batches already paid stay paid, the rest are
-    // proven again against fresh roots and sent (ROOT_RETRIES attempts in all).
-    for (let attempt = 1; ; attempt++) {
-     try {
-      const levelsByPool = {}, rootChecked = {}, items = [];
-      st.go(3); st.tick(3);
-      for (let i = 0; i < pending.length; i++) {
-        const n = pending[i], pool = router.pools[n.pi];
-        st.extra(3, t('wa.proving', { i: i + 1, n: pending.length }));
-        if (!levelsByPool[n.pi]) { const leaves = []; for (const d of depsNow[n.pi]) leaves[d.leafIndex] = d.commitment; levelsByPool[n.pi] = buildTreeLevels(leaves, zeros); }
-        const { pathElements, pathIndices, root } = getMerklePath(levelsByPool[n.pi], n.leafIndex, zeros);
-        if (rootChecked[n.pi] !== root) {   // one check per pool: every note of a pool is proven against the same root
-          if (!(await new ethers.Contract(pool.address, POOL_ABI.v5, rp).isKnownRoot(root))) throw staleRootErr();
-          rootChecked[n.pi] = root;
-        }
-        const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
-        if (v6) { input.relayer = '0'; input.fee = '0'; }
-        const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
-        const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
-        if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
-        items.push(v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
-        log('Proof ' + (i + 1) + '/' + pending.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
-      }
-      st.stopTick(); st.extra(3, '');
-      st.go(4);
-      const batches = []; for (let i = 0; i < items.length; i += max) batches.push(items.slice(i, i + max));
-      for (const b of batches) await rr.withdrawMany.staticCall(b, recipient, ...relayArg);   // refuses early, before any gas is spent (the sender does not matter)
-      st.go(5, viaRelay ? t('x.block') : t('x.confirm'));
-      for (let i = 0; i < batches.length; i++) {
-        if (batches.length > 1) st.extra(5, t('wa.batch', { i: i + 1, n: batches.length }));
-        if (viaRelay) {
-          const r = await relayPost(router.net, '/withdrawMany', Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {})); lastTx = r.tx;
-          log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
-        } else {
-          const tx = await new ethers.Contract(router.address, routerAbi(router), signer).withdrawMany(batches[i], recipient, ...relayArg, await feeOverrides(router.net)); lastTx = tx.hash;
-          log('withdrawMany tx: ' + tx.hash);
-          const rc = await tx.wait(); log('Confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
-        }
-        pending = pending.slice(batches[i].length);   // this batch is paid
-      }
-      break;
-     } catch (e) {
-      st.stopTick();
-      if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
-      log('A pool no longer knows the root of these proofs (' + errText(e).slice(0, 80) + '); ' + pending.length + ' note(s) left: scanning again and making new proofs (attempt ' + (attempt + 1) + ' of ' + ROOT_RETRIES + ').');
-      setStatus('waStatus', t('wd.rootRetry'), 'info');
-      depsNow = await Promise.all(router.pools.map((p) => fetchDeposits(p, false)));
-     }
-    }
-    st.extra(5, ''); st.done();
+    const txs = await sendNotesTo(router, rp, deps, plan.chosen, recipient, viaRelay, st, 3, 'waStatus');
+    const lastTx = txs[txs.length - 1];
+    st.done();
     setStatus('waStatus', t('wa.success', { amt: target, token: tok, to: short(recipient), tx: lastTx }), 'ok');
     waFound = null; $('waPlan').innerHTML = ''; if (signer) await refreshBalances();
   } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { syncWaButtons(); }
 });
+
+// ---------- payouts to a list of recipients ----------
+// The same record format as the SDK (sdk/src/payout.js): every amount split on its own, the union of notes packed into
+// router deposits whose greedy split is exact (packChunks), one fresh master key per deposit; payees take their notes in
+// a fixed order (assignNotes), so paying can be repeated after an interruption. The record holds master keys: secret.
+const PAYOUT_KIND = 'latheon-payout', PAYOUT_MAX = 100;
+let poPlan = null;
+function poParse(router) {
+  const lines = $('poInput').value.split('\n').map((x) => x.trim()).filter(Boolean);
+  if (!lines.length) throw new Error(t('po.errEmpty'));
+  if (lines.length > PAYOUT_MAX) throw new Error(t('po.errMany', { max: PAYOUT_MAX }));
+  const dec = router.decimals, unit = router.pools[3].denomination;
+  return lines.map((line, i) => {
+    const m = line.match(/^(0x[0-9a-fA-F]{40})[\s,;]+(\d+(?:[.,]\d+)?)$/);
+    if (!m) throw new Error(t('po.errLine', { n: i + 1 }));
+    const recipient = ethers.getAddress(m[1].toLowerCase()), amount = units(m[2].replace(',', '.'), dec);
+    if (amount <= 0n || amount % unit !== 0n) throw new Error(t('po.errAmount', { n: i + 1, token: router.token }));
+    const { counts, total } = canonicalSplit(amount, router.pools.map((p) => p.denomination));
+    return { recipient, amount, counts, total };
+  });
+}
+function poWarnings() {
+  const out = [['warn', t('po.public')]];
+  if (userAddress && poPlan && poPlan.payees.some((p) => p.recipient.toLowerCase() === userAddress.toLowerCase())) out.unshift(['bad', t('warn.selfRecipient')]);
+  $('poWarnings').innerHTML = out.map(([c, x]) => '<li class="' + c + '">' + esc(x) + '</li>').join('');
+}
+function poSync() { $('poDepositBtn').disabled = !(poPlan && signer); }
+$('poPlanBtn').addEventListener('click', () => {
+  poPlan = null; $('poPlanBox').innerHTML = '';
+  try {
+    const router = routerFor(currentPool());
+    if (!router || currentPool().frozen || currentPool().legacy) throw new Error(t('da.noRouter', { token: currentPool() ? currentPool().token : '', net: currentPool() && currentPool().net ? currentPool().net.name : '' }));
+    const payees = poParse(router), denoms = router.pools.map((p) => p.denomination), amounts = router.pools.map((p) => p.amount);
+    const counts = denoms.map((_, i) => payees.reduce((x, p) => x + p.counts[i], 0n));
+    const chunks = packChunks(counts, denoms, 32), total = counts.reduce((x, c, i) => x + c * denoms[i], 0n), dec = router.decimals;
+    poPlan = { router, payees, counts, chunks, total };
+    const rows = payees.map((p, i) => '<tr><td>' + (i + 1) + '</td><td><code>' + esc(short(p.recipient)) + '</code></td><td>' + esc(fmt(p.amount, dec) + ' ' + router.token) + '</td><td>' + esc(partsText(p.counts.map(Number), amounts)) + '</td></tr>').join('');
+    $('poPlanBox').innerHTML = '<div class="status ok">' + esc(t('po.planOk', { n: payees.length, total: fmt(total, dec), token: router.token, notes: String(chunks.reduce((x, c) => x + c.total, 0n)), d: chunks.length, net: router.net.name })) + '</div>' +
+      '<div class="rep-wrap"><table class="rep"><thead><tr><th>#</th><th>' + esc(t('po.colTo')) + '</th><th>' + esc(t('po.colAmt')) + '</th><th>' + esc(t('po.colNotes')) + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  } catch (e) { $('poPlanBox').innerHTML = '<div class="status err">' + esc(errText(e)) + '</div>'; }
+  poWarnings(); poSync();
+});
+function poRecordText(rec) { return JSON.stringify(rec, null, 1); }
+function poShowRecord(rec, complete) {
+  const text = poRecordText(rec);
+  $('poRecordBox').innerHTML = '<div class="secret-box"><strong>' + esc(t(complete ? 'po.recTitle' : 'po.recPartial')) + '</strong>' +
+    '<div class="muted small" style="margin-top:4px">' + esc(t('po.recSub', { d: rec.masterKeys.length })) + '</div>' +
+    '<div class="btn-row"><button id="poRecDl" class="small">' + esc(t('btn.download')) + '</button><button id="poRecCopy" class="secondary small">' + esc(t('btn.copy')) + '</button></div>' +
+    (complete ? '<label class="check"><input type="checkbox" id="poRecSaved"><span>' + esc(t('po.recSaved')) + '</span></label>' : '') + '</div>';
+  $('poRecDl').addEventListener('click', () => downloadFile('latheon-payout-' + rec.chainId + '-' + (rec.depositTxs[0] || '').slice(2, 10) + '.json', text, 'application/json'));
+  $('poRecCopy').addEventListener('click', () => copyText(text, 'what.key'));
+  if (complete) $('poRecSaved').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked) $('poRecordInput').value = text; });
+  window.__latheonLastPayout = text;   // for the browser tests
+}
+$('poDepositBtn').addEventListener('click', async () => {
+  const btn = $('poDepositBtn'); btn.disabled = true; $('poRecordBox').innerHTML = ''; hideStatus('poStatus');
+  if (!poPlan) return;
+  const { router, payees, chunks, total } = poPlan, dec = router.decimals, native = !!router.tok.native;
+  const st = Steps('poSteps', ['po.s1', native ? 'da.s2n' : 'da.s2', 'po.s3']);
+  const rec = { kind: PAYOUT_KIND, version: 1, chainId: router.net.chainId, router: router.address, masterKeys: [], minBlock: 0, depositTxs: [],
+    payees: payees.map((p) => ({ recipient: p.recipient, amount: p.amount.toString(), counts: p.counts.map(String) })) };
+  try {
+    await ensureCorrectNetwork({ net: router.net });
+    st.go(0);
+    const rd = new ethers.Contract(router.address, ROUTER_ABI, provider);
+    if (ethers.getAddress(await rd.token()) !== ethers.getAddress(router.tok.address)) throw new Error(t('da.mismatch'));
+    for (let i = 0; i < 4; i++) if (ethers.getAddress(await rd.pools(i)) !== router.pools[i].address || (await rd.denominations(i)) !== router.pools[i].denomination) throw new Error(t('da.mismatch'));
+    for (const c of chunks) { const sp = await rd.split(c.amount); if (sp.total !== c.total || sp.counts.some((x, i) => x !== c.counts[i])) throw new Error(t('da.mismatch')); }
+    const bal = native ? await provider.getBalance(userAddress) : await new ethers.Contract(router.tok.address, ERC20_ABI, provider).balanceOf(userAddress);
+    if (bal < total) throw new Error(t('da.lowBal', { token: router.token, have: fmt(bal, dec), need: fmt(total, dec) }));
+    if (!native) { st.go(1, t('x.confirm')); await (await new ethers.Contract(router.tok.address, ERC20_ABI, signer).approve(router.address, total)).wait(); }
+    st.go(2);
+    for (let k = 0; k < chunks.length; k++) {
+      st.extra(2, t('po.depN', { i: k + 1, n: chunks.length }) + ' · ' + t('x.confirm'));
+      const master = randomFieldElement(), n = Number(chunks[k].total), commitments = [];
+      for (let i = 0; i < n; i++) { const key = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(computeCommitment(key.spendKey, key.viewKey)); }
+      const tx = await sendWithGasMargin(new ethers.Contract(router.address, ROUTER_ABI, signer), 'deposit', [chunks[k].amount, commitments], native ? { value: chunks[k].amount } : {});
+      rec.masterKeys.push(formatMasterKey(router.net.chainId, router.address, master)); rec.depositTxs.push(tx.hash);
+      unsavedNote = true; syncDepositBtn();
+      poShowRecord(rec, false);   // shown after every deposit: the master keys of what is already deposited are never lost
+      const rc = await tx.wait();
+      if (rc.blockNumber > rec.minBlock) rec.minBlock = rc.blockNumber;
+      log('Payout deposit ' + (k + 1) + '/' + chunks.length + ': ' + n + ' notes, tx ' + tx.hash);
+    }
+    depositWallets.add(userAddress.toLowerCase());
+    st.done(); poShowRecord(rec, true);
+    setStatus('poStatus', t('po.depOk', { d: chunks.length, total: fmt(total, dec), token: router.token }), 'ok');
+    await refreshBalances();
+  } catch (e) {
+    st.fail(); log('ERROR: ' + errText(e));
+    if (rec.masterKeys.length) poShowRecord(rec, false);
+    setStatus('poStatus', t('po.depFail') + errText(e) + (rec.masterKeys.length ? ' ' + t('po.depFailKeys', { d: rec.masterKeys.length }) : ''), 'err');
+  } finally { poSync(); }
+});
+function poReadRecord() {
+  let rec; try { rec = JSON.parse($('poRecordInput').value); } catch (e) { throw new Error(t('po.errRec')); }
+  if (!rec || rec.kind !== PAYOUT_KIND || rec.version !== 1 || !Array.isArray(rec.masterKeys) || !rec.masterKeys.length || !Array.isArray(rec.payees) || !rec.payees.length || rec.payees.length > PAYOUT_MAX) throw new Error(t('po.errRec'));
+  const router = ROUTERS.find((r) => r.net.chainId === Number(rec.chainId) && r.address.toLowerCase() === String(rec.router).toLowerCase());
+  if (!router) throw new Error(t('wa.errRouter', { addr: short(String(rec.router)), chain: rec.chainId }));
+  const mks = rec.masterKeys.map((m) => { const mk = parseMasterKey(m); if (mk.chainId !== router.net.chainId || mk.router.toLowerCase() !== router.address.toLowerCase()) throw new Error(t('po.errRec')); return mk; });
+  const payees = rec.payees.map((p) => ({ recipient: ethers.getAddress(String(p.recipient)), amount: BigInt(p.amount), counts: (p.counts || []).map((c) => BigInt(c)) }));
+  if (payees.some((p) => p.counts.length !== 4 || p.counts.reduce((x, c, i) => x + c * router.pools[i].denomination, 0n) !== p.amount)) throw new Error(t('po.errRec'));
+  return { rec, router, mks, payees };
+}
+$('poRecordInput').addEventListener('input', () => { let r = null; try { r = poReadRecord().router; } catch (e) {} $('poRelayRow').hidden = !(r && relayFor(r.net)); });
+$('poPayBtn').addEventListener('click', async () => {
+  const btn = $('poPayBtn'); btn.disabled = true; $('poPayTable').innerHTML = ''; hideStatus('poPayStatus');
+  let st = Steps('poPaySteps', ['wa.s1', 'wa.s2', 'po.p3']);
+  const res = [];
+  const draw = (router, payees) => {
+    $('poPayTable').innerHTML = '<div class="rep-wrap"><table class="rep"><thead><tr><th>#</th><th>' + esc(t('po.colTo')) + '</th><th>' + esc(t('po.colAmt')) + '</th><th>' + esc(t('po.colState')) + '</th><th>' + esc(t('po.colTx')) + '</th></tr></thead><tbody>' +
+      payees.map((p, i) => { const r = res[i] || { state: 'po.stWait', txs: [] }; return '<tr><td>' + (i + 1) + '</td><td><code>' + esc(short(p.recipient)) + '</code></td><td>' + esc(fmt(p.amount, router.decimals) + ' ' + router.token) + '</td><td class="' + (r.state === 'po.stFail' ? 'no' : r.state === 'po.stPaid' || r.state === 'po.stAlready' ? 'ok' : '') + '">' + esc(t(r.state)) + '</td><td>' + r.txs.map((h) => '<a href="' + esc(router.net.explorerUrl + '/tx/' + h) + '" target="_blank" rel="noopener">' + esc(h.slice(0, 10)) + '…</a>').join(' ') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  };
+  try {
+    const { rec, router, mks, payees } = poReadRecord();
+    const delayMin = Number($('poDelay').value.trim() || '0');
+    if (!Number.isFinite(delayMin) || delayMin < 0 || delayMin > 1440) throw new Error(t('po.errDelay'));
+    const viaRelay = relayOn(router.net, 'poUseRelay');
+    if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
+    const rp = readProvider(router.net);
+    st.go(0);
+    const deps = await Promise.all(router.pools.map((p) => fetchDeposits(p, true)));
+    const byCommit = new Map(); deps.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex })));
+    st.go(1);
+    const notes = [];
+    mks.forEach((mk, m) => { for (let i = 0; i < MASTER_SCAN_LIMIT; i++) { const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i), hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey)); if (hit) notes.push({ mk: m, index: i, poolIndex: hit.pi, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) }); } });
+    await mapLimit(notes, 4, (n) => withRetry(() => new ethers.Contract(router.pools[n.pi].address, POOL_ABI.v5, rp).nullifierHashes(n.nullifierHash), 'checking whether a note is spent').then((x) => { n.spent = !!x; }));
+    let assigned; try { assigned = assignNotes(payees.map((p) => p.counts), notes, 4); } catch (e) { throw new Error(t('po.errNotes')); }
+    st.done(); draw(router, payees);
+    let paidNow = 0;
+    for (let i = 0; i < payees.length; i++) {
+      const left = assigned[i].filter((n) => !n.spent);
+      if (!left.length) { res[i] = { state: 'po.stAlready', txs: [] }; draw(router, payees); continue; }
+      if (paidNow && delayMin) { res[i] = { state: 'po.stPause', txs: [] }; draw(router, payees); await new Promise((r) => setTimeout(r, delayMin * 60000)); }
+      res[i] = { state: 'po.stPaying', txs: [] }; draw(router, payees);
+      st = Steps('poPaySteps', ['wa.s4', 'wa.s5', 'wa.s6']);
+      try {
+        const txs = await sendNotesTo(router, rp, deps, left, payees[i].recipient, viaRelay, st, 0, 'poPayStatus');
+        st.done(); res[i] = { state: left.length === assigned[i].length ? 'po.stPaid' : 'po.stResumed', txs }; paidNow++;
+        left.forEach((n) => { n.spent = true; });
+      } catch (e) { st.fail(); res[i] = { state: 'po.stFail', txs: [] }; draw(router, payees); throw e; }
+      draw(router, payees);
+    }
+    setStatus('poPayStatus', t('po.payOk', { n: payees.length, k: paidNow }), 'ok');
+    if (signer) await refreshBalances();
+  } catch (e) { st.fail(); setStatus('poPayStatus', t('po.payFail') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
+  finally { btn.disabled = false; }
+});
+$('poInput').addEventListener('input', () => { poPlan = null; $('poPlanBox').innerHTML = ''; poSync(); });
 
 // ---------- disclose ----------
 $('discloseBtn').addEventListener('click', async () => {
