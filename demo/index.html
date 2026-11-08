@@ -239,7 +239,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
 <main class="wrap">
   <header class="intro">
     <h1 data-i18n="intro.h1">Try Latheon on a testnet</h1>
-    <p data-i18n="intro.p">Deposit, withdraw, and prove one deposit to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.</p>
+    <p data-i18n="intro.p">Deposit, withdraw, pay a list of recipients, and prove deposits to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.</p>
     <div class="pill" data-i18n="intro.pill">● Testnets only · test tokens, no real value · no independent audit yet</div>
   </header>
 
@@ -261,7 +261,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     </div>
     <div class="card">
       <h2><span data-i18n="setup.wallet">Wallet</span> <span id="activePoolBadge" class="muted small" style="text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans'"></span></h2>
-      <div id="walletStatus" class="status info" data-i18n="wallet.notConnected">Not connected. Needed for faucet, deposit and withdraw.</div>
+      <div id="walletStatus" class="status info" data-i18n="wallet.notConnected">Not connected. Needed for the faucet and deposits; withdrawals through the relayer work without a wallet.</div>
       <div class="btn-row">
         <button id="connectBtn" data-i18n="btn.connect" disabled>Connect wallet</button>
         <button id="claimBtn" class="secondary" data-i18n="btn.claim" disabled>Claim test tokens</button>
@@ -484,14 +484,14 @@ const $ = (id) => document.getElementById(id);
 const I18N = {
   en: {
     'intro.h1': 'Try Latheon on a testnet',
-    'intro.p': 'Deposit, withdraw, and prove one deposit to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.',
+    'intro.p': 'Deposit, withdraw, pay a list of recipients, and prove deposits to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.',
     'intro.pill': '● Testnets only · test tokens, no real value · no independent audit yet',
     'setup.pool': 'Network &amp; token', 'setup.net': 'Network', 'setup.tok': 'Token', 'setup.fixed': 'Pool (one fixed amount)', 'setup.poolHint': 'Each pool holds one fixed amount, so every deposit looks the same from outside.', 'setup.wallet': 'Wallet',
     'pool.loading': 'Loading deployments…', 'pool.info': '{net} · {label} · contract {addr}',
     'dep.frozen': 'Deposits into this pool are frozen: it uses the pre-V7 circuit (or is on a deprecated network) and is kept only so existing notes can be withdrawn. Deposit into a V7 pool instead.', 'pool.frozenBanner': 'This pool is frozen for deposits. It predates the V7 fix (STATUS §7) or is on a deprecated network; its notes can still be withdrawn, but do not deposit fresh funds here — use a V7 pool.',
     'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Deposits are frozen; use the V7 pools.',
     'pool.legacyGroup': 'Legacy V4 (deprecated, recipient not bound)',
-    'wallet.notConnected': 'Not connected. Needed for faucet, deposit and withdraw.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.gas': '{coin} balance (gas)', 'wallet.token': '{token} balance',
+    'wallet.notConnected': 'Not connected. Needed for the faucet and deposits; withdrawals through the relayer work without a wallet.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.gas': '{coin} balance (gas)', 'wallet.token': '{token} balance',
     'wallet.noWallet': 'No wallet found — install MetaMask (desktop browser).', 'wallet.connected': 'Connected to {net}.', 'wallet.connFailed': 'Connection failed: ',
     'btn.connect': 'Connect wallet', 'btn.reconnect': 'Reconnect', 'btn.claim': 'Claim test tokens', 'btn.deposit': 'Deposit', 'btn.withdraw': 'Generate proof &amp; withdraw',
     'btn.check': 'Check note only', 'btn.disclose': 'Generate disclosure proof', 'btn.copy': 'Copy', 'btn.verify': 'Verify', 'btn.genCode': 'Generate code', 'btn.newCode': 'New code',
@@ -698,14 +698,14 @@ const I18N = {
   },
   ru: {
     'intro.h1': 'Попробуйте Latheon в тестовой сети',
-    'intro.p': 'Депозит, вывод и доказательство одного депозита аудитору, целиком, в вашем браузере. Доказательства создаются на вашем устройстве; нота его не покидает.',
+    'intro.p': 'Депозит, вывод, выплаты списку получателей и доказательство депозитов аудитору, целиком, в вашем браузере. Доказательства создаются на вашем устройстве; нота его не покидает.',
     'intro.pill': '● Только тестовые сети · тестовые токены без реальной ценности · независимого аудита пока нет',
     'setup.pool': 'Сеть и токен', 'setup.net': 'Сеть', 'setup.tok': 'Токен', 'setup.fixed': 'Пул (одна фиксированная сумма)', 'setup.poolHint': 'В каждом пуле одна фиксированная сумма, поэтому снаружи все депозиты выглядят одинаково.', 'setup.wallet': 'Кошелёк',
     'pool.loading': 'Загружаю реестр…', 'pool.info': '{net} · {label} · контракт {addr}',
     'dep.frozen': 'Депозиты в этот пул заморожены: он на схеме до V7 (или в снятой с эксплуатации сети) и оставлен только для вывода уже внесённых нот. Внесите депозит в пул V7.', 'pool.frozenBanner': 'Пул заморожен для депозитов. Он до исправления V7 (STATUS §7) или в снятой с эксплуатации сети; вывести ноты из него можно, но не вносите новые средства — используйте пул V7.',
     'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Депозиты заморожены; используйте пулы V7.',
     'pool.legacyGroup': 'Устаревшие V4 (получатель не привязан)',
-    'wallet.notConnected': 'Не подключён. Нужен для фаусета, депозита и вывода.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.gas': 'Баланс {coin} (газ)', 'wallet.token': 'Баланс {token}',
+    'wallet.notConnected': 'Не подключён. Нужен для крана и депозитов; вывод через релейер работает без кошелька.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.gas': 'Баланс {coin} (газ)', 'wallet.token': 'Баланс {token}',
     'wallet.noWallet': 'Кошелёк не найден — установите MetaMask (браузер на компьютере).', 'wallet.connected': 'Подключено к {net}.', 'wallet.connFailed': 'Не удалось подключиться: ',
     'btn.connect': 'Подключить кошелёк', 'btn.reconnect': 'Переподключить', 'btn.claim': 'Получить тестовые токены', 'btn.deposit': 'Внести депозит', 'btn.withdraw': 'Создать доказательство и вывести',
     'btn.check': 'Только проверить ноту', 'btn.disclose': 'Создать доказательство раскрытия', 'btn.copy': 'Копировать', 'btn.verify': 'Проверить', 'btn.genCode': 'Создать код', 'btn.newCode': 'Новый код',
@@ -912,14 +912,14 @@ const I18N = {
   },
   zh: {
     'intro.h1': '在测试网上体验 Latheon',
-    'intro.p': '存款、取款，并向审计方证明某一笔存款属于您，全部流程在浏览器中完成。证明在您的设备上生成；您的凭证（note）不会离开设备。',
+    'intro.p': '存款、取款、向收款人列表付款，并向审计方证明存款属于您，全部流程在浏览器中完成。证明在您的设备上生成；您的凭证（note）不会离开设备。',
     'intro.pill': '● 仅限测试网 · 测试代币，无实际价值 · 尚无独立审计',
     'setup.pool': '网络与代币', 'setup.net': '网络', 'setup.tok': '代币', 'setup.fixed': '资金池（单一定额）', 'setup.poolHint': '每个资金池只有一种固定金额，因此从外部看所有存款都一样。', 'setup.wallet': '钱包',
     'pool.loading': '正在加载部署信息…', 'pool.info': '{net} · {label} · 合约 {addr}',
     'dep.frozen': '此资金池的存款已冻结：它使用 V7 之前的电路（或位于已弃用的网络上），仅保留用于取出已有凭证。请改向 V7 资金池存款。', 'pool.frozenBanner': '此资金池已冻结存款。它早于 V7 修复（STATUS §7）或位于已弃用网络；仍可取出其凭证，但请勿存入新资金——请使用 V7 资金池。',
     'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。存款已冻结；请使用 V7 资金池。',
     'pool.legacyGroup': '旧版 V4（已弃用，未绑定接收地址）',
-    'wallet.notConnected': '未连接。领取测试币、存款和取款需要钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.gas': '{coin} 余额（Gas）', 'wallet.token': '{token} 余额',
+    'wallet.notConnected': '未连接。领取测试币和存款需要钱包；通过中继器取款无需钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.gas': '{coin} 余额（Gas）', 'wallet.token': '{token} 余额',
     'wallet.noWallet': '未找到钱包——请安装 MetaMask（电脑浏览器）。', 'wallet.connected': '已连接到 {net}。', 'wallet.connFailed': '连接失败：',
     'btn.connect': '连接钱包', 'btn.reconnect': '重新连接', 'btn.claim': '领取测试代币', 'btn.deposit': '存款', 'btn.withdraw': '生成证明并取款',
     'btn.check': '仅检查凭证', 'btn.disclose': '生成披露证明', 'btn.copy': '复制', 'btn.verify': '验证', 'btn.genCode': '生成代码', 'btn.newCode': '新代码',
