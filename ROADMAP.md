@@ -40,7 +40,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [x] Contributing guide, security policy, threat model.
 - [ ] Good-first-issue backlog (not started).
 
-**Target outcome:** an external developer can use the testnet without direct help from the core team. **6 of 8 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog. The SDK item is done only for the older pools; its V7 update is open under THEN.**
+**Target outcome:** an external developer can use the testnet without direct help from the core team. **6 of 8 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog. The SDK item is done for V7 too (run on the test chain on 6 November 2026; payouts to a list of recipients since 7 November).**
 
 ---
 
