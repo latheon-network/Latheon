@@ -1,6 +1,6 @@
 # V8: one circuit and contract revision (design draft, 7 November 2026)
 
-Status: draft for discussion and for outside review. Nothing here is built, deployed or decided unless it says so. Testnet only; no audit; the V7 pools stay as they are.
+Status: draft for outside review. Nothing here is built or deployed. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
 
 ## 1. Why one revision
 
@@ -10,7 +10,7 @@ Every change to a circuit means new proving keys, a new trusted setup, new pools
 2. Explicit domain separation for Poseidon (same review).
 3. A proof that links a deposit to its nullifier for one auditor (`disclose_withdrawal` in `docs/disclosure-v2-design.md` §6). It is needed for two things the current tools cannot do: a payment receipt ("this deposit paid that withdrawal") and proof of reserves ("these notes are still unspent at block N"; see §5).
 4. The contract items of the internal reviews (`THREAT-MODEL.md` §8.5, `docs/self-review-2026-11-06.md`).
-5. A decision on an optional association-set root (§6): include it now, or not at all in this revision.
+5. A decision on an optional association-set root (§6): decided, not in V8.
 
 What does not change: Groth16 on BN254, Poseidon, tree depth 20, fixed denominations with the router, the relayer model, the `spendKey` / `viewKey` split and master keys, user-started disclosure only (no regulator key). Everything must also work unchanged on Latheon's own chain later (the context in §3 includes the chain id for that reason).
 
@@ -60,7 +60,7 @@ What it gives:
 - **Reserves:** "these notes are unspent at block N": the auditor checks that no `Withdrawal` event with that nullifier exists up to block N (logs are always available, unlike old state). Today this cannot be checked at all: without a proven link a user could state a nullifier that was never used.
 - Cost to state plainly: once an auditor knows the nullifier of an unspent note, they will recognise its withdrawal later. That is the price of a reserves proof.
 
-**Payment reference (optional, decided with §7):** a `reference` field in the withdrawal's extData (a salted hash of an invoice id, chosen by the payer, emitted in the `Withdrawal` event). With `disclose_link` the payer can then show "invoice N was paid by this withdrawal from my deposit", and the reference was fixed at payment time, not written afterwards. Only the hash is public; the payer gives the invoice id and salt to the auditor.
+**Payment reference (decided: yes, always present):** a `reference` field in the withdrawal's extData (a salted hash of an invoice id, chosen by the payer, emitted in the `Withdrawal` event). With `disclose_link` the payer can then show "invoice N was paid by this withdrawal from my deposit", and the reference was fixed at payment time, not written afterwards. Only the hash is public; the payer gives the invoice id and salt to the auditor. The field is filled in every withdrawal (a random value when there is no invoice), so a withdrawal with a reference does not stand out, and the wallet must use a fresh random salt per invoice, or the id could be guessed from the hash.
 
 ## 6. Optional association-set root (decision needed)
 
@@ -68,7 +68,7 @@ A second Merkle proof: the commitment is also in an association set chosen by th
 
 Costs: about twice the constraints (22,015 or 25,535), a larger ptau (2^15), roughly twice the proving time (estimate), and who runs a set is an open question. Benefit of deciding now: adding it later means another circuit, ceremony and pool generation.
 
-Options: (A) include now, optional per withdrawal; (B) leave out of V8 and decide on Latheon's own chain. Not decided.
+Options: (A) include now, optional per withdrawal; (B) leave out of V8 and decide on Latheon's own chain. **Decided: B.** V8 stays at about the size of today's circuit; for the first users (accountants, payouts) receipts and reserves through `disclose_link` matter more, and an association set is of no use until someone runs one.
 
 ## 7. Withdrawal public inputs: one extData hash
 
@@ -82,7 +82,7 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 - `withdrawMany`: skip a note that someone else already withdrew instead of reverting the whole batch, and report which notes were paid.
 - ERC-20 variants: `SafeERC20`, refuse fee-on-transfer and rebasing tokens (balance difference on deposit), before any ERC-20 pool.
 - Pin the compiler (0.8.24), one shared verifier interface file, correct NatSpec titles.
-- Open: a deposit pause (needs a party allowed to pause, an owner or timelocked multisig, which today's pools deliberately lack).
+- Deposit pause (decided for the test chain): deposits only, never withdrawals; held by a multisig with a time delay, not by one key. Before any chain with real value this is a question for a lawyer (an operator with a lever), and the alternative without any key (deposits close by themselves at a date fixed at deployment) stays on the table.
 
 ## 9. Migration
 
@@ -107,14 +107,18 @@ For the outside review (sent to Least Authority on 6 November 2026; questions 1�
 4. `extDataHash` reduced mod p: any concern with keccak output above p?
 5. What makes a phase-2 ceremony credible for a project of one developer?
 
-For Vladimir:
-6. Association-set root in V8: A (include) or B (later).
-7. Payment reference in extData: yes or no (privacy: the hash is public).
-8. Deposit pause: worth adding an owner or multisig, or keep pools without any admin.
+Decided by Vladimir on 8 November 2026: see §13.
 
-## 12. Order of work (when decided)
+## 12. Order of work
 
-1. Answers to §11 (review and decisions); this document updated.
+1. Answers to §11 from the outside review; this document updated.
 2. Final circuits and their tests; constraint and time measurements; under-constraint tools.
 3. Contracts V8 and their tests; gas on a local chain.
 4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`.
+
+## 13. Decisions (8 November 2026)
+
+1. Association-set root: not in V8 (§6, option B); decided again for Latheon's own chain.
+2. Payment reference in extData: yes, filled in every withdrawal, random when unused (§5, §7).
+3. Deposit pause: for the test chain, deposits only, held by a timelocked multisig; legal question before any real value (§8).
+4. Unless the outside review advises otherwise: `ctx` is folded into the nullifier (§3) and tree nodes stay untagged (§4, draft a).
