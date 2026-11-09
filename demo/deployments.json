@@ -131,7 +131,13 @@
       "token": "LTH",
       "amount": 100,
       "address": "0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae",
-      "deployBlock": 1464
+      "deployBlock": 1464,
+      "deployTx": "0x78621c1b1ab56c881acbd7efcd160c241f0cff012df6b4f7dc81f19b0e815563",
+      "commit": "129a4c0d38af03b0ad2db59e8ad01823e813ed77",
+      "verification": {
+        "blockscout": false,
+        "checked": "2026-11-09"
+      }
     },
     {
       "id": "latheon-testnet:LTH-50:v7",
@@ -140,7 +146,13 @@
       "token": "LTH",
       "amount": 50,
       "address": "0x5A3DA32BCc848a81A3a379620120ae06DfA7C657",
-      "deployBlock": 1465
+      "deployBlock": 1465,
+      "deployTx": "0x947ea70ddcc9e29ee6846cae6f652320e2a9c70b78be178137bdd0717e96b485",
+      "commit": "129a4c0d38af03b0ad2db59e8ad01823e813ed77",
+      "verification": {
+        "blockscout": false,
+        "checked": "2026-11-09"
+      }
     },
     {
       "id": "latheon-testnet:LTH-10:v7",
@@ -149,7 +161,13 @@
       "token": "LTH",
       "amount": 10,
       "address": "0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429",
-      "deployBlock": 1466
+      "deployBlock": 1466,
+      "deployTx": "0x2eda26c9ed068b021a25575d4d211939f13a6169e248dacc1ce7eca800e88e02",
+      "commit": "129a4c0d38af03b0ad2db59e8ad01823e813ed77",
+      "verification": {
+        "blockscout": false,
+        "checked": "2026-11-09"
+      }
     },
     {
       "id": "latheon-testnet:LTH-1:v7",
@@ -158,7 +176,13 @@
       "token": "LTH",
       "amount": 1,
       "address": "0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A",
-      "deployBlock": 1467
+      "deployBlock": 1467,
+      "deployTx": "0x45924a32b4f1566cdf307d313f4794a9967631bcecf859043b22a15835d10989",
+      "commit": "129a4c0d38af03b0ad2db59e8ad01823e813ed77",
+      "verification": {
+        "blockscout": false,
+        "checked": "2026-11-09"
+      }
     },
     {
       "id": "latheon-testnet:LTH-100:v6",
@@ -485,7 +509,13 @@
       "native": true,
       "version": "v7",
       "address": "0x1D1189D5399B24BB40858AEACDb649977b596Cf2",
-      "deployBlock": 1468
+      "deployBlock": 1468,
+      "deployTx": "0x2e709f1507a590d369f81f8b8da07c28a9c8ef19f576bad4cb0662eb4f6f9403",
+      "commit": "129a4c0d38af03b0ad2db59e8ad01823e813ed77",
+      "verification": {
+        "blockscout": false,
+        "checked": "2026-11-09"
+      }
     },
     {
       "id": "latheon-testnet:LTH:v6",

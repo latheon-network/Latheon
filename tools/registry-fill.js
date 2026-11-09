@@ -59,7 +59,11 @@ async function blockscoutVerified(api, address) {
   if (r.status === 404) return false;
   if (!r.ok) throw new Error('blockscout HTTP ' + r.status);
   const j = await r.json();
-  return j.is_verified === true || j.is_fully_verified === true;
+  // Blockscout answers for a contract without published source with the bytecode fields only (no name, abi or source_code).
+  if (j.is_verified === true || j.is_fully_verified === true) return true;
+  if ((typeof j.source_code === 'string' && j.source_code.length) || (Array.isArray(j.abi) && j.abi.length)) return true;
+  if (typeof j.creation_bytecode === 'string' || typeof j.deployed_bytecode === 'string') return false;
+  throw new Error('unexpected explorer answer (keys: ' + Object.keys(j).slice(0, 8).join(', ') + ')');
 }
 
 (async () => {
