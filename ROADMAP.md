@@ -34,6 +34,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [x] ~~Public faucet~~ — done, live. On the Latheon test chain the faucet is a web page at the explorer (100 test LTH per address once a day, `docs/testnet.md`); the `LatheonFaucet` contract (500 test LTH per address every 24h) belongs to the deprecated Ethereum Sepolia deployment.
 - [x] ~~Block explorer integration~~ — done. The website shows live deposit counts per network, read from the pool contracts (`nextIndex()`); explorer links on the site and in the demo.
 - [x] ~~Deployment automation and reproducible build instructions~~ — done. See `DEPLOYMENT-CHECKLIST.en.md`.
+- [x] ~~CI for Solidity and Circom~~ — done for the V7 generation: `.github/workflows/ci.yml` (first green run 9 November 2026, 29 min 11 s; circom 2.2.3 built from a pinned commit; actions pinned by SHA). Not covered yet: the browser tests in `test/demo-e2e`, the V5 generation, the two review checks that need `l2-eval-ci`.
 - [x] ~~Developer documentation and an initial SDK~~ — done for the V3 pool. See `sdk/`, including a wallet-connected reference app tested end-to-end. Its reference app handles only the frozen V5/V4 pools; the SDK itself was updated for V7 (see the SDK item under THEN).
 
 **Open source foundation**

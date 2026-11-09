@@ -1,5 +1,7 @@
 # Latheon
 
+[![CI](https://github.com/latheon-network/Latheon/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/latheon-network/Latheon/actions/workflows/ci.yml)
+
 > **Private by default. Verifiable on demand.**
 
 Latheon is an early-stage, open-source project developing privacy-preserving blockchain infrastructure using zero-knowledge proofs and selective disclosure. Today it is a set of shielded pools on Ethereum-compatible testnets; the long-term goal is an Ethereum L2 with privacy by default. The framework is Arbitrum Orbit, and the first step is running: the Latheon test chain, with test LTH as its gas coin (see [`docs/testnet.md`](./docs/testnet.md) and [`ROADMAP.md`](./ROADMAP.md)). A production chain is not running and has no date.
@@ -78,6 +80,7 @@ docs/        technical documentation, see docs/README.md
 
 ## Verify it yourself
 
+- CI: `.github/workflows/ci.yml` runs the V7 checks of this list on a clean Ubuntu machine on every push to `main`, on pull requests and weekly (fuzz-v7 with a new seed): registry and version checks, the SDK tests, `test/native-v7`, `test/fuzz-v7` on anvil 1.7.1, and `test/zk-review` with `test/regression-v7` on circom 2.2.3 built from the pinned commit of iden3/circom. First run, 9 November 2026, commit df0a04e: all five jobs passed, 29 min 11 s in total. Not in CI: the browser tests in `test/demo-e2e` (except `rpc-robust.js`), the older generations (V5), and two review checks that need the `l2-eval-ci` repository (they are skipped). CI is not an audit and adds no new tests.
 - `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
 - `cd test/distribution && npm install && npm test`: the router with real proofs on a local EVM (48 checks, a few minutes); `node wallet.js` checks the wallet-side helpers (25 checks).
 - `cd test/native && npm install && npm test`: the native-coin variant of the V5 pool and the router (no ERC-20: the pools take and pay the chain's gas coin), with real proofs on a local EVM (57 checks, a few minutes). This variant was the Latheon test chain's first pool set (20 October 2026), now frozen and superseded by V7; `test/native-v7` below covers the current one.
