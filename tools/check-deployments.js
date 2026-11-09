@@ -62,6 +62,14 @@ for (const r of dep.routers || []) {
   if (r.frozen !== true) fail(`router ${r.id} (${r.version || 'v5'}, ${r.address}) is not V7 but lacks "frozen": true`);
 }
 
+// ---------- 2b. provenance fields (filled by tools/registry-fill.js): malformed ones fail, missing ones on a current V7 entry are a warning
+for (const x of [...(dep.pools || []), ...(dep.routers || [])]) {
+  if (x.deployTx !== undefined && !/^0x[0-9a-f]{64}$/.test(String(x.deployTx))) fail(`${x.id}: deployTx is not a 0x + 64 lower-case hex transaction hash`);
+  if (x.commit !== undefined && !/^[0-9a-f]{40}$/.test(String(x.commit))) fail(`${x.id}: commit is not a full 40-character lower-case sha`);
+  if (x.verification !== undefined && (typeof x.verification.blockscout !== 'boolean' || !/^\d{4}-\d{2}-\d{2}$/.test(String(x.verification.checked)))) fail(`${x.id}: verification must be { "blockscout": true|false, "checked": "YYYY-MM-DD" }`);
+  if (isV7(x) && !x.frozen) { const miss = ['deployTx', 'commit', 'verification'].filter((k) => x[k] === undefined); if (miss.length) warn(`current V7 entry ${x.id} has no ${miss.join(', ')} (run node tools/registry-fill.js --write)`); }
+}
+
 // ---------- 3. documents
 const frozen = new Map();   // lower-case address -> ids
 const add = (a, id) => { const k = a.toLowerCase(); frozen.set(k, [...(frozen.get(k) || []), id]); };
