@@ -1,0 +1,181 @@
+# Latheon CI (draft). Put it at .github/workflows/ci.yml.
+#
+# What it runs: the checks that already exist in the repository, on a clean Ubuntu machine, so anyone can see them pass
+# or fail on every commit. It is the same set as the "Verify it yourself" list in README.md, limited to the V7 generation
+# and the offline consistency checks. It is not an audit and adds no new tests.
+#
+# Apply zk-review-exclude-drafts.patch first (one line in test/zk-review/p1-artifacts.js): without it the check
+# "contracts/ and circuits/ at the deployed commit 129a4c0 = this checkout" fails on the new circuits/drafts/v8 files.
+# Two review checks that need the l2-eval-ci repository next to this one are skipped in CI (they print SKIP).
+#
+# Not included yet: the browser tests in test/demo-e2e (they need Playwright, Chromium and the browser bundles) and the
+# older generations (test/v5-integration, test/distribution, test/native).
+#
+# All third-party actions are pinned by commit SHA (the tag is in the comment). circom 2.2.3 is built from the pinned
+# commit of iden3/circom, because the tests need that exact compiler (README, test/zk-review).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      fuzz_seed:
+        description: "Seed for the fuzz tests (a failing run prints its seed)"
+        required: false
+        default: "1"
+  schedule:
+    - cron: "17 3 * * 1" # Mondays 03:17 UTC: all jobs again, fuzz-v7 with a new seed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  # iden3/circom tag v2.2.3. The build step refuses any other commit.
+  CIRCOM_REV: ad44e915a12bb047b05745c2884aad9cc8326bc6
+  ANVIL_VERSION: "1.7.1"
+
+jobs:
+  consistency:
+    name: Registry and version checks (offline)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: deployments.json flags and documents
+        run: node tools/check-deployments.js
+      - name: sdk/deployments.json equals demo/deployments.json
+        run: cmp sdk/deployments.json demo/deployments.json
+      - name: Version names in the V7 sources (report only, known mismatches are listed in ROADMAP.md)
+        run: node tools/check-versions.js
+      - name: Offline demo checks (log scanning, reference app code)
+        run: node test/demo-e2e/rpc-robust.js
+
+  sdk:
+    name: SDK (unit, proofs, local chain)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - run: npm ci
+        working-directory: sdk
+      - run: npm run test:all
+        working-directory: sdk
+      - name: Wallet-side helpers, and the demo's copy of distribution-core is identical to sdk/distribution.js
+        env:
+          DEMO: ${{ github.workspace }}/demo/index.html
+        run: |
+          npm ci
+          node wallet.js
+        working-directory: test/distribution
+
+  contracts-v7:
+    name: V7 pools and router (real proofs, local EVM)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: test/native-v7/package-lock.json
+      - run: npm ci
+        working-directory: test/native-v7
+      - run: npm test
+        working-directory: test/native-v7
+
+  fuzz-v7:
+    name: V7 property tests (anvil)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: test/fuzz-v7/package-lock.json
+      - run: npm ci
+        working-directory: test/fuzz-v7
+      - name: anvil from npm (published by the Foundry maintainers)
+        run: npm install --no-save @foundry-rs/anvil@${ANVIL_VERSION}
+        working-directory: test/fuzz-v7
+      - name: Fuzz tests
+        env:
+          ANVIL: ${{ github.workspace }}/test/fuzz-v7/node_modules/@foundry-rs/anvil-linux-amd64/bin/anvil
+          # manual run: the input; weekly run: the run id (a new seed each week); otherwise seed 1
+          SEED: ${{ inputs.fuzz_seed || (github.event_name == 'schedule' && github.run_id) || '1' }}
+        run: |
+          echo "seed: $SEED"
+          npm test
+        working-directory: test/fuzz-v7
+
+  zk-review:
+    name: Circuits (circom 2.2.3 from source, internal review and regression)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # the review compares the sources with the deployed commit 129a4c0, which needs the history
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: test/zk-review/package-lock.json
+      - name: Restore the circom build
+        id: circom-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/circom-2.2.3
+          key: circom-${{ runner.os }}-${{ env.CIRCOM_REV }}
+      - name: Build circom 2.2.3 from the pinned commit
+        if: steps.circom-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --quiet https://github.com/iden3/circom.git "$RUNNER_TEMP/circom-src"
+          git -C "$RUNNER_TEMP/circom-src" checkout --quiet "$CIRCOM_REV"
+          test "$(git -C "$RUNNER_TEMP/circom-src" describe --tags --exact-match)" = "v2.2.3"
+          (cd "$RUNNER_TEMP/circom-src" && cargo build --release --locked)
+          mkdir -p "$HOME/circom-2.2.3"
+          cp "$RUNNER_TEMP/circom-src/target/release/circom" "$HOME/circom-2.2.3/circom"
+      - name: circom version
+        run: |
+          "$HOME/circom-2.2.3/circom" --version
+          sha256sum "$HOME/circom-2.2.3/circom"
+      - run: npm ci
+        working-directory: test/zk-review
+      - name: Internal ZK review (artifacts, forgery on every pre-V7 circuit, withdraw_v5)
+        run: |
+          export CIRCOM="$HOME/circom-2.2.3/circom"
+          npm test
+        working-directory: test/zk-review
+      - name: Regression tests for withdraw_v5 and the V7 contracts
+        run: |
+          export CIRCOM="$HOME/circom-2.2.3/circom"
+          npm test
+        working-directory: test/regression-v7

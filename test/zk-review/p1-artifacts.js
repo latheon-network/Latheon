@@ -140,7 +140,7 @@ async function main() {
 
   // 5. deployed commit = HEAD for contracts and circuits; deployed bytecode reproduced
   try {
-    const diff = git('diff', '--stat', DEPLOYED, 'HEAD', '--', 'contracts', 'circuits', ':(exclude)circuits/ptau').trim();   // the phase-1 ptau was published later (30 October 2026)
+    const diff = git('diff', '--stat', DEPLOYED, 'HEAD', '--', 'contracts', 'circuits', ':(exclude)circuits/ptau', ':(exclude)circuits/drafts').trim();   // the phase-1 ptau was published later (30 October 2026); circuits/drafts holds unbuilt design drafts (V8)
     t.rec('contracts/ and circuits/ (except the later-published ptau) at the deployed commit 129a4c0 = this checkout', diff === '', diff.split('\n').pop());
   } catch (e) { t.skip('129a4c0 vs HEAD', 'commit not in this checkout'); }
   if (art) {
