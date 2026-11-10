@@ -41,7 +41,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 - [x] Contributing guide, security policy, threat model.
 - [ ] Good-first-issue backlog (not started).
 
-**Target outcome:** an external developer can use the testnet without direct help from the core team. **6 of 8 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog. The SDK item is done for V7 too (run on the test chain on 6 November 2026; payouts to a list of recipients since 7 November).**
+**Target outcome:** an external developer can use the testnet without direct help from the core team. **7 of 9 items above are done. Two remain: the independent circuit review (external, not something we can close ourselves) and the good-first-issue backlog. The SDK item is done for V7 too (run on the test chain on 6 November 2026; payouts to a list of recipients since 7 November).**
 
 ---
 
@@ -50,7 +50,7 @@ Details and exact contract addresses: [`STATUS.md`](./STATUS.md).
 **This section changed too, following the L1→L2 decision.** The original "Validator testnet" subsection assumed Latheon would need its own validator set — that's no longer the plan. An Ethereum L2 inherits Ethereum's validator security; it doesn't bootstrap its own. That entire subsection is dropped rather than carried forward stale.
 
 **Developer ecosystem**
-- [x] ~~SDK release and example integrations~~ — done for V3/V5 on the external testnets, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia). Not published to npm. Those pools are now frozen, so for V7 this is open again: see the SDK item below.
+- [x] ~~SDK release and example integrations~~ — done for V3/V5 on the external testnets, see `STATUS.md` §1 (`sdk/`, `sdk/demo-app-v5.html`, tested end-to-end on Sepolia). Not published to npm. Those pools are now frozen; for V7 it is done too (see the SDK item below), still not on npm.
 - [ ] Genesis Cohort onboarding: builders, integration partners. **The program is paused, not closed: no onboarding is happening and the sign-up form is off the website for now.** (The "validator operators" track is on hold pending clarity on what, if anything, node operation means for the chain — see the VISION section.)
 - [ ] Target: 5+ external developers shipping something on Latheon.
 

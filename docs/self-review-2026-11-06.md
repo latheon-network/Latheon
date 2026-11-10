@@ -46,7 +46,7 @@ No tool finding survived triage as a vulnerability. All "High" items from Slithe
 
 ## Hardening and hygiene (no vulnerability; candidates for the next contract version)
 - **ERC-20 variants** (`LatheonShieldedPoolV7`, `LatheonDistributionPoolV7`, not deployed): use `SafeERC20` and refuse fee-on-transfer or rebasing tokens (check the balance difference on deposit) before any ERC-20 deployment, for example a stablecoin pool. Today a token that returns no boolean would make calls revert (fail closed), and a fee-on-transfer token would break the pool's accounting.
-- **Pragma**: `^0.8.24` and `>=0.7.0 <0.9.0` (verifiers). Pin the exact compiler version used for deployment (0.8.24) for reproducible builds.
+- **Pragma**: `^0.8.24` and `>=0.7.0 <0.9.0` (verifiers). Pin the exact compiler version used for deployment for reproducible builds. Note (10 November 2026): the deployed V7 bytecode was compiled with solc 0.8.37 (`l2-eval-ci/testnet/latheon/build.js`, artifact `latheon-testnet.json`), while this self-review compiled the sources with 0.8.24; a rerun with 0.8.37 is still to be done.
 - **Immutables**: `pools`, `denominations` (routers) and `zeros` (pools) are set once; as arrays they cannot be `immutable` directly, but could be constants or unrolled immutables to save gas. Gas only.
 - **NatSpec**: `LatheonShieldedPoolV7Native` still describes itself as "V6" in the title (known, listed for the next contract version).
 - **Router `withdrawMany`**: one failing note reverts the whole batch (all-or-nothing). Intended; worth stating in the docs and the SDK.
