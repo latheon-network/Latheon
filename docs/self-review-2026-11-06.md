@@ -46,11 +46,11 @@ No tool finding survived triage as a vulnerability. All "High" items from Slithe
 
 ## Hardening and hygiene (no vulnerability; candidates for the next contract version)
 - **ERC-20 variants** (`LatheonShieldedPoolV7`, `LatheonDistributionPoolV7`, not deployed): use `SafeERC20` and refuse fee-on-transfer or rebasing tokens (check the balance difference on deposit) before any ERC-20 deployment, for example a stablecoin pool. Today a token that returns no boolean would make calls revert (fail closed), and a fee-on-transfer token would break the pool's accounting.
-- **Pragma**: `^0.8.24` and `>=0.7.0 <0.9.0` (verifiers). Pin the exact compiler version used for deployment (0.8.24) for reproducible builds.
+- **Pragma**: `^0.8.24` and `>=0.7.0 <0.9.0` (verifiers). Pin the exact compiler version used for deployment for reproducible builds. The deployed V7 bytecode was compiled with solc 0.8.37; see the addendum of 10 November 2026 below.
 - **Immutables**: `pools`, `denominations` (routers) and `zeros` (pools) are set once; as arrays they cannot be `immutable` directly, but could be constants or unrolled immutables to save gas. Gas only.
 - **NatSpec**: `LatheonShieldedPoolV7Native` still describes itself as "V6" in the title (known, listed for the next contract version).
 - **Router `withdrawMany`**: one failing note reverts the whole batch (all-or-nothing). Intended; worth stating in the docs and the SDK.
-- **PUSH0** (Aderyn L-4): the Latheon test chain (Arbitrum Nitro) supports it; contracts are deployed and used. Relevant only for chains without Shanghai.
+- **PUSH0** (Aderyn L-4): an artefact of this run's default EVM target. The deployed V7 contracts were built for `paris` (no PUSH0); with the deployment settings the finding disappears (addendum below).
 
 ## Not covered by this self-review
 - No formal verification or under-constraint search with dedicated tools (Picus, zkFuzz, Ecne); Circomspect does not replace them.
@@ -69,3 +69,14 @@ cargo install --locked circomspect   # 0.9.0
 mkdir -p lib && ln -s ../node_modules/circomlib/circuits lib/circomlib
 circomspect -L lib -l INFO circuits/withdraw_v5.circom
 ```
+
+## Addendum, 10 November 2026: rerun with the deployment compiler
+
+The first run above compiled the sources with solc 0.8.24. The deployed V7 bytecode was built differently: solc **0.8.37+commit.f401782d**, optimizer on with 200 runs, EVM target **paris** (`l2-eval-ci/testnet/latheon/build.js`, artifact `latheon-testnet.json`), from commit `129a4c0` (the commit recorded for the current V7 entries in `deployments.json`). Slither and Aderyn were run again on `129a4c0` with exactly these settings; the static binary's SHA-256 (`5de843c2…6e14404a`) matches the official solc-bin list.
+
+- **Slither 0.11.6:** the same High, Medium and Low counts as in the table above for all six targets (the same two High patterns on the native pool, `arbitrary-send-eth` and `incorrect-return`, and `incorrect-return` on the verifiers). `LatheonShieldedPoolV7Native` shows 9 informational notes instead of 8 (pragma, solc-version, naming, assembly, low-level call; informational only).
+- **Aderyn 0.6.8:** the same 4 High groups (H-1 to H-4, triaged above) and 9 Low groups instead of 10: the PUSH0 note is gone because the target is `paris`.
+- **Circomspect** does not depend on the Solidity compiler; its results above stand.
+- **Known compiler bug in 0.8.37:** `YulOptimizerKnowledgeBaseStaleBookkeeping` (SOL-2026-7, severity low, introduced in 0.8.19, fixed in 0.8.38; https://blog.soliditylang.org/2026/10/22/yul-optimizer-knowledge-base-stale-bookkeeping-bug/). With the legacy (evmasm) pipeline used here it can only affect inline assembly that does not refer to Solidity variables and compiler-generated Yul helpers, and only when two memory or storage locations computed from a reassigned variable coincide at runtime. V7 contains inline assembly (snarkjs verifiers, PoseidonT3). We have not assessed whether any of it matches the pattern. Empirical evidence only: real proofs verify on chain and the on-chain Merkle roots match the ones computed off-chain in every test and live run. The next revision should be compiled with 0.8.38 or later.
+
+Conclusion unchanged: no finding survived triage as a vulnerability.

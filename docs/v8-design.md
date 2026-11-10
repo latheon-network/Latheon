@@ -81,7 +81,7 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 - Payout with limited gas and without copying return data (a contract recipient cannot make a withdrawal expensive); our relayer's no-code rule can then be relaxed.
 - `withdrawMany`: skip a note that someone else already withdrew instead of reverting the whole batch, and report which notes were paid.
 - ERC-20 variants: `SafeERC20`, refuse fee-on-transfer and rebasing tokens (balance difference on deposit), before any ERC-20 pool.
-- Pin the compiler (0.8.24), one shared verifier interface file, correct NatSpec titles.
+- Pin the compiler: solc 0.8.38 or later (0.8.37, used for V7, has the low-severity optimizer bug SOL-2026-7, see the self-review addendum), the same version in the pragma, the build script and the explorer verification; one shared verifier interface file, correct NatSpec titles.
 - Deposit pause (decided for the test chain): deposits only, never withdrawals; held by a multisig with a time delay, not by one key. Before any chain with real value this is a question for a lawyer (an operator with a lever), and the alternative without any key (deposits close by themselves at a date fixed at deployment) stays on the table.
 
 ## 9. Migration
