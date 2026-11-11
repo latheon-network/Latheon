@@ -218,7 +218,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <li><b>Trusted-setup keys come from a single operator.</b> A public ceremony is required before any real value.</li>
     <li><b>Small anonymity set</b>: the pools hold mostly test deposits. A V7 pool holds up to 1,048,576 (the old V5 pools: 256).</li>
     <li><b>Bridge privacy</b> (L1 → L2) is unsolved.</li>
-    <li><b>Network level</b>: who broadcast a transaction (IP address) is not protected.</li>
+    <li><b>Network level</b>: who broadcast a transaction (IP address) is not protected. The RPC endpoint (ours on the test chain) sees your IP address and what the page asks it. Until 11 November 2026 the demo and the SDK asked it about single notes before a withdrawal, which could tie a note that was not yet withdrawn to a visitor and show which notes belong together; they now read all withdrawals of a pool instead (found in an internal review).</li>
     <li><b>Router payouts</b>: notes withdrawn together in one transaction are visibly linked.</li>
     <li><b>Payouts to a list of recipients</b>: amounts are public. Each deposit shows its amount and sender, each payment the amount received; with few users, an unusual amount can be matched to its payer. A pause between recipients weakens this, it does not remove it.</li>
     <li><b>Labels in disclosure reports</b> are the user's own text: the proofs show that the notes are the user's, not what the label says.</li>
@@ -343,7 +343,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <li><b>Ключи trusted setup созданы одной стороной.</b> До любых реальных средств нужна публичная церемония.</li>
     <li><b>Малое анонимное множество</b>: в пулах в основном тестовые депозиты. Пул V7 вмещает до 1 048 576 депозитов (старые пулы V5: 256).</li>
     <li><b>Приватность моста</b> (L1 → L2) не решена.</li>
-    <li><b>Сетевой уровень</b>: кто отправил транзакцию (IP-адрес), не защищено.</li>
+    <li><b>Сетевой уровень</b>: кто отправил транзакцию (IP-адрес), не защищено. Узел RPC (в тестовой сети он наш) видит ваш IP-адрес и то, что у него спрашивает страница. До 11 ноября 2026 года демо и SDK перед выводом спрашивали узел про отдельные ноты: так ещё не выведенную ноту можно было связать с посетителем и увидеть, какие ноты принадлежат одному владельцу. Теперь они читают все выводы пула целиком (найдено во внутренней проверке).</li>
     <li><b>Выплаты через роутер</b>: ноты, выведенные одной транзакцией, видимо связаны.</li>
     <li><b>Выплаты списку получателей</b>: суммы публичны. Каждый депозит показывает сумму и отправителя, каждая выплата — полученную сумму; пока пользователей мало, необычную сумму можно связать с плательщиком. Пауза между получателями ослабляет это, но не убирает.</li>
     <li><b>Метки в отчётах раскрытия</b> — текст самого пользователя: доказательства показывают, что ноты принадлежат ему, но не то, что написано в метке.</li>
@@ -468,7 +468,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <li><b>可信设置密钥由单一方生成。</b>在涉及任何真实价值之前需要公开仪式。</li>
     <li><b>匿名集较小</b>：资金池中主要是测试存款。每个 V7 资金池最多 1,048,576 笔（旧 V5 资金池：256 笔）。</li>
     <li><b>跨链桥隐私</b>（L1 → L2）尚未解决。</li>
-    <li><b>网络层</b>：谁广播了交易（IP 地址）不受保护。</li>
+    <li><b>网络层</b>：谁广播了交易（IP 地址）不受保护。RPC 节点（测试链上由我们运行）能看到您的 IP 地址以及页面向它查询的内容。2026 年 11 月 11 日之前，演示和 SDK 在取款前会就单个票据向节点查询，这可能把尚未取款的票据与访问者关联起来，并显示哪些票据属于同一所有者；现在改为读取资金池的全部取款记录（在内部审查中发现）。</li>
     <li><b>路由合约支付</b>：在一笔交易中一起取出的票据可被看出相互关联。</li>
     <li><b>向收款人列表付款</b>：金额是公开的。每笔存款显示金额和发送方，每笔付款显示收到的金额；用户较少时，特殊金额可能与付款人对应起来。收款人之间的间隔会减弱这一点，但不能消除。</li>
     <li><b>披露报告中的标签</b>是用户自己的文字：证明只表明这些票据属于用户，而不证明标签内容。</li>
