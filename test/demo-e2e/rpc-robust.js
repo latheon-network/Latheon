@@ -5,7 +5,7 @@
 // "pruned history unavailable"). No network and no packages needed:  node rpc-robust.js
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const html = fs.readFileSync(path.resolve(__dirname, '..', '..', 'demo', 'index.html'), 'utf8');
-const m = html.match(/\/\/ rpc-robust:begin\n([\s\S]*?)\/\/ rpc-robust:end/);
+const m = html.match(/\/\/ rpc-robust:begin\r?\n([\s\S]*?)\/\/ rpc-robust:end/);
 if (!m) { console.log('FAIL rpc-robust block not found in demo/index.html'); process.exit(1); }
 
 const logs = [];
@@ -97,7 +97,7 @@ const A = 315679153, Z = 317776236;   // the real Arbitrum Sepolia span of the V
     logs.some((l) => /Retry 1\/3/.test(l) && /coalesce/.test(l)) && logs.some((l) => /range was split/.test(l)) && !logs.some((l) => /RPC error during scan 315679153–317776236/.test(l)));
   // 13. The reference app carries a verbatim copy of the same block.
   {
-    const ref = fs.readFileSync(path.resolve(__dirname, '..', '..', 'sdk', 'demo-app-v5.html'), 'utf8').match(/\/\/ rpc-robust:begin\n([\s\S]*?)\/\/ rpc-robust:end/);
+    const ref = fs.readFileSync(path.resolve(__dirname, '..', '..', 'sdk', 'demo-app-v5.html'), 'utf8').match(/\/\/ rpc-robust:begin\r?\n([\s\S]*?)\/\/ rpc-robust:end/);
     check('sdk/demo-app-v5.html has the same rpc-robust block as demo/index.html', !!ref && ref[1] === m[1]);
   }
 

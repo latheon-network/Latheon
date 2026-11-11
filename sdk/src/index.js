@@ -41,7 +41,7 @@ module.exports = Object.assign({},
   },
   // Merkle tree
   {
-    fetchDeposits: merkleTree.fetchDeposits, waitForBlock: merkleTree.waitForBlock, buildTreeLevels: merkleTree.buildTreeLevels, getMerklePath: merkleTree.getMerklePath, rootFromPath: merkleTree.rootFromPath,
+    fetchDeposits: merkleTree.fetchDeposits, fetchSpent: merkleTree.fetchSpent, waitForBlock: merkleTree.waitForBlock, buildTreeLevels: merkleTree.buildTreeLevels, getMerklePath: merkleTree.getMerklePath, rootFromPath: merkleTree.rootFromPath,
     merkleProofFromDeposits: merkleTree.merkleProofFromDeposits, findDeposit: merkleTree.findDeposit, getProofInputsForCommitment: merkleTree.getProofInputsForCommitment,
   },
   // proofs

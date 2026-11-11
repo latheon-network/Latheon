@@ -55,6 +55,12 @@ async function main() {
   };
 
   const gp = ganache.provider({ logging: { quiet: true }, chain: { hardfork: 'shanghai', chainId: 1337 }, wallet: { deterministic: true, totalAccounts: 6, defaultBalance: 1_000_000 }, miner: { blockGasLimit: 60000000 } });
+  // Count every read of one nullifier (nullifierHashes(x)) that reaches the node: the SDK must decide "spent" from all
+  // Withdrawal events instead, so the endpoint never learns which note the caller holds.
+  const NULLIFIER_SEL = ethers.id('nullifierHashes(uint256)').slice(0, 10);
+  let nullifierReads = 0;
+  const gpRequest = gp.request.bind(gp);
+  gp.request = (a) => { if (a && a.method === 'eth_call' && a.params && a.params[0] && String(a.params[0].data || a.params[0].input || '').startsWith(NULLIFIER_SEL)) nullifierReads++; return gpRequest(a); };
   const provider = new ethers.BrowserProvider(gp);
   const [deployer, alice, bob, relaySigner] = await Promise.all([0, 1, 2, 3].map((i) => provider.getSigner(i)));
   const bal = (a) => provider.getBalance(a);
@@ -141,6 +147,9 @@ async function main() {
   const to1 = fresh();
   const w1 = await sdk.withdrawNote(bob, pool100, dep.note, to1, opts('v7'));
   ok('withdrawNote(): sent by another wallet, the empty recipient receives exactly 100 LTH; proof has 5 signals', (await bal(to1)) === 100n * E18 && w1.proof.pubSignals.length === 5 && !w1.relayed && w1.leafIndex === 0 && (await bal(pool100.address)) === 0n, 'tx ' + w1.txHash.slice(0, 10));
+  const spentSet = await sdk.fetchSpent(provider, pool100);
+  ok('fetchSpent(): the withdrawn note\'s nullifier hash, from the Withdrawal events; a range that misses the withdrawal is refused as incomplete', spentSet.size === 1 && spentSet.has(dep.nullifierHash) &&
+    await rejects(async () => sdk.fetchSpent(provider, Object.assign({}, pool100, { startBlock: spentSet.toBlock + 1 })), /Withdrawal scan incomplete/));
   ok('isSpent(): true after; a second withdrawal is refused before proving', (await sdk.isSpent(provider, pool100, dep)) && await rejects(async () => sdk.withdrawNote(bob, pool100, dep.note, to1, opts('v7')), /already spent/));
 
   // relayer + fee
@@ -267,6 +276,9 @@ async function main() {
   const n5 = sdk.generateNote(P('v5', 1));
   await (await new ethers.Contract(P('v5', 1).address, sdk.POOL_ABI.v5, alice).deposit(n5.commitment, { value: E18 })).wait();
   ok('V5 withdrawal input refuses a relayer fee (no such public input)', await rejects(async () => sdk.withdrawNote(bob, P('v5', 1), n5.note, fresh(), opts('v5', { fee: 1n, relayer: feeTaker })), /V5 proofs have no relayer/));
+
+  ok('no read of a single nullifier reached the node in the whole run (deposits, findNotes, withdrawals, payouts)', nullifierReads === 0, nullifierReads + ' reads');
+  ok('isSpent(..., { direct: true }) is the one opt-in that asks the pool about one note, and agrees with the scan', (await sdk.isSpent(provider, pool100, dep, { direct: true })) === true && nullifierReads === 1);
 
   server.close();
   console.log(fails ? '\n' + fails + ' of ' + n + ' FAILED' : '\nALL ' + n + ' CHECKS PASSED');

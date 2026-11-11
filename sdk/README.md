@@ -120,7 +120,12 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
 
 - `deposit(signer, pool, { spendKey?, viewKey? })` (V7 only; native coin as `msg.value`, ERC-20 with approve) →
   `{ note, spendKey, viewKey, commitment, leafIndex, txHash, receipt }`
-- `isSpent(provider, pool, noteOrSpendKey)`, `isKnownRoot(provider, pool, root)`, `verifyOnChain(provider, pool, proof)`
+- `isSpent(provider, pool, noteOrSpendKey, { spent?, scanOpts?, direct? })`, `isKnownRoot(provider, pool, root)`, `verifyOnChain(provider, pool, proof)`.
+  `isSpent`, `withdrawNote` and `findNotes` decide "spent" locally from `fetchSpent(provider, pool)`: the nullifier hashes of
+  all the pool's `Withdrawal` events, one scan, checked against the pool's balance. They do not call the pool's
+  `nullifierHashes(x)`, because that would show the RPC endpoint which unspent note you hold (and which notes of a master
+  key belong together) next to your IP address. `{ direct: true }` makes that single call anyway. What the endpoint and
+  the relayer still see: `THREAT-MODEL.md` §8.6
 - `withdraw(signer, pool, proof, recipient, { relayer, fee })`: the raw call for the pool's generation
 - `withdrawNote(signerOrProvider, pool, note, recipient, { relayer, fee, viaRelayer, circuit, circuitOpts, scanOpts, minBlock, log })`:
   scan, path, unspent and known-root checks, proof, verifier check, send (or relay). Proves again when the pool

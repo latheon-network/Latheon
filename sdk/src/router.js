@@ -9,7 +9,7 @@ const dist = require('../distribution');
 const { assertDepositable } = require('./deployments');
 const { randomFieldElement, computeZeroCascade } = require('./poseidon');
 const { deriveNotes, formatMasterKey, parseMasterKey, encodeNote, MASTER_SCAN_LIMIT } = require('./notes');
-const { fetchDeposits, buildTreeLevels, getMerklePath } = require('./merkleTree');
+const { fetchDeposits, fetchSpent, buildTreeLevels, getMerklePath } = require('./merkleTree');
 const { loadCircuit, buildWithdrawInput, proveWithdraw } = require('./prove');
 const { relayWithdrawMany, hasRelayer } = require('./relayer');
 const { sendWithGasMargin, feeOverrides, isStaleRoot, ROOT_RETRIES, isSigner, providerOf, poolContract } = require('./pool');
@@ -83,9 +83,10 @@ async function depositAny(signer, router, amount, opts = {}) {
  * The notes of a master key in a router's four pools, with their spent status.
  * Scans the pools' deposits, derives notes 0 .. MASTER_SCAN_LIMIT-1 and keeps those found on chain.
  * @param {string|object} masterKey   text or parseMasterKey() result; its router must be `router`
- * @param {object} [opts]  { scanOpts, scanLimit, minBlock, deposits }: minBlock = the deposit's receipt.blockNumber when scanning right after depositing;
- *   deposits = the four pools' fetchDeposits() results, to reuse one scan for several master keys
- * @returns {Promise<{notes: object[], deposits: object[][], unspent: object[], total: bigint}>}
+ * @param {object} [opts]  { scanOpts, scanLimit, minBlock, deposits, spent }: minBlock = the deposit's receipt.blockNumber when scanning right after depositing;
+ *   deposits = the four pools' fetchDeposits() results, to reuse one scan for several master keys (never reuse `spent`,
+ *   the four pools' fetchSpent() results, across a withdrawal: it would be out of date)
+ * @returns {Promise<{notes: object[], deposits: object[][], spent: Set<bigint>[], unspent: object[], total: bigint}>}
  *   notes[i] = { index, poolIndex, pool, leafIndex, value (whole tokens), spendKey, viewKey, commitment, nullifierHash, note, spent }
  */
 async function findNotes(provider, router, masterKey, opts = {}) {
@@ -103,9 +104,12 @@ async function findNotes(provider, router, masterKey, opts = {}) {
     const pool = router.pools[hit.pi];
     notes.push(Object.assign(k, { poolIndex: hit.pi, pool, leafIndex: hit.leafIndex, timestamp: hit.timestamp, value: pool.amount, note: encodeNote(pool, k.spendKey, k.viewKey) }));
   }
-  await Promise.all(notes.map(async (n) => { n.spent = !!(await poolContract(n.pool, p).nullifierHashes(n.nullifierHash)); }));
+  // Spent or not: from all withdrawals of the four pools (fetchSpent), never by asking about these notes one by one,
+  // which would show the RPC endpoint that they belong to one owner.
+  const spent = opts.spent || await Promise.all(router.pools.map((pool) => fetchSpent(p, pool, scanOpts)));
+  for (const n of notes) n.spent = spent[n.poolIndex].has(n.nullifierHash);
   const unspent = notes.filter((n) => !n.spent);
-  return { master: mk, notes, deposits, unspent, total: unspent.reduce((s, n) => s + n.pool.denomination, 0n) };
+  return { master: mk, notes, deposits, spent, unspent, total: unspent.reduce((s, n) => s + n.pool.denomination, 0n) };
 }
 
 /**

@@ -247,12 +247,19 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     const rC = await buildReport([noteC], code, false);
     const vC = rC.text ? await verify(rC.text) : { status: '' };
     rec('D23. A deposit made after earlier reports: found in a new report and by the auditor tab without reloading', /Report ready: 1 notes?, 1 LTH/.test(rC.status) && /Every note in the report is valid/.test(vC.status), rC.status.slice(0, 40) + ' · ' + vC.status.slice(0, 40));
-    // 1b: keys only when the Withdrawal event confirms the nullifier flag
+    // 1b: keys only when two signals agree. "Spent or not" comes from the Withdrawal events (never from a question about
+    // one note), so without them there is no report at all; the nullifier flag is the second signal for the keys.
     failMode = (q) => q.method === 'eth_getLogs' && q.params && q.params[0] && JSON.stringify(q.params[0].topics || []).toLowerCase().includes(WD_TOPIC.toLowerCase());
+    let flagAsked = 0; const countFlag = (q) => { if (q.method === 'eth_call' && q.params && q.params[0] && String(q.params[0].data || q.params[0].input || '').startsWith(NULLIFIER_SEL)) flagAsked++; return false; };
+    const failWd = failMode; failMode = (q) => countFlag(q) || failWd(q);
     const rK = await buildReport([key, noteA, noteB], code, true);
     failMode = null;
-    const repK = rK.text ? JSON.parse(rK.text) : { items: [] };
-    rec('D24. Withdrawal events unreachable while building: no keys added, the user is told why', repK.items.length === 6 && !repK.items.some((x) => x.keys) && /Keys not added for 4/.test(rK.status), rK.status.slice(-90));
+    rec('D24. Withdrawal events unreachable while building: no report and no keys, the failure is shown, and no single nullifier was asked instead', !rK.text && /Failed/.test(rK.status) && flagAsked === 0, rK.status.slice(-90) + ' · flag reads ' + flagAsked);
+    failMode = (q) => q.method === 'eth_call' && q.params && q.params[0] && String(q.params[0].data || q.params[0].input || '').startsWith(NULLIFIER_SEL);
+    const rK2 = await buildReport([key, noteA, noteB], code, true);
+    failMode = null;
+    const repK2 = rK2.text ? JSON.parse(rK2.text) : { items: [] };
+    rec('D24b. Nullifier flag unreachable while building: the report is made, no keys added, the user is told why', repK2.items.length === 6 && !repK2.items.some((x) => x.keys) && /Keys not added for 4/.test(rK2.status), rK2.status.slice(-90));
 
     // a payout (Payouts tab, from the wallet), then the accountant's report from the payout file pasted as is
     const q1 = fresh(31), q2 = fresh(32);

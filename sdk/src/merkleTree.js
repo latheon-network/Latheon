@@ -53,6 +53,45 @@ async function fetchDeposits(provider, pool, opts = {}) {
 }
 
 /**
+ * The nullifier hashes of every withdrawal from a pool, read from its Withdrawal events (one scan of the whole pool,
+ * like fetchDeposits). Whether a note is spent is then decided locally.
+ *
+ * Why not nullifierHashes(x): that call tells the RPC endpoint which note the caller holds before it is withdrawn (and,
+ * for a master key, which notes belong together), next to the caller's IP address. A scan of all withdrawals names no note.
+ *
+ * Completeness (opts.verify !== false, pools listed in the registry): the pool's balance says how many deposits are
+ * still inside, so fewer scanned withdrawals than nextIndex() - balance / denomination means the scan missed events
+ * and is refused. (Coins sent to the pool outside deposit() can only hide a missing event, never cause a false refusal.)
+ *
+ * @param {object} [opts]  { fromBlock, toBlock, minBlock, minSpan = 1000, log, verify }
+ * @returns {Promise<Set<bigint>>}  the spent nullifier hashes; the set also carries .toBlock
+ */
+async function fetchSpent(provider, pool, opts = {}) {
+  const contract = new Contract(pool.address, POOL_ABI[versionOf(pool)], provider);
+  const filter = contract.filters.Withdrawal();
+  let toBlock = opts.toBlock !== undefined ? Number(opts.toBlock) : Number(await provider.getBlockNumber());
+  if (opts.toBlock === undefined && opts.minBlock !== undefined) toBlock = await waitForBlock(provider, Number(opts.minBlock), toBlock, opts);
+  const fromBlock = opts.fromBlock !== undefined ? Number(opts.fromBlock) : Number(pool.startBlock || 0);
+  const minSpan = opts.minSpan || 1000;
+  const log = opts.log || (() => {});
+  const events = fromBlock <= toBlock ? await getLogsAdaptive((a, b) => contract.queryFilter(filter, a, b), fromBlock, toBlock, { minSpan, log }) : [];
+  const spent = new Set(events.map((e) => BigInt(e.args.nullifierHash)));
+  spent.toBlock = toBlock;
+
+  if (opts.verify !== false && pool.denomination !== undefined && (pool.native || (pool.tok && pool.tok.address))) {
+    const deposited = BigInt(await contract.nextIndex({ blockTag: toBlock }));
+    const balance = pool.native ? await provider.getBalance(pool.address, toBlock)
+      : await new Contract(pool.tok.address, ['function balanceOf(address) view returns (uint256)'], provider).balanceOf(pool.address, { blockTag: toBlock });
+    const inside = BigInt(balance) / BigInt(pool.denomination);
+    if (inside < deposited && BigInt(spent.size) < deposited - inside) {
+      throw new Error(`Withdrawal scan incomplete: found ${spent.size} of at least ${deposited - inside} withdrawals from pool ${pool.address} (blocks ${fromBlock}-${toBlock}). ` +
+        'Check startBlock / fromBlock and that the RPC keeps event history.');
+    }
+  }
+  return spent;
+}
+
+/**
  * Waits until the RPC reports at least block `minBlock`. Returns the reported block number.
  * opts: { waitMs = 30000, pollMs = 500 }. Throws if the RPC is still behind after waitMs.
  */
@@ -166,4 +205,4 @@ async function getProofInputsForCommitment(provider, pool, commitment, opts) {
   return Object.assign(merkleProofFromDeposits(deposits, mine.leafIndex, levelsOf(versionOf(pool))), { deposits, timestamp: mine.timestamp });
 }
 
-module.exports = { fetchDeposits, waitForBlock, buildTreeLevels, getMerklePath, rootFromPath, merkleProofFromDeposits, findDeposit, getProofInputsForCommitment };
+module.exports = { fetchDeposits, fetchSpent, waitForBlock, buildTreeLevels, getMerklePath, rootFromPath, merkleProofFromDeposits, findDeposit, getProofInputsForCommitment };

@@ -82,6 +82,9 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 - `withdrawMany`: skip a note that someone else already withdrew instead of reverting the whole batch, and report which notes were paid.
 - ERC-20 variants: `SafeERC20`, refuse fee-on-transfer and rebasing tokens (balance difference on deposit), before any ERC-20 pool.
 - Pin the compiler: solc 0.8.38 or later (0.8.37, used for V7, has the low-severity optimizer bug SOL-2026-7, see the self-review addendum), the same version in the pragma, the build script and the explorer verification; one shared verifier interface file, correct NatSpec titles.
+- Root history (proposal of 11 November 2026, not decided, cost to be measured): V7 keeps the last 100 roots in a ring and `isKnownRoot` walks it, so a proof is valid for the next 99 deposits into its pool. Replace the walk with one lookup (root → its sequence number; known while `current - seq < HISTORY`) and make `HISTORY` much larger. Reason: a withdrawal whose proof is made now and sent later (below) must not go stale in a busy pool, and today's retry (prove again) needs the user's keys online. Cost to measure: one new storage slot per deposit instead of an overwritten one.
+- Delayed withdrawals through the relayer (proposal, relayer only, no circuit change): the user hands the finished proof to the relayer with a window ("send at a random moment within N hours"); the relayer cannot change recipient, relayer or fee, because the proof binds them, so the trust is in liveness and in the relayer not telling anyone when the proof arrived. It separates the time the user was online from the time of the withdrawal, the cheapest defence against timing correlation in a small anonymity set. Limits to state openly: the relayer sees the arrival time and IP address (`THREAT-MODEL.md` §8.6); with V7's 100-root history a held proof goes stale after 99 deposits into that pool, hence the item above.
+- Stealth addresses, if added later: an ERC-5564 announcement publishes an ephemeral secp256k1 key, which a quantum computer could later use to link payments to a recipient. Either use a post-quantum key encapsulation (ML-KEM) for that step or state the loss in `THREAT-MODEL.md` (see §11, question 6).
 - Deposit pause (decided for the test chain): deposits only, never withdrawals; held by a multisig with a time delay, not by one key. Before any chain with real value this is a question for a lawyer (an operator with a lever), and the alternative without any key (deposits close by themselves at a date fixed at deployment) stays on the table.
 
 ## 9. Migration
@@ -106,6 +109,9 @@ For the outside review (sent to Least Authority on 6 November 2026; questions 1�
 3. Is `disclose_link` without a Merkle path sound, given that the auditor checks the events?
 4. `extDataHash` reduced mod p: any concern with keccak output above p?
 5. What makes a phase-2 ceremony credible for a project of one developer?
+
+Added 11 November 2026 (not yet sent to a reviewer):
+6. Quantum adversary and past privacy. Our reading, to be confirmed or refuted: a quantum computer breaks the soundness of Groth16 over BN254 (a forged proof could drain a pool), but not the privacy of withdrawals already made, because nothing encrypted under an elliptic-curve key is ever published: a note's commitment and nullifier hash are Poseidon hashes of keys derived from a random master key, and a Groth16 proof made with a well-formed proving key reveals nothing about its witness regardless of computing power. Is that correct, and does it survive the V8 changes (`ctx` in the nullifier, `disclose_link`, the payment reference)? If it holds, V8 should keep it on purpose: no note encryption or key exchange on elliptic curves in the protocol (see §8, stealth addresses).
 
 Decided by Vladimir on 8 November 2026: see §13.
 

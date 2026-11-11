@@ -627,7 +627,7 @@ const I18N = {
     'au.rpDup': 'The report repeats a note (marked “repeat”). Repeats are not counted. Do not accept this report; ask for a new one.', 'au.dup': 'repeat',
     'au.rpNet': 'Some checks could not be made because the network did not answer (marked ?). This is not a verdict on the notes. Check again.', 'au.retry': 'Check again',
     'au.keyErr': 'could not check (network)', 'au.claimed': 'claimed {v}, not verified', 'au.frozen': 'frozen pre-V7 pool, forgeable (STATUS §7)',
-    'rp.okKeysSkip': 'Keys not added for {s} notes marked withdrawn: their withdrawal event could not be found, so it was not confirmed twice.',
+    'rp.okKeysSkip': 'Keys not added for {s} notes marked withdrawn: the withdrawal record in the pool could not be read, so it was not confirmed twice.',
     'au.rpCsv': 'Download CSV', 'au.yes': 'yes', 'au.no': 'no', 'au.unknown': '—', 'au.notShown': 'not disclosed', 'au.keyBad': 'keys do not match',
     'au.errReport': 'Not a valid report file.',
     'log.summary': 'Technical log',
@@ -2074,7 +2074,7 @@ $('checkNoteBtn').addEventListener('click', async () => {
     const { deposits, mine } = await findDeposit(pool, commitment);
     if (!mine) throw new Error(t('err.notFound'));
     st.go(2);
-    const spent = await withRetry(() => new ethers.Contract(pool.address, POOL_ABI[pool.version], rp).nullifierHashes(computeNullifierHash(note.spendKey)), 'checking whether the note is spent');
+    const spent = await spentLookup()(pool, computeNullifierHash(note.spendKey));
     st.done();
     lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
     renderTree(pool, deposits, mine.leafIndex);
@@ -2127,7 +2127,7 @@ $('withdrawBtn').addEventListener('click', async () => {
       const nullifierHash = computeNullifierHash(note.spendKey);
 
       const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], readProvider(pool.net));
-      if (await poolRead.nullifierHashes(nullifierHash)) throw new Error(t('err.spent'));
+      if (await spentLookup()(pool, nullifierHash)) throw new Error(t('err.spent'));
       if (!(await poolRead.isKnownRoot(root))) throw staleRootErr();
 
       st.go(3); st.tick(3);
@@ -2375,7 +2375,8 @@ async function waScan(st) {
     const hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey));
     if (hit) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) });
   }
-  await Promise.all(found.map((n) => withRetry(() => new ethers.Contract(router.pools[n.pi].address, POOL_ABI.v5, rp).nullifierHashes(n.nullifierHash), 'checking whether a note is spent').then((x) => { n.spent = x; })));
+  const isSpentNow = spentLookup();
+  await Promise.all(found.map((n) => isSpentNow(router.pools[n.pi], n.nullifierHash).then((x) => { n.spent = x; })));
   return { router, mk, found, deps, rp };
 }
 function waAmount() {
@@ -2633,7 +2634,8 @@ $('poPayBtn').addEventListener('click', async () => {
     st.go(1);
     const notes = [];
     mks.forEach((mk, m) => { for (let i = 0; i < MASTER_SCAN_LIMIT; i++) { const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i), hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey)); if (hit) notes.push({ mk: m, index: i, poolIndex: hit.pi, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) }); } });
-    await mapLimit(notes, 4, (n) => withRetry(() => new ethers.Contract(router.pools[n.pi].address, POOL_ABI.v5, rp).nullifierHashes(n.nullifierHash), 'checking whether a note is spent').then((x) => { n.spent = !!x; }));
+    const isSpentNow = spentLookup();
+    await mapLimit(notes, 4, (n) => isSpentNow(router.pools[n.pi], n.nullifierHash).then((x) => { n.spent = !!x; }));
     let assigned; try { assigned = assignNotes(payees.map((p) => p.counts), notes, 4); } catch (e) { throw new Error(t('po.errNotes')); }
     st.done(); draw(router, payees);
     let paidNow = 0;
@@ -2734,6 +2736,18 @@ async function depositMap(pool) {
   if (!depositMaps.has(pool.id)) depositMaps.set(pool.id, fetchDeposits(pool, true).then((list) => new Map(list.map((d) => [d.commitment, d]))).catch((e) => { depositMaps.delete(pool.id); throw e; }));
   return depositMaps.get(pool.id);
 }
+// Whether a note is spent is read from all Withdrawal events of its pool, not asked note by note: nullifierHashes(x)
+// would show the RPC endpoint which unspent notes this visitor holds and which of them belong together.
+// Returns a lookup (pool, nullifierHash) -> bool that scans each pool once. Pools without a known Withdrawal event
+// (legacy V4) are still asked directly.
+function spentLookup() {
+  const maps = new Map();
+  return async (pool, nh) => {
+    if (!wdIfaceFor(pool)) return !!(await withRetry(() => new ethers.Contract(pool.address, POOL_ABI[pool.version], readProvider(pool.net)).nullifierHashes(nh), 'checking whether the note is spent'));
+    if (!maps.has(pool.id)) maps.set(pool.id, withdrawalMap(pool));
+    return (await maps.get(pool.id)).has(BigInt(nh));
+  };
+}
 // Withdrawal events of a pool by nullifier hash.
 async function withdrawalMap(pool) {
   const iface = wdIfaceFor(pool); if (!iface) return new Map();
@@ -2806,14 +2820,15 @@ $('reportBtn').addEventListener('click', async () => {
       if (!d) throw new Error(t('rp.errNotFound', { c: short(n.commitment.toString()) }));
       n.leafIndex = d.leafIndex; n.timestamp = d.timestamp;
     }
-    await mapLimit(notes, 4, (n) => withRetry(() => new ethers.Contract(n.pool.address, POOL_ABI[n.pool.version], rp).nullifierHashes(computeNullifierHash(n.spendKey)), 'checking whether a note is spent').then((x) => { n.spent = !!x; }));
-    // Keys of a withdrawn note go into the file only when two signals agree: the pool's nullifier flag and a Withdrawal
-    // event with that nullifier. A wrong answer here would put the keys of an unspent note, i.e. the money, in the file.
+    const isSpentNow = spentLookup();
+    await mapLimit(notes, 4, (n) => isSpentNow(n.pool, computeNullifierHash(n.spendKey)).then((x) => { n.spent = !!x; }));
+    // Keys of a withdrawn note go into the file only when two signals agree: a Withdrawal event with that nullifier
+    // (above) and the pool's nullifier flag. A wrong answer here would put the keys of an unspent note, i.e. the money,
+    // in the file. The flag is asked only for nullifiers that a Withdrawal event already made public.
     if (withKeys) {
-      const wm = new Map();
       for (const n of notes.filter((x) => x.spent)) {
-        try { if (!wm.has(n.pool.id)) wm.set(n.pool.id, await withdrawalMap(n.pool)); n.wdConfirmed = wm.get(n.pool.id).has(computeNullifierHash(n.spendKey)); }
-        catch (e) { n.wdConfirmed = false; log('Withdrawal scan failed, keys not added: ' + errText(e)); }
+        try { n.wdConfirmed = !!(await withRetry(() => new ethers.Contract(n.pool.address, POOL_ABI[n.pool.version], rp).nullifierHashes(computeNullifierHash(n.spendKey)), 'checking a nullifier')); }
+        catch (e) { n.wdConfirmed = false; log('Nullifier check failed, keys not added: ' + errText(e)); }
       }
     }
     st.go(1);

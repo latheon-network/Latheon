@@ -8,7 +8,7 @@ const { POOL_ABI, VERIFIER_ABI, ERC20_ABI, ROOT_HISTORY } = require('./constants
 const { assertDepositable } = require('./deployments');
 const { computeNullifierHash, computeCommitment } = require('./poseidon');
 const { generateNote, decodeNote } = require('./notes');
-const { getProofInputsForCommitment } = require('./merkleTree');
+const { getProofInputsForCommitment, fetchSpent } = require('./merkleTree');
 const { loadCircuit, buildWithdrawInput, proveWithdraw } = require('./prove');
 const { relayWithdraw, hasRelayer } = require('./relayer');
 
@@ -52,15 +52,22 @@ async function deposit(signer, pool, opts = {}) {
   return Object.assign(n, { leafIndex: ev ? Number(ev.args.leafIndex) : null, txHash: receipt.hash, receipt });
 }
 
-/** True when the note (by spendKey, by nullifier hash, or a decoded note) is already spent in `pool`. */
-async function isSpent(provider, pool, keyOrNote) {
+/**
+ * True when the note (by spendKey, by nullifier hash, or a decoded note) is already spent in `pool`.
+ * Decided locally from a scan of all the pool's withdrawals (fetchSpent), so the RPC endpoint is never asked about one
+ * note. opts: { spent } a fetchSpent() result to reuse; { scanOpts } for the scan; { direct: true } asks the pool's
+ * nullifierHashes(x) instead (one cheap call, but it shows the endpoint which note you hold).
+ */
+async function isSpent(provider, pool, keyOrNote, opts = {}) {
   let nh;
   if (keyOrNote && typeof keyOrNote === 'object') {
     if (keyOrNote.nullifierHash !== undefined) nh = BigInt(keyOrNote.nullifierHash);
     else if (keyOrNote.spendKey !== undefined) nh = computeNullifierHash(keyOrNote.spendKey);
     else throw new Error('isSpent: pass a note, a spendKey or { nullifierHash }');
   } else nh = computeNullifierHash(keyOrNote);
-  return poolContract(pool, providerOf(provider)).nullifierHashes(nh);
+  if (opts.direct) return poolContract(pool, providerOf(provider)).nullifierHashes(nh);
+  const spent = opts.spent || await fetchSpent(providerOf(provider), pool, opts.scanOpts);
+  return spent.has(nh);
 }
 /** True when the pool still remembers `root` (one of its last ROOT_HISTORY roots). */
 async function isKnownRoot(provider, pool, root) { return poolContract(pool, providerOf(provider)).isKnownRoot(root); }
@@ -124,9 +131,11 @@ async function withdrawNote(signerOrProvider, pool, note, recipient, opts = {}) 
 
   for (let attempt = 1; ; attempt++) {
     try {
-      const { leafIndex, pathElements, pathIndices, root } = await getProofInputsForCommitment(provider, pool, computeCommitment(n.spendKey, n.viewKey), Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {}));
+      const scanOpts = Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {});
+      const { leafIndex, pathElements, pathIndices, root } = await getProofInputsForCommitment(provider, pool, computeCommitment(n.spendKey, n.viewKey), scanOpts);
       log(`Found deposit at leaf ${leafIndex} of ${pool.id || pool.address}`);
-      if (await read.nullifierHashes(nullifierHash)) throw new Error('This note is already spent');
+      // spent or not is read from all the pool's withdrawals, not asked about this note (see fetchSpent)
+      if ((await fetchSpent(provider, pool, scanOpts)).has(nullifierHash)) throw new Error('This note is already spent');
       if (!(await read.isKnownRoot(root))) throw Object.assign(new Error('Unknown root'), { staleRoot: true });
       const input = buildWithdrawInput({ version: pool.version, spendKey: n.spendKey, viewKey: n.viewKey, pathElements, pathIndices, root, nullifierHash, recipient: to, relayer: opts.relayer, fee: opts.fee });
       const proof = await proveWithdraw(input, circuit);
