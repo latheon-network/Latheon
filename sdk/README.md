@@ -126,6 +126,11 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
   `nullifierHashes(x)`, because that would show the RPC endpoint which unspent note you hold (and which notes of a master
   key belong together) next to your IP address. `{ direct: true }` makes that single call anyway. What the endpoint and
   the relayer still see: `THREAT-MODEL.md` §8.6
+- Delayed sending: `withdrawNote` and `withdrawByAmount` with `{ viaRelayer: true, delay: { withinSeconds } }` hand the proof to the
+  relayer, which sends it at a random moment within that window (60 s up to `relayStatus(net).delay.maxSeconds`). The result
+  then has `scheduled` (an id and `notAfter`) instead of a transaction hash; `relayScheduled(net, id)` reads the state
+  (`waiting`, `sent` with `tx`, `failed`, `cancelled`) and `relayCancel(net, id)` cancels a waiting request. The id is the only
+  credential, keep it private. `payOut` does not use delays
 - `withdraw(signer, pool, proof, recipient, { relayer, fee })`: the raw call for the pool's generation
 - `withdrawNote(signerOrProvider, pool, note, recipient, { relayer, fee, viaRelayer, circuit, circuitOpts, scanOpts, minBlock, log })`:
   scan, path, unspent and known-root checks, proof, verifier check, send (or relay). Proves again when the pool

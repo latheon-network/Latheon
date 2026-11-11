@@ -63,7 +63,7 @@ module.exports = Object.assign({},
     checkPayoutRecord: payout.checkRecord, payoutToJson: payout.payoutToJson, payoutFromJson: payout.payoutFromJson,
   },
   // relayer
-  { hasRelayer: relayer.hasRelayer, relayStatus: relayer.relayStatus, relayWithdraw: relayer.relayWithdraw, relayWithdrawMany: relayer.relayWithdrawMany },
+  { hasRelayer: relayer.hasRelayer, relayStatus: relayer.relayStatus, relayWithdraw: relayer.relayWithdraw, relayWithdrawMany: relayer.relayWithdrawMany, relayScheduled: relayer.relayScheduled, relayCancel: relayer.relayCancel },
   // split rule and note selection (shared verbatim with the demo)
   { canonicalSplit: distribution.canonicalSplit, noteOrder: distribution.noteOrder, roundDown: distribution.roundDown, selectNotes: distribution.selectNotes },
 );

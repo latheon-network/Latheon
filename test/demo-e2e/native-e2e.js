@@ -118,10 +118,27 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       const c = new ethers.Contract(poolAddr, ['function deposit(uint256 commitment) payable'], flooder);
       for (let i = 0; i < HIST; i++) await (await c.deposit(BigInt(ethers.hexlify(ethers.randomBytes(32))) % FIELD, { value: amount })).wait();
     }
+    // Delayed sending ("delay": {withinSeconds}): the stand-in holds the request until the test calls relayDue().
+    const held = new Map(); let heldSeq = 0;
+    const heldCall = (b, many) => { const Z = ethers.ZeroAddress; return many ? [new ethers.Contract(b.router, RELAY_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, ...(V6 ? [b.relayer || Z] : [])]]
+      : [new ethers.Contract(b.pool, RELAY_POOL, relaySigner), 'withdraw', [b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, ...(V6 ? [b.relayer || Z, b.fee || 0] : [])]]; };
+    async function relayDue() { for (const x of held.values()) if (x.state === 'waiting') { try { const [c, fn, args] = heldCall(x.body, x.many); const tx = await c[fn](...args); await tx.wait(); relayed.push(tx.hash); x.state = 'sent'; x.tx = tx.hash; } catch (e) { x.state = 'failed'; x.error = String(e.reason || e.shortMessage || e.message).slice(0, 100); } } }
     async function relayRoute(route) {
-      const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, OPTIONS' };
+      const h = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS' };
       if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: h });
-      const url = route.request().url(), b = JSON.parse(route.request().postData() || '{}');
+      const url = route.request().url();
+      const sm = /\/scheduled\/([0-9a-f]{32})$/.exec(url);
+      if (sm) { const x = held.get(sm[1]); if (!x) return route.fulfill({ status: 404, contentType: 'application/json', headers: h, body: JSON.stringify({ error: 'No such delayed withdrawal.' }) });
+        if (route.request().method() === 'DELETE' && x.state === 'waiting') x.state = 'cancelled';
+        return route.fulfill({ status: 200, contentType: 'application/json', headers: h, body: JSON.stringify(Object.assign({ state: x.state, notAfter: x.notAfter }, x.tx ? { tx: x.tx } : {}, x.error ? { error: x.error } : {})) }); }
+      const b = JSON.parse(route.request().postData() || '{}');
+      if (b.delay) {
+        try { const [c, fn, args] = heldCall(b, url.endsWith('/withdrawMany')); await c[fn].staticCall(...args); }
+        catch (e) { return route.fulfill({ status: 400, contentType: 'application/json', headers: h, body: JSON.stringify({ error: 'Refused before sending (the chain would reject it): ' + (e.reason || e.shortMessage || e.message) }) }); }
+        const id = (++heldSeq).toString(16).padStart(32, '0'), notAfter = new Date(Date.now() + b.delay.withinSeconds * 1000).toISOString();
+        held.set(id, { body: b, many: url.endsWith('/withdrawMany'), state: 'waiting', notAfter, within: b.delay.withinSeconds });
+        return route.fulfill({ status: 202, contentType: 'application/json', headers: h, body: JSON.stringify({ scheduled: true, id, notAfter }) });
+      }
       relayCalls++;
       if (floodNext) { const f = floodNext; floodNext = null; await flood(f.addr, f.amount); }
       try {
@@ -330,6 +347,51 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       await page.click('#poPayBtn'); await waitText('#poPayStatus', /stopped/, 60000);
       rec('P5. A payout file for an unknown router is refused before anything is sent', /stopped/.test(await page.textContent('#poPayStatus')) && relayed.length === relayP + 3, (await page.textContent('#poPayStatus')).trim().slice(0, 80));
       await page.screenshot({ path: SHOTS + '/payout.png', fullPage: true });
+    }
+
+    // ---- delayed sending through the relayer: accepted now, sent later; state and cancel by request ID
+    if (V6) {
+      await pickNT(N, 'LTH');
+      const routerDeposit = async (amount) => {
+        await page.click('#tab-deposit'); await page.click('#depMode-any');
+        if (await page.locator('#keySavedChk').count()) { const c = page.locator('#keySavedChk'); if (!(await c.isChecked())) await c.check(); }
+        const before = (await page.textContent('#masterText')).trim();
+        await page.fill('#daAmount', String(amount)); await page.check('input[name="daRound"][value="exact"]'); await page.waitForTimeout(200);
+        await page.click('#daDepositBtn');
+        await page.waitForFunction((b) => { const e = document.getElementById('masterText'); return e && e.textContent.trim() && e.textContent.trim() !== b; }, before, { timeout: 240000 });
+        return (await page.textContent('#masterText')).trim();
+      };
+      const delayedByAmount = async (key, amount, to, window) => {
+        await page.click('#tab-withdraw'); await page.click('#wdMode-any');
+        await page.fill('#waKey', key); await page.fill('#waAmount', String(amount)); await page.fill('#waRecipient', to);
+        await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
+        await page.selectOption('#waRelayDelay', String(window)); await page.waitForTimeout(150);
+        const warn = (await page.textContent('#waWarnings')).trim();
+        await page.evaluate(() => { document.getElementById('waStatus').textContent = ''; });
+        await page.click('#waGoBtn'); await waitText('#waStatus', /Accepted by the relayer|Withdrawn|Failed/, 600000);
+        return { status: (await page.textContent('#waStatus')).trim(), warn };
+      };
+      const dlState = async (btn) => { await page.click('#tab-withdraw'); await page.click('#wdMode-one'); await page.evaluate(() => { document.getElementById('dlStatus').textContent = ''; }); await page.click(btn); await waitText('#dlStatus', /\S/, 30000); return (await page.textContent('#dlStatus')).trim(); };
+
+      const kD = await routerDeposit(61), rD = fresh(21), relayedD = relayed.length;
+      const d1 = await delayedByAmount(kD, 61, rD, 3600);
+      const idShown = (await page.inputValue('#dlId')).trim(), heldD = [...held.values()].pop();
+      rec('L1. Withdraw 61 by amount with "within 1 hour": the relayer accepts it, nothing is sent yet, the status gives the request ID and the warning explains the limits',
+        /Accepted by the relayer/.test(d1.status) && d1.status.includes(idShown) && /^[0-9a-f]{32}$/.test(idShown) && heldD && heldD.within === 3600 && relayed.length === relayedD && (await coin(rD)) === 0n && /random moment/.test(d1.warn) && /IP address/.test(d1.warn),
+        d1.status.slice(0, 70));
+      const w1 = await dlState('#dlCheckBtn');
+      await relayDue();
+      const w2 = await dlState('#dlCheckBtn');
+      rec('L2. "Check state" says waiting, then, once the relayer has sent it, "Sent" with the transaction; the empty address holds exactly 61 LTH',
+        /^Waiting/.test(w1) && /^Sent\. Transaction: 0x[0-9a-f]{64}/.test(w2) && (await coin(rD)) === 61n * E18, w1.slice(0, 30) + ' → ' + w2.slice(0, 40));
+      const kC = await routerDeposit(11), rC = fresh(22);
+      const d2 = await delayedByAmount(kC, 11, rC, 21600);
+      const c1 = await dlState('#dlCancelBtn'); await relayDue();
+      rec('L3. "Cancel it" cancels a waiting request: nothing is ever sent and the address stays empty', /Accepted by the relayer/.test(d2.status) && /^Cancelled/.test(c1) && (await coin(rC)) === 0n && relayed.length === relayedD + 1, c1.slice(0, 50));
+      await page.fill('#dlId', 'nonsense'); const bad = await dlState('#dlCheckBtn');
+      rec('L4. A malformed request ID is refused in the page, without a request', /32 characters/.test(bad), bad.slice(0, 50));
+      await page.screenshot({ path: SHOTS + '/delayed.png', fullPage: true });
+      await page.click('#wdMode-any'); await page.selectOption('#waRelayDelay', '0');   // back to "now" for the steps below
     }
 
     // ---- back to the ERC-20 network: approval step and gas row are back

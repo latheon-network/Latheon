@@ -181,7 +181,7 @@ async function withdrawByAmount(signerOrProvider, router, masterKey, amountToken
   const zeros = computeZeroCascade(router.levels);
   const chosen = sel.chosen.slice().sort((a, b) => a.poolIndex - b.poolIndex || a.leafIndex - b.leafIndex);
   let pending = chosen.slice(), depositsNow = found.deposits;
-  const txHashes = [];
+  const txHashes = [], scheduled = [];   // scheduled: delayed batches the relayer accepted (opts.delay), not sent yet
   let batches = 0;
 
   for (let attempt = 1; ; attempt++) {
@@ -205,12 +205,16 @@ async function withdrawByAmount(signerOrProvider, router, masterKey, amountToken
       const read = routerContract(router, provider);
       for (const b of groups) await read.withdrawMany.staticCall(...(router.feeVersion ? [b, to, relayerAddr] : [b, to]));
       for (const b of groups) {
-        if (viaRelayer) { const r = await relayWithdrawMany(router, b, to, { relayer: relayerAddr, fetch: opts.fetch }); txHashes.push(r.tx); log('Relayed withdrawMany tx ' + r.tx); }
+        if (viaRelayer) {
+          const r = await relayWithdrawMany(router, b, to, { relayer: relayerAddr, fetch: opts.fetch, delay: opts.delay });
+          if (r.scheduled) { scheduled.push({ id: r.id, notAfter: r.notAfter, notes: b.length }); log('Delayed withdrawMany accepted, to be sent before ' + r.notAfter); }
+          else { txHashes.push(r.tx); log('Relayed withdrawMany tx ' + r.tx); }
+        }
         else { const { txHash } = await withdrawMany(signerOrProvider, router, b, to, { relayer: relayerAddr, simulate: false, overrides: opts.overrides }); txHashes.push(txHash); log('withdrawMany tx ' + txHash); }
         batches++;
         pending = pending.slice(b.length);   // this batch is paid
       }
-      return { txHashes, notes: chosen, batches, relayed: viaRelayer };
+      return Object.assign({ txHashes, notes: chosen, batches, relayed: viaRelayer }, scheduled.length ? { scheduled } : {});
     } catch (e) {
       if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
       log(`A pool no longer knows the root of these proofs; ${pending.length} note(s) left: scanning again (attempt ${attempt + 1} of ${ROOT_RETRIES})`);

@@ -141,7 +141,9 @@ async function withdrawNote(signerOrProvider, pool, note, recipient, opts = {}) 
       const proof = await proveWithdraw(input, circuit);
       if (pool.verifierAddr && opts.verifyOnChain !== false && !(await verifyOnChain(provider, pool, proof))) throw new Error('The verifier contract rejects this proof');
       if (viaRelayer) {
-        const r = await relayWithdraw(pool, proof, to, { relayer: opts.relayer, fee: opts.fee, fetch: opts.fetch });
+        const r = await relayWithdraw(pool, proof, to, { relayer: opts.relayer, fee: opts.fee, fetch: opts.fetch, delay: opts.delay });
+        // opts.delay: accepted, not sent yet. Keep the id (it shows the state and can cancel); see relayScheduled().
+        if (r.scheduled) return { scheduled: true, id: r.id, notAfter: r.notAfter, proof, leafIndex, relayed: true };
         return { txHash: r.tx, gasUsed: r.gasUsed, proof, leafIndex, relayed: true };
       }
       const { txHash, receipt } = await withdraw(signerOrProvider, pool, proof, to, { relayer: opts.relayer, fee: opts.fee, overrides: opts.overrides });

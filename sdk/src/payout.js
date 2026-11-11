@@ -101,6 +101,7 @@ function assignPayoutNotes(record, notes, poolCount) {
  * Pays every payee of a record: for each, its assigned notes go to its recipient (withdrawByAmount: one withdrawMany
  * per 16 notes), from the signer or (opts.viaRelayer) through the relayer. Payees whose notes are all spent are
  * skipped ('already paid'); a payee interrupted between batches gets the rest ('resumed').
+ * (Delayed sending, opts.delay of withdrawByAmount, is not passed on here: a payee would look unpaid until the relayer sends.)
  * @param {object} [opts]  { viaRelayer, relayer, fee, circuit, circuitOpts, scanOpts, only (payee indexes), delayMs, onPayee, log }
  * @returns {Promise<object[]>} per payee: { recipient, amount, status: 'paid' | 'already paid' | 'resumed' | 'skipped', txHashes, notes }
  */
@@ -128,7 +129,7 @@ async function payOut(signerOrProvider, router, record, opts = {}) {
     if (!left.length) { results.push({ recipient: p.recipient, amount: p.amount, status: 'already paid', txHashes: [], notes: mine }); log(`Payee ${i + 1}: already paid`); continue; }
     if (results.some((r) => r.status === 'paid' || r.status === 'resumed') && opts.delayMs) await new Promise((r) => setTimeout(r, opts.delayMs));
     const tokens = left.reduce((s, n) => s + Number(n.value), 0);
-    const w = await withdrawByAmount(signerOrProvider, router, null, tokens, p.recipient, Object.assign({}, opts, { circuit, notes: { notes: left, deposits }, log }));
+    const w = await withdrawByAmount(signerOrProvider, router, null, tokens, p.recipient, Object.assign({}, opts, { circuit, notes: { notes: left, deposits }, log, delay: undefined }));
     const r = { recipient: p.recipient, amount: p.amount, status: left.length === mine.length ? 'paid' : 'resumed', txHashes: w.txHashes, notes: mine };
     results.push(r);
     log(`Payee ${i + 1}/${record.payees.length}: ${tokens} ${router.token} to ${p.recipient}, ${w.txHashes.length} transaction(s)`);

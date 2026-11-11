@@ -331,12 +331,21 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     <textarea id="noteInput" placeholder="latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off"></textarea>
     <label class="field-label" for="recipientInput" data-i18n="field.recipient">Recipient address</label>
     <input id="recipientInput" placeholder="0x…" spellcheck="false" autocomplete="off">
-    <div class="opt-row" id="relayRow" hidden><label class="check"><input type="checkbox" id="useRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label></div>
+    <div class="opt-row" id="relayRow" hidden><label class="check"><input type="checkbox" id="useRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label><label class="check" id="relayDelayWrap"><span data-i18n="relay.when">When the relayer sends it:</span><select id="relayDelay" aria-label="When the relayer sends it"><option value="0" data-i18n="relay.now">now</option><option value="3600" data-i18n="relay.h1">at a random moment within 1 hour</option><option value="21600" data-i18n="relay.h6">at a random moment within 6 hours</option><option value="86400" data-i18n="relay.h24">at a random moment within 24 hours</option></select></label></div>
     <ul class="warns" id="withdrawWarnings" aria-live="polite"></ul>
     <div class="btn-row">
       <button id="withdrawBtn" data-i18n="btn.withdraw" disabled>Generate proof &amp; withdraw</button>
       <button id="checkNoteBtn" class="secondary" data-i18n="btn.check" disabled>Check note only</button>
       <span class="muted small" data-i18n="wd.checkHint">Checking is read-only: no wallet, no gas.</span>
+    </div>
+    <div id="dlRow" hidden style="margin-top:14px">
+      <label class="field-label" for="dlId" data-i18n="dl.title">Delayed withdrawal: request ID</label>
+      <input id="dlId" placeholder="3f9c…e21a" spellcheck="false" autocomplete="off">
+      <div class="btn-row">
+        <button id="dlCheckBtn" class="secondary" data-i18n="dl.check">Check state</button>
+        <button id="dlCancelBtn" class="secondary" data-i18n="dl.cancel">Cancel it</button>
+      </div>
+      <div class="status" id="dlStatus" style="display:none" aria-live="polite"></div>
     </div>
     <ul class="steps" id="wdSteps" aria-live="polite"></ul>
     <div id="withdrawStatus" class="status info" style="display:none;"></div>
@@ -357,7 +366,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
       <input id="waAmount" inputmode="numeric" placeholder="160" autocomplete="off">
       <label class="field-label" for="waRecipient" data-i18n="field.recipient">Recipient address</label>
       <input id="waRecipient" placeholder="0x…" spellcheck="false" autocomplete="off">
-      <div class="opt-row" id="waRelayRow" hidden><label class="check"><input type="checkbox" id="waUseRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label></div>
+      <div class="opt-row" id="waRelayRow" hidden><label class="check"><input type="checkbox" id="waUseRelay" checked style="width:auto;margin:0"><span data-i18n="relay.use">Send through the network's relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal</span></label><label class="check" id="waRelayDelayWrap"><span data-i18n="relay.when">When the relayer sends it:</span><select id="waRelayDelay" aria-label="When the relayer sends it"><option value="0" data-i18n="relay.now">now</option><option value="3600" data-i18n="relay.h1">at a random moment within 1 hour</option><option value="21600" data-i18n="relay.h6">at a random moment within 6 hours</option><option value="86400" data-i18n="relay.h24">at a random moment within 24 hours</option></select></label></div>
       <ul class="warns" id="waWarnings" aria-live="polite"></ul>
       <div class="btn-row">
         <button id="waFindBtn" class="secondary" data-i18n="wa.find">Find my notes</button>
@@ -576,6 +585,11 @@ const I18N = {
     'err.nonce': 'Enter the auditor nonce.', 'err.config': 'Could not load deployments.json (HTTP {code}).', 'err.startup': 'Startup failed: ',
     'tree.title': "This pool's tree, read from the chain", 'tree.sub': '{net} · {label} · {used} of {cap} leaves used. Withdrawn deposits stay in the tree, and nobody can tell which ones they are.',
     'tree.yours': 'yours', 'tree.yoursLeaf': 'yours (leaf {n})', 'tree.others': 'other deposits', 'tree.empty': 'empty',
+    'relay.when': 'When the relayer sends it:', 'relay.now': 'now', 'relay.h1': 'at a random moment within 1 hour', 'relay.h6': 'at a random moment within 6 hours', 'relay.h24': 'at a random moment within 24 hours',
+    'relay.delayNote': 'Delayed sending: the relayer checks the proof now and sends the withdrawal at a random moment in the chosen window, so the time you were here and the time of the withdrawal differ. The relayer itself still sees when you asked and your IP address. If about 100 other deposits reach this pool before it is sent, the proof expires and the request fails; the note stays yours and you can withdraw it again.',
+    'relay.scheduled': 'Accepted by the relayer. It will send the withdrawal at a random moment before {until}. Request ID: {id}. Keep it private: it shows the state and can cancel the request (Withdraw tab, "Delayed withdrawal").',
+    'dl.title': 'Delayed withdrawal: request ID', 'dl.check': 'Check state', 'dl.cancel': 'Cancel it', 'dl.badId': 'A request ID is 32 characters, 0-9 and a-f.', 'dl.noRelay': 'This network has no relayer.',
+    'dl.waiting': 'Waiting: the relayer will send it before {until}.', 'dl.sent': 'Sent. Transaction: {tx}', 'dl.failed': 'Not sent: {error}. The note is untouched unless you withdrew it another way.', 'dl.cancelled': 'Cancelled. Nothing was sent; the note is still yours.',
     'relay.use': 'Send through the network\'s relayer: no gas and no wallet needed, and your wallet does not appear in the withdrawal', 'relay.note': 'The relayer sends the withdrawal and pays its gas; your wallet does not appear in it. The relayer sees the recipient and your IP address, like any server you talk to. It cannot change the recipient: the proof is bound to it.', 'relay.refused': 'The relayer refused: ', 'relay.down': 'The relayer did not answer. Untick the relayer box to send the withdrawal from your own wallet.', 'wd.s6r': 'Send through the relayer', 'wd.relaying': 'Sending through the relayer…', 'wd.rootRetry': 'Many deposits arrived in this pool meanwhile, so the pool no longer knows the root of the proof. Making a new proof against the current root; the note is untouched…',
     'warn.selfRecipient': 'The recipient is the wallet you are connected with. Anyone can see that this wallet pays itself, so the withdrawal is not private. Use a fresh address.',
     'warn.sameWallet': 'This wallet ({addr}) made a deposit in this session. The withdrawal transaction is sent and paid for by the connected wallet, and that is public, so the link is visible. Connect a different wallet with a little test ETH before withdrawing.',
@@ -790,6 +804,11 @@ const I18N = {
     'err.nonce': 'Введите код аудитора.', 'err.config': 'Не удалось загрузить deployments.json (HTTP {code}).', 'err.startup': 'Не удалось запуститься: ',
     'tree.title': 'Дерево этого пула, прочитанное из сети', 'tree.sub': '{net} · {label} · занято {used} из {cap} листьев. Выведенные депозиты остаются в дереве, и никто не может сказать, какие именно.',
     'tree.yours': 'ваш', 'tree.yoursLeaf': 'ваш (лист {n})', 'tree.others': 'другие депозиты', 'tree.empty': 'пусто',
+    'relay.when': 'Когда релейер отправит:', 'relay.now': 'сразу', 'relay.h1': 'в случайный момент в течение 1 часа', 'relay.h6': 'в случайный момент в течение 6 часов', 'relay.h24': 'в случайный момент в течение 24 часов',
+    'relay.delayNote': 'Отложенная отправка: релейер проверяет доказательство сейчас, а вывод отправляет в случайный момент выбранного окна, поэтому время вашего визита и время вывода не совпадают. Сам релейер по-прежнему видит, когда вы обратились, и ваш IP-адрес. Если до отправки в этот пул придёт около 100 чужих депозитов, доказательство устареет и запрос не выполнится; нота останется вашей, её можно вывести заново.',
+    'relay.scheduled': 'Релейер принял запрос. Он отправит вывод в случайный момент до {until}. ID запроса: {id}. Не показывайте его никому: по нему видно состояние и можно отменить запрос (вкладка «Вывод», «Отложенный вывод»).',
+    'dl.title': 'Отложенный вывод: ID запроса', 'dl.check': 'Проверить состояние', 'dl.cancel': 'Отменить', 'dl.badId': 'ID запроса — это 32 символа: 0-9 и a-f.', 'dl.noRelay': 'В этой сети нет релейера.',
+    'dl.waiting': 'Ожидает: релейер отправит до {until}.', 'dl.sent': 'Отправлено. Транзакция: {tx}', 'dl.failed': 'Не отправлено: {error}. Нота не тронута, если вы не вывели её другим способом.', 'dl.cancelled': 'Отменено. Ничего не отправлено, нота по-прежнему ваша.',
     'relay.use': 'Отправить через релейер сети: газ и кошелёк не нужны, и ваш кошелёк не появится в выводе', 'relay.note': 'Релейер отправляет вывод и платит за газ, ваш кошелёк в нём не появляется. Релейер видит адрес получателя и ваш IP-адрес, как любой сервер, к которому вы обращаетесь. Изменить получателя он не может: доказательство привязано к нему.', 'relay.refused': 'Релейер отказал: ', 'relay.down': 'Релейер не ответил. Снимите галочку релейера, чтобы отправить вывод со своего кошелька.', 'wd.s6r': 'Отправить через релейер', 'wd.relaying': 'Отправляю через релейер…', 'wd.rootRetry': 'Пока шёл вывод, в пул пришло много депозитов, и пул уже не помнит корень этого доказательства. Делаю новое доказательство от текущего корня; нота не тронута…',
     'warn.selfRecipient': 'Получатель совпадает с подключённым кошельком. Любой увидит, что кошелёк платит сам себе, поэтому вывод не приватен. Укажите новый адрес.',
     'warn.sameWallet': 'Этот кошелёк ({addr}) делал депозит в этой сессии. Транзакцию вывода отправляет и оплачивает подключённый кошелёк, и это публично, поэтому связь видна. Перед выводом подключите другой кошелёк с небольшим количеством тестового ETH.',
@@ -1004,6 +1023,11 @@ const I18N = {
     'err.nonce': '请输入审计方代码。', 'err.config': '无法加载 deployments.json（HTTP {code}）。', 'err.startup': '启动失败：',
     'tree.title': '此资金池的树，读取自链上', 'tree.sub': '{net} · {label} · 已使用 {used}/{cap} 个叶子。已取款的存款仍留在树中，没有人能分辨是哪些。',
     'tree.yours': '您的', 'tree.yoursLeaf': '您的（叶子 {n}）', 'tree.others': '其他存款', 'tree.empty': '空',
+    'relay.when': '中继器何时发送：', 'relay.now': '立即', 'relay.h1': '在 1 小时内的随机时刻', 'relay.h6': '在 6 小时内的随机时刻', 'relay.h24': '在 24 小时内的随机时刻',
+    'relay.delayNote': '延迟发送：中继器现在检查证明，并在所选时间窗口内的随机时刻发送取款，因此您访问的时间与取款的时间不同。中继器本身仍能看到您提出请求的时间和您的 IP 地址。如果在发送之前约有 100 笔其他存款进入该资金池，证明将过期，请求会失败；票据仍属于您，可以重新取款。',
+    'relay.scheduled': '中继器已接受请求。它将在 {until} 之前的随机时刻发送取款。请求 ID：{id}。请勿向他人透露：凭它可以查看状态并取消请求（“取款”标签页中的“延迟取款”）。',
+    'dl.title': '延迟取款：请求 ID', 'dl.check': '查看状态', 'dl.cancel': '取消', 'dl.badId': '请求 ID 为 32 个字符：0-9 和 a-f。', 'dl.noRelay': '该网络没有中继器。',
+    'dl.waiting': '等待中：中继器将在 {until} 之前发送。', 'dl.sent': '已发送。交易：{tx}', 'dl.failed': '未发送：{error}。除非您已用其他方式取款，否则票据未受影响。', 'dl.cancelled': '已取消。未发送任何交易，票据仍属于您。',
     'relay.use': '通过网络的中继器发送：无需 Gas，也无需钱包，您的钱包不会出现在取款中', 'relay.note': '中继器发送取款并支付 Gas，您的钱包不会出现在其中。中继器能看到接收地址和您的 IP 地址，就像您访问的任何服务器一样。它无法更改接收地址：证明已与其绑定。', 'relay.refused': '中继器拒绝：', 'relay.down': '中继器没有响应。取消勾选中继器，即可用您自己的钱包发送取款。', 'wd.s6r': '通过中继器发送', 'wd.relaying': '正在通过中继器发送…', 'wd.rootRetry': '在此期间该池收到了很多存款，池已不再记得此证明的根。正在基于当前根重新生成证明；凭证未受影响…',
     'warn.selfRecipient': '接收地址就是当前连接的钱包。任何人都能看到该钱包向自己付款，因此这笔取款没有隐私。请使用新地址。',
     'warn.sameWallet': '此钱包（{addr}）在本次会话中进行过存款。取款交易由当前连接的钱包发送并支付 Gas，这是公开的，因此关联可见。取款前请连接另一个持有少量测试 ETH 的钱包。',
@@ -1678,13 +1702,32 @@ async function relayPost(net, path, body) {
   try { r = await fetch(relayFor(net) + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body, (k, v) => (typeof v === 'bigint' ? v.toString() : v)) }); }
   catch (e) { throw new Error(t('relay.down')); }
   let j = {}; try { j = await r.json(); } catch (e) {}
-  if (!r.ok || !j.tx) throw new Error(t('relay.refused') + (j.error || ('HTTP ' + r.status)));
+  if (!r.ok || !(j.tx || j.scheduled)) throw new Error(t('relay.refused') + (j.error || ('HTTP ' + r.status)));
   return j;
+}
+// Delayed sending: the chosen window in seconds (0 = now), and the request field the relayer reads.
+const relayDelay = (selId) => Number($(selId).value) || 0;
+const withDelay = (body, sec) => (sec > 0 ? Object.assign(body, { delay: { withinSeconds: sec } }) : body);
+const untilText = (iso) => { const d = new Date(iso); return isNaN(d) ? String(iso) : d.toLocaleString(); };
+function relayScheduledMsg(r) { $('dlId').value = r.id; log('Delayed withdrawal accepted by the relayer: id ' + r.id + ', to be sent before ' + r.notAfter); return t('relay.scheduled', { until: untilText(r.notAfter), id: r.id }); }
+async function delayedCall(method) {
+  const id = $('dlId').value.trim().toLowerCase();
+  try {
+    if (!/^[0-9a-f]{32}$/.test(id)) throw new Error(t('dl.badId'));
+    const p = currentPool(), base = relayFor(p && p.net); if (!base) throw new Error(t('dl.noRelay'));
+    let r; try { r = await fetch(base + '/scheduled/' + id, { method }); } catch (e) { throw new Error(t('relay.down')); }
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    if (!r.ok) throw new Error(t('relay.refused') + (j.error || ('HTTP ' + r.status)));
+    const key = { waiting: 'dl.waiting', sent: 'dl.sent', failed: 'dl.failed', cancelled: 'dl.cancelled' }[j.state];
+    setStatus('dlStatus', key ? t(key, { until: untilText(j.notAfter), tx: j.tx || '', error: j.error || '' }) : String(j.state), j.state === 'sent' ? 'ok' : j.state === 'failed' ? 'err' : 'info');
+    log('Delayed withdrawal ' + id.slice(0, 8) + '…: ' + j.state + (j.tx ? ' ' + j.tx : ''));
+  } catch (e) { setStatus('dlStatus', errText(e), 'err'); }
 }
 function syncWithdrawBtn() {
   const p = currentPool(); if (!p) return;
   const relay = !!relayFor(p.net) && !p.legacy;
-  $('relayRow').hidden = !relay;
+  $('relayRow').hidden = !relay; $('dlRow').hidden = !relay;
+  $('relayDelayWrap').hidden = !$('useRelay').checked;
   $('withdrawBtn').disabled = !(signer || (relay && $('useRelay').checked));
 }
 
@@ -1888,6 +1931,7 @@ function updateWarnings() {
   if (recipient && userAddress && recipient.toLowerCase() === userAddress.toLowerCase()) out.push(['bad', t('warn.selfRecipient')]);
   const cp = currentPool();
   if (cp && !cp.legacy && relayOn(cp.net, 'useRelay')) out.push(['note', t('relay.note')]);
+  if (cp && !cp.legacy && relayOn(cp.net, 'useRelay') && relayDelay('relayDelay')) out.push(['note', t('relay.delayNote')]);
   else if (userAddress) {
     if (depositWallets.has(userAddress.toLowerCase())) out.push(['bad', t('warn.sameWallet', { addr: short(userAddress) })]);
     else out.push(['warn', t('warn.sender', { addr: short(userAddress) })]);
@@ -2151,9 +2195,10 @@ $('withdrawBtn').addEventListener('click', async () => {
       if (viaRelay) {
         st.go(5, t('x.block'));
         setStatus('withdrawStatus', t('wd.relaying'), 'info');
-        const r = await relayPost(pool.net, '/withdraw', Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, feeVer(pool.version) ? { relayer: ethers.ZeroAddress, fee: '0' } : {}));
-        log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+        const r = await relayPost(pool.net, '/withdraw', withDelay(Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, feeVer(pool.version) ? { relayer: ethers.ZeroAddress, fee: '0' } : {}), relayDelay('relayDelay')));
         st.extra(5, ''); st.done();
+        if (r.scheduled) { setStatus('withdrawStatus', relayScheduledMsg(r), 'ok'); break; }
+        log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
         setStatus('withdrawStatus', t('wd.success', { tx: r.tx }), 'ok');
         break;
       }
@@ -2181,6 +2226,9 @@ $('withdrawBtn').addEventListener('click', async () => {
   finally { syncWithdrawBtn(); if (signer) btn.disabled = false; }
 });
 $('useRelay').addEventListener('change', () => { syncWithdrawBtn(); updateWarnings(); });
+$('relayDelay').addEventListener('change', updateWarnings);
+$('dlCheckBtn').addEventListener('click', () => delayedCall('GET'));
+$('dlCancelBtn').addEventListener('click', () => delayedCall('DELETE'));
 // a pasted V5 note names its network and pool: select them, so the relayer option (and the button) match the note
 $('noteInput').addEventListener('input', () => {
   try {
@@ -2341,6 +2389,7 @@ function waWarnings() {
   const wr = waRouterGuess();
   $('waRelayRow').hidden = !(wr && relayFor(wr.net));
   if (wr && relayOn(wr.net, 'waUseRelay')) out.push(['note', t('relay.note')]);
+  if (wr && relayOn(wr.net, 'waUseRelay') && relayDelay('waRelayDelay')) out.push(['note', t('relay.delayNote')]);
   else if (userAddress) out.push(depositWallets.has(userAddress.toLowerCase()) ? ['bad', t('warn.sameWallet', { addr: short(userAddress) })] : ['warn', t('warn.sender', { addr: short(userAddress) })]);
   out.push(['warn', t('wa.linked')]);
   $('waWarnings').innerHTML = out.map(([c, x]) => '<li class="' + c + '">' + esc(x) + '</li>').join('');
@@ -2357,7 +2406,8 @@ function syncWaButtons() {
   const relay = !!(waFound && waFound.router && relayOn(waFound.router.net, 'waUseRelay'));
   $('waGoBtn').disabled = !(ok && (signer || relay)); $('waSepBtn').disabled = !ok;
 }
-$('waUseRelay').addEventListener('change', () => { syncWaButtons(); waWarnings(); });
+$('waUseRelay').addEventListener('change', () => { $('waRelayDelayWrap').hidden = !$('waUseRelay').checked; syncWaButtons(); waWarnings(); });
+$('waRelayDelay').addEventListener('change', waWarnings);
 $('waKey').addEventListener('input', () => waWarnings());
 async function waScan(st) {
   const mk = parseMasterKey($('waKey').value);
@@ -2426,7 +2476,7 @@ $('waSepBtn').addEventListener('click', () => {
 });
 // Proves and sends notes of one router to one recipient: withdrawMany in batches of MAX_WITHDRAWALS, from the wallet or
 // through the relayer. Steps s0, s0+1, s0+2 of `st` show proving, simulating and sending. Returns the transaction hashes.
-async function sendNotesTo(router, rp, deps, notes, recipient, viaRelay, st, s0, statusId) {
+async function sendNotesTo(router, rp, deps, notes, recipient, viaRelay, st, s0, statusId, delaySec = 0) {
   const tok = router.token, v6 = feeVer(router.version), circ = await loadCircuit(router.circuit);
   const zeros = computeZeroCascade(levelsOf(router.version));
   let pending = notes.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);   // notes not yet paid out
@@ -2465,8 +2515,9 @@ async function sendNotesTo(router, rp, deps, notes, recipient, viaRelay, st, s0,
     for (let i = 0; i < batches.length; i++) {
       if (batches.length > 1) st.extra(s0 + 2, t('wa.batch', { i: i + 1, n: batches.length }));
       if (viaRelay) {
-        const r = await relayPost(router.net, '/withdrawMany', Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {})); txs.push(r.tx);
-        log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
+        const r = await relayPost(router.net, '/withdrawMany', withDelay(Object.assign({ router: router.address, items: batches[i], recipient }, v6 ? { relayer: ethers.ZeroAddress } : {}), delaySec));
+        if (r.scheduled) { (txs.scheduled = txs.scheduled || []).push(r); }   // accepted, to be sent later: no transaction yet
+        else { txs.push(r.tx); log('Relayed withdrawMany tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : '')); }
       } else {
         const tx = await new ethers.Contract(router.address, routerAbi(router), signer).withdrawMany(batches[i], recipient, ...relayArg, await feeOverrides(router.net)); txs.push(tx.hash);
         log('withdrawMany tx: ' + tx.hash);
@@ -2500,10 +2551,11 @@ $('waGoBtn').addEventListener('click', async () => {
     const { router, rp, deps } = sc, tok = router.token;
     const viaRelay = relayOn(router.net, 'waUseRelay');   // no wallet needed
     if (!viaRelay) { if (!signer) throw new Error(t('wallet.notConnected')); await ensureCorrectNetwork({ net: router.net }); }
-    const txs = await sendNotesTo(router, rp, deps, plan.chosen, recipient, viaRelay, st, 3, 'waStatus');
+    const txs = await sendNotesTo(router, rp, deps, plan.chosen, recipient, viaRelay, st, 3, 'waStatus', viaRelay ? relayDelay('waRelayDelay') : 0);
     const lastTx = txs[txs.length - 1];
     st.done();
-    setStatus('waStatus', t('wa.success', { amt: target, token: tok, to: short(recipient), tx: lastTx }), 'ok');
+    if (txs.scheduled) setStatus('waStatus', txs.scheduled.map(relayScheduledMsg).join(' '), 'ok');
+    else setStatus('waStatus', t('wa.success', { amt: target, token: tok, to: short(recipient), tx: lastTx }), 'ok');
     waFound = null; $('waPlan').innerHTML = ''; if (signer) await refreshBalances();
   } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { syncWaButtons(); }

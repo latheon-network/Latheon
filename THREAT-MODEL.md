@@ -121,6 +121,8 @@ The proof hides the link between a deposit and a withdrawal on chain. It does no
 - The legacy V4 pool and the reference app for the frozen V5 pools (`sdk/demo-app-v5.html`) still ask about single notes.
 - Deposits: the depositor's address is public anyway (§4).
 
+**Delayed sending through the relayer (since 11 November 2026).** A relayed withdrawal can carry a window ("send at a random moment within N", 60 seconds to 24 hours; demo and SDK). The relayer checks the request at once and sends the transaction later, so the moment the user was online and the moment of the withdrawal on chain differ. This weakens matching by time while few people use the pools; it does not remove it. The relayer itself still sees when the request arrived and from which IP address (it writes neither to its log nor to disk; the waiting requests, with proofs and recipients, are kept in one file until sent). The proof cannot be changed by the relayer, only sent late or not at all. A held proof is valid for the next 99 deposits into its pool; after that the request fails and the note has to be withdrawn again.
+
 **What a user can do today:** point the SDK or a local copy of the demo at their own node, and use a VPN or Tor for the connection. Private reads from an untrusted endpoint (private information retrieval) are research elsewhere and are not used here.
 
 ## 9. Future work

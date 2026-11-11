@@ -81,13 +81,30 @@ async function main() {
   // a local relayer: the shape of the network's (POST /withdraw, /withdrawMany, GET /status), sending from its own account
   const relayerAddr = await relaySigner.getAddress();
   const relayLog = [];
+  // delayed requests ("delay": {withinSeconds}): held here until the test calls relayDue(), like the relayer's queue
+  const held = new Map(); let heldSeq = 0;
+  const sendHeld = async (h) => {
+    try {
+      const b = h.body;
+      if (h.url === '/withdraw') { const pool = REG.pools.find((p) => p.address.toLowerCase() === String(b.pool).toLowerCase()); const c = new ethers.Contract(pool.address, sdk.POOL_ABI[pool.version], relaySigner); h.tx = (await (await c.withdraw(b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, b.relayer, b.fee)).wait()).hash; }
+      else { const router = REG.routers.find((r) => r.address.toLowerCase() === String(b.router).toLowerCase()); const c = new ethers.Contract(router.address, sdk.ROUTER_ABI[router.version], relaySigner); h.tx = (await (await c.withdrawMany(b.items, b.recipient, b.relayer)).wait()).hash; }
+      h.state = 'sent';
+    } catch (e) { h.state = 'failed'; h.error = (e.shortMessage || e.message || String(e)).slice(0, 120); }
+  };
+  const relayDue = async () => { for (const h of held.values()) if (h.state === 'waiting') await sendHeld(h); };
   const server = http.createServer((req, res) => {
     let body = ''; req.on('data', (c) => { body += c; });
     req.on('end', async () => {
       const reply = (code, j) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(j)); };
       try {
         if (req.method === 'GET' && req.url === '/status') return reply(200, { address: relayerAddr, fee: '0' });
+        const sm = /^\/scheduled\/([0-9a-f]{32})$/.exec(req.url);
+        if (sm) { const h = held.get(sm[1]); if (!h) return reply(404, { error: 'No such delayed withdrawal.' });
+          if (req.method === 'DELETE') { if (h.state !== 'waiting') return reply(409, { error: 'already ' + h.state }); h.state = 'cancelled'; }
+          return reply(200, Object.assign({ state: h.state, notAfter: h.notAfter }, h.tx ? { tx: h.tx } : {}, h.error ? { error: h.error } : {})); }
         const b = JSON.parse(body); relayLog.push({ url: req.url, body: b });
+        if (b.delay) { const id = (++heldSeq).toString(16).padStart(32, '0'), notAfter = new Date(Date.now() + b.delay.withinSeconds * 1000).toISOString();
+          const { delay, ...rest } = b; held.set(id, { url: req.url, body: rest, state: 'waiting', notAfter }); return reply(202, { scheduled: true, id, notAfter }); }
         if (req.url === '/withdraw') {
           const pool = REG.pools.find((p) => p.address.toLowerCase() === String(b.pool).toLowerCase()); if (!pool) return reply(400, { error: 'unknown pool' });
           const c = new ethers.Contract(pool.address, sdk.POOL_ABI[pool.version], relaySigner);
@@ -276,6 +293,25 @@ async function main() {
   const n5 = sdk.generateNote(P('v5', 1));
   await (await new ethers.Contract(P('v5', 1).address, sdk.POOL_ABI.v5, alice).deposit(n5.commitment, { value: E18 })).wait();
   ok('V5 withdrawal input refuses a relayer fee (no such public input)', await rejects(async () => sdk.withdrawNote(bob, P('v5', 1), n5.note, fresh(), opts('v5', { fee: 1n, relayer: feeTaker })), /V5 proofs have no relayer/));
+
+  // ---- delayed sending through the relayer (opts.delay)
+  const depD = await sdk.deposit(alice, pool10); const toD = fresh();
+  const wD = await sdk.withdrawNote(provider, pool10, depD.note, toD, opts('v7', { viaRelayer: true, minBlock: depD.receipt.blockNumber, delay: { withinSeconds: 3600 } }));
+  const stD = await sdk.relayScheduled(pool10.net, wD.id);
+  ok('withdrawNote(viaRelayer, delay): accepted with an id and no transaction; the request carries delay.withinSeconds; nothing is paid yet; state "waiting"',
+    wD.scheduled === true && /^[0-9a-f]{32}$/.test(wD.id) && wD.txHash === undefined && relayLog[relayLog.length - 1].body.delay.withinSeconds === 3600 && (await bal(toD)) === 0n && stD.state === 'waiting');
+  await relayDue();
+  const stD2 = await sdk.relayScheduled(pool10.net, wD.id);
+  ok('…when the relayer sends it: the recipient is paid and the state is "sent" with the transaction hash', (await bal(toD)) === 10n * E18 && stD2.state === 'sent' && /^0x[0-9a-f]{64}$/.test(stD2.tx));
+  const depC = await sdk.deposit(alice, pool10); const toC = fresh();
+  const wC = await sdk.withdrawNote(provider, pool10, depC.note, toC, opts('v7', { viaRelayer: true, minBlock: depC.receipt.blockNumber, delay: { withinSeconds: 600 } }));
+  const cC = await sdk.relayCancel(pool10.net, wC.id); await relayDue();
+  ok('relayCancel(): a waiting request is cancelled and never sent; a bad id and a bad delay are refused locally', cC.state === 'cancelled' && (await bal(toC)) === 0n &&
+    await rejects(async () => sdk.relayScheduled(pool10.net, 'xyz'), /Not a delayed-withdrawal id/) && await rejects(async () => sdk.relayWithdraw(pool10, wC.proof, toC, { delay: { withinSeconds: 1.5 } }), /whole number/));
+  const dM = await sdk.depositAny(alice, r7, sdk.toUnits(r7, '61')); const toM = fresh();
+  const wM = await sdk.withdrawByAmount(provider, r7, dM.masterKey, 61, toM, opts('v7', { viaRelayer: true, minBlock: dM.receipt.blockNumber, delay: { withinSeconds: 600 } }));
+  const paidBefore = await bal(toM); await relayDue();
+  ok('withdrawByAmount(viaRelayer, delay): one delayed batch accepted (no hash yet), paid in full when the relayer sends it', wM.scheduled && wM.scheduled.length === 1 && wM.txHashes.length === 0 && paidBefore === 0n && (await bal(toM)) === 61n * E18);
 
   ok('no read of a single nullifier reached the node in the whole run (deposits, findNotes, withdrawals, payouts)', nullifierReads === 0, nullifierReads + ' reads');
   ok('isSpent(..., { direct: true }) is the one opt-in that asks the pool about one note, and agrees with the scan', (await sdk.isSpent(provider, pool100, dep, { direct: true })) === true && nullifierReads === 1);
