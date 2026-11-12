@@ -13,9 +13,12 @@ const relayer = require('./relayer');
 const pool = require('./pool');
 const router = require('./router');
 const payout = require('./payout');
+const report = require('./report');
 const distribution = require('../distribution');
 
 module.exports = Object.assign({},
+  // disclosure report file (docs/disclosure-report-format.md)
+  { REPORT_TYPE: report.REPORT_TYPE, REPORT_VERSION: report.REPORT_VERSION, REPORT_MAX: report.REPORT_MAX, buildReport: report.buildReport, verifyReport: report.verifyReport, checkReportOnChain: report.checkReportOnChain, proofFromCallData: report.proofFromCallData },
   // constants and ABIs
   {
     FIELD_SIZE: constants.FIELD_SIZE, VERSIONS: constants.VERSIONS, CURRENT_VERSION: constants.CURRENT_VERSION,

@@ -9,11 +9,12 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/unit.js && node test/proof.js",
+    "test": "node test/unit.js && node test/proof.js && node test/report.js",
     "test:unit": "node test/unit.js",
     "test:proof": "node test/proof.js",
     "test:e2e": "node test/e2e.js",
-    "test:all": "node test/unit.js && node test/proof.js && node test/e2e.js"
+    "test:report": "node test/report.js",
+    "test:all": "node test/unit.js && node test/proof.js && node test/report.js && node test/e2e.js"
   },
   "dependencies": {
     "ethers": "^6.13.0",

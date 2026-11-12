@@ -1,0 +1,127 @@
+{
+ "type": "latheon-disclosure-report",
+ "version": 1,
+ "created": "2026-11-12T00:00:00.000Z",
+ "network": "Latheon Testnet",
+ "chainId": 60531373273,
+ "verifierAddress": "0xB86360CBDE78664bb1674c367391E9d79c37F294",
+ "auditorNonce": "424242",
+ "items": [
+  {
+   "pool": "0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A",
+   "version": "v7",
+   "token": "LTH",
+   "amount": 1,
+   "commitment": "14538283845709343420003167547162593298318419391429324298561364287715089723557",
+   "leafIndex": 3,
+   "depositTime": 1794200000,
+   "withdrawn": true,
+   "proof": {
+    "pA": [
+     "0x08f29d26fe9005e896cee34fb737a866fee0dfa6d8d0ae7a2dd3100ed7a89255",
+     "0x130e7c2b36ddcd3952087ca3c3dc6316daf7298b9861adee8015aa47c34586af"
+    ],
+    "pB": [
+     [
+      "0x263f6d3ef972c7affb9a68fdd929ede6bd1889b53b937d1b775716c20f5117a4",
+      "0x0f8f95591f69f07f36b146886e80df6f2beefb30e98e506743fb5b41c7442bab"
+     ],
+     [
+      "0x059649850402d20e830dcc8fbd2bf76fb773161c75deeaeabd8d65b7cca9272b",
+      "0x305c7d81dffd47d65db68402b5bdf92826e554168e20f3fd947c25958a569097"
+     ]
+    ],
+    "pC": [
+     "0x06183f665418191fbc4d83b198edd59c45632d6c24b790e3c9c5861339743269",
+     "0x0553f6a9788987e77d026bcb3d7853c3a2f71dc88404bc89ce9ab1aab3da9ca3"
+    ],
+    "pubSignals": [
+     "0x202460869c04b3c1e600e69a6dcd163e1211e1676dd185352af82d9c725a30a5",
+     "0x0e503216fc420be66d7277474d0e44e354f6cdda2d14aa36d02a3b0e431e12fe",
+     "0x0000000000000000000000000000000000000000000000000000000000067932"
+    ]
+   }
+  },
+  {
+   "pool": "0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae",
+   "version": "v7",
+   "token": "LTH",
+   "amount": 100,
+   "commitment": "15656327371360283632475439477236326272796679210361612599539113216294023092472",
+   "leafIndex": 7,
+   "depositTime": 1794300000,
+   "withdrawn": false,
+   "proof": {
+    "pA": [
+     "0x29db33004ec51721bb77883ebdeeccc3298c7c813151edf6a59bda469300bd52",
+     "0x08874ecc99842ba7fed745e06420e39ebcb198c621933f4eb6e65029ae46b686"
+    ],
+    "pB": [
+     [
+      "0x0c74b5ee4540dd5fd3528958b1a3f494a93e9cb014392796de73a27cc350b158",
+      "0x02af7fea352b4b45daa5857d0edc798a5b1b950283ecbb5e82356a5ae8a20dd6"
+     ],
+     [
+      "0x1dfdeecf0e856d09b28b049506954322f601c35cce949d15016f9060d8c6e0c5",
+      "0x2b6f5d486bd0f4fb9814252ed08a5f591ac2ae460393de3cd2102ea50c8bac08"
+     ]
+    ],
+    "pC": [
+     "0x06dff6a7443407eb76e90e73ff69c52b855e4ea292e12bbf9104e8ca5d23318d",
+     "0x1c0f5aee73ffc8fe14d40705b93c8318b8ebd0b73403e562866a0ec0cfcd692b"
+    ],
+    "pubSignals": [
+     "0x229d2ad1d48b85612e4cacc3175ff6c4e3db933141c3360670aa35427ff458f8",
+     "0x2e913e1ffd2d1f46f9878fcce8d5884e187d091aa22274c4776c57b499559cff",
+     "0x0000000000000000000000000000000000000000000000000000000000067932"
+    ]
+   },
+   "label": "Invoice 17"
+  },
+  {
+   "pool": "0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A",
+   "version": "v7",
+   "token": "LTH",
+   "amount": 1,
+   "commitment": "10960793065769137584295610307978925014317698561383324919421464321907991681193",
+   "leafIndex": 9,
+   "depositTime": 1794300100,
+   "withdrawn": true,
+   "proof": {
+    "pA": [
+     "0x2b5f739121826fed860821d325d33259a51d5c28a45d619bfeb51392323873e3",
+     "0x0036a3feca594c4f531912ee22993d9f5825cd2a25ddceb54aa6ec204939c61a"
+    ],
+    "pB": [
+     [
+      "0x26ce075a3156f96c723b981b0fcabb922c0db3cc2a9546ab5753c6c0e02fbdb5",
+      "0x0da400dc0896a91805cf63e227439c41cf2ff25744c725cf879eadf560de825f"
+     ],
+     [
+      "0x2a72eae7eb6627c1f9052187e18b938e0f3d2382c080ab6fb9b85130c5e40674",
+      "0x0c543204c37f23eef21bc4881b36e58fa4ff02b63db00d14986badc92f2c1819"
+     ]
+    ],
+    "pC": [
+     "0x2fe3aa360ea7bfc6a77e9992d14db4936afaca7cfce7358f0a061911ebe46fe8",
+     "0x1a9f2a8f5c993887ffd0b69ea40f27233a3a4f85936b7e23b6955c137509e6a3"
+    ],
+    "pubSignals": [
+     "0x183b96ca8f43dc7fdbed56b33e247eca896598fbf270afd6665d765e471a98a9",
+     "0x0dd0e858df52fe086f3e93df2821436aeda0db79b5e043a3ecebdb0dfce148fe",
+     "0x0000000000000000000000000000000000000000000000000000000000067932"
+    ]
+   },
+   "label": "Refund line two",
+   "keys": {
+    "spendKey": "1002",
+    "viewKey": "2002"
+   }
+  }
+ ],
+ "totals": {
+  "notes": 3,
+  "deposited": "102 LTH",
+  "withdrawn": 2
+ }
+}

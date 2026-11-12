@@ -164,6 +164,9 @@ const N = 'latheon-testnet', CHAIN = { id: 60531373273, hex: '0xe17f374d9' }, E1
     rec('D3. Ticking "also show where withdrawn notes went" shows the warning; unticking hides it', await warnShown(), '');
     const t0 = Date.now();
     const r = await buildReport([key, noteA, noteB], code, true);
+    // REPORT_OUT=<file>: keep this report (made by the demo, with keys of the withdrawn notes) as a test vector of the file
+    // format; sdk/test/report.js checks it with the SDK's verifier (test/vectors/disclosure-report/demo-built-v1.json).
+    if (process.env.REPORT_OUT && r.text) fs.writeFileSync(process.env.REPORT_OUT, r.text + '\n');
     const rep = r.text ? JSON.parse(r.text) : { items: [] };
     const withKeys = rep.items.filter((x) => x.keys), unspent = rep.items.filter((x) => !x.withdrawn);
     rec('D4. Report of a master key and two notes: 6 notes, 221 LTH, proofs for the auditor\'s code', /Report ready: 6 notes, 221 LTH/.test(r.status) && rep.items.length === 6 && rep.auditorNonce === code && rep.items.every((x) => x.proof && BigInt(x.proof.pubSignals[2]) === BigInt(code)),

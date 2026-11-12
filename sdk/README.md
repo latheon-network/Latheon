@@ -126,6 +126,10 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
   `nullifierHashes(x)`, because that would show the RPC endpoint which unspent note you hold (and which notes of a master
   key belong together) next to your IP address. `{ direct: true }` makes that single call anyway. What the endpoint and
   the relayer still see: `THREAT-MODEL.md` §8.6
+- Disclosure report file (`docs/disclosure-report-format.md`): `buildReport({ net, auditorNonce, notes, circuit })` makes the file the
+  demo's auditor tab reads; `verifyReport(report, { circuit, expectedNonce })` checks proofs, commitments, the code, repeats and
+  keys without a network; `checkReportOnChain(result, report, provider, pools)` adds the deposits and withdrawals. Command line:
+  `node tools/verify-report.js REPORT.json --code N [--chain]`. Vectors: `test/vectors/disclosure-report/`
 - Delayed sending: `withdrawNote` and `withdrawByAmount` with `{ viaRelayer: true, delay: { withinSeconds } }` hand the proof to the
   relayer, which sends it at a random moment within that window (60 s up to `relayStatus(net).delay.maxSeconds`). The result
   then has `scheduled` (an id and `notAfter`) instead of a transaction hash; `relayScheduled(net, id)` reads the state
