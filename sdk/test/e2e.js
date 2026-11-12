@@ -313,6 +313,20 @@ async function main() {
   const paidBefore = await bal(toM); await relayDue();
   ok('withdrawByAmount(viaRelayer, delay): one delayed batch accepted (no hash yet), paid in full when the relayer sends it', wM.scheduled && wM.scheduled.length === 1 && wM.txHashes.length === 0 && paidBefore === 0n && (await bal(toM)) === 61n * E18);
 
+  // ---- tools/withdraw-via-parent.js: a wallet that signs the withdrawal and hands it to a "submit" function (on the test
+  // chain: the parent chain's Inbox) instead of sending it to the chain's RPC. Here submit() plays the sequencer.
+  const { viaParentWallet, L2_SIGNED_TX } = require('../../tools/withdraw-via-parent.js');
+  const keyV = Object.values(gp.getInitialAccounts())[4].secretKey;
+  const depV = await sdk.deposit(alice, pool10); const toV = fresh(); let handed = null;
+  const dry = viaParentWallet(keyV, provider, { dryRun: true });
+  let dryErr = null; try { await sdk.withdrawNote(dry, pool10, depV.note, toV, opts('v7', { minBlock: depV.receipt.blockNumber })); } catch (e) { dryErr = e; }
+  const dryInfo = dryErr && (dryErr.dryRun || (dryErr.cause && dryErr.cause.dryRun));
+  ok('withdraw-via-parent, dry run: the proof is made and the transaction signed, nothing is sent, the note stays unspent', !!dryInfo && dryInfo.message.startsWith(L2_SIGNED_TX) && (await bal(toV)) === 0n && !(await sdk.isSpent(provider, pool10, depV)));
+  const wv = viaParentWallet(keyV, provider, { pollMs: 200, submit: async (m) => { handed = m; await provider.send('eth_sendRawTransaction', ['0x' + m.slice(4)]); return {}; } });
+  const outV = await sdk.withdrawNote(wv, pool10, depV.note, toV, opts('v7', { minBlock: depV.receipt.blockNumber }));
+  ok('withdraw-via-parent: the message is 0x04 + the signed transaction, its hash is the withdrawal\'s hash, and the recipient is paid once the "sequencer" includes it',
+    handed && handed.startsWith('0x04') && ethers.keccak256('0x' + handed.slice(4)) === outV.txHash && (await bal(toV)) === 10n * E18);
+
   ok('no read of a single nullifier reached the node in the whole run (deposits, findNotes, withdrawals, payouts)', nullifierReads === 0, nullifierReads + ' reads');
   ok('isSpent(..., { direct: true }) is the one opt-in that asks the pool about one note, and agrees with the scan', (await sdk.isSpent(provider, pool100, dep, { direct: true })) === true && nullifierReads === 1);
 

@@ -31,7 +31,13 @@ The relayer refuses requests for technical reasons only: pools or routers not in
 
 The Latheon test chain is run by us alone: one sequencer, one validator, one development key (`THREAT-MODEL.md` §8.4). Its public RPC is ours as well. On this testnet you therefore cannot avoid our infrastructure entirely: if the sequencer refused your transaction, the ways above would not help.
 
-Arbitrum chains have a standard escape from a refusing sequencer: a transaction can be submitted through the chain's delayed inbox on the parent chain (Arbitrum Sepolia) and forced in after the delay period. **We have not tested force inclusion on the Latheon test chain**, so we do not promise it here. A production chain would need it documented and tested, together with the staged control plan in `ROADMAP.md`.
+Arbitrum chains have a standard escape from a refusing sequencer: a transaction can be submitted through the chain's delayed inbox on the parent chain (Arbitrum Sepolia) and forced in after the delay period. What we have measured and what we have not (12 November 2026):
+
+- **Tested: a withdrawal sent through the delayed inbox, not through our RPC or relayer.** `node tools/withdraw-via-parent.js RECIPIENT --send` builds the proof with the SDK, signs the withdrawal and hands it to the chain's Inbox contract on Arbitrum Sepolia (`sendL2Message`). One run: Inbox transaction `0x809554e39ba9c8af14465a4e2fa0a21a05dcc0a58ab8ecd9761872cf0afe8618`, withdrawal of 1 LTH from the V7 pool executed on the test chain as `0x5c00ab759747ba361e053b6852e03664d4128dffc0871eabe769cc01cbde0867` (block 27265). The script saw it included about a second after it saw the Inbox transaction confirmed; the exact delay was not measured (the two block timestamps are equal by construction). So our RPC or relayer refusing a transaction does not stop a withdrawal while the sequencer keeps reading the parent chain. Reads (the deposits for the Merkle path, the nonce, the fee) still went to our RPC; a user's own node can serve them.
+- **Not tested: a sequencer that stops including delayed messages.** Read from the contracts with `node tools/force-inclusion-params.js`: anyone may send to the Inbox (no allow list, not paused), and a message can be forced in by anyone only after 28,800 parent-chain blocks and 345,600 seconds (96 hours); the delay buffer is switched on but its limit is so high that it does not shorten this. We did not stop the sequencer of the shared test chain for four days to try it.
+- **Not possible today: leaving the chain without our validator.** The rollup's validator whitelist is on, so only our validator can post and confirm the assertions that withdrawals to the parent chain depend on. Force inclusion gets a transaction executed; it does not by itself get funds back to the parent chain.
+
+A production chain would need all three documented and tested, together with the staged control plan in `ROADMAP.md`.
 
 ## Wording we use
 
