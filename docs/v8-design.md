@@ -103,7 +103,7 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 
 ## 11. Open questions
 
-For the outside review (sent to Least Authority on 6 November 2026; questions 1–3 there match §3, §5 and the ceremony):
+For an outside review (no reviewer is arranged yet: the questions went to Least Authority on 6 November 2026, whose pro bono programme had ended in September 2025; questions 1–3 match §3, §5 and the ceremony):
 1. `ctx` in the nullifier or only as a public input?
 2. Tree nodes tagged or not; tag values from strings or small constants?
 3. Is `disclose_link` without a Merkle path sound, given that the auditor checks the events?
