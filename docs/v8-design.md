@@ -74,6 +74,8 @@ Options: (A) include now, optional per withdrawal; (B) leave out of V8 and decid
 
 Today: `root, nullifierHash, recipient, relayer, fee`. Proposal: `root, nullifierHash, ctx, extDataHash` (+ `aspRoot` if §6 A), where `extDataHash = keccak256(abi.encode(recipient, relayer, fee, reference)) mod p` is computed by the contract from the call's arguments. The binding stays the same (a different recipient, relayer, fee or reference gives a different hash and the proof fails), new fields can be added later without a circuit change, and there is one public input less. This is the approach of Tornado Nova; the contract must compute the hash itself from the arguments it then uses.
 
+Decided 12 November 2026: `extData` also carries `destChainId`, so `extDataHash = keccak256(abi.encode(recipient, relayer, fee, reference, destChainId)) mod p`. In V8 the pool accepts only `destChainId == block.chainid` (a withdrawal on this chain) and reverts otherwise. The field costs nothing in the circuit, which sees only the hash. Its purpose is the pool contract: a later withdrawal that pays out on another chain would otherwise need new pools, and new pools start with an empty anonymity set. Nothing that uses another value is designed or promised (`docs/bridge-privacy-design.md`).
+
 ## 8. Contract items for the same version
 
 From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
@@ -128,3 +130,4 @@ Decided by Vladimir on 8 November 2026: see §13.
 2. Payment reference in extData: yes, filled in every withdrawal, random when unused (§5, §7).
 3. Deposit pause: for the test chain, deposits only, held by a timelocked multisig; legal question before any real value (§8).
 4. Unless the outside review advises otherwise: `ctx` is folded into the nullifier (§3) and tree nodes stay untagged (§4, draft a).
+5. (12 November 2026) `destChainId` in extData, fixed to this chain in V8 (§7).

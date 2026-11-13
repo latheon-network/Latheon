@@ -16,7 +16,7 @@ Follow the work: X [@Latheon_xyz](https://x.com/Latheon_xyz) · Telegram [t.me/L
 
 **Latheon test chain:** RPC `https://rpc.testnet.latheon.xyz`, chain ID 60531373273, explorer and faucet at <https://explorer.testnet.latheon.xyz>. On it you deposit LTH itself, with no approval step, and a withdrawal to an empty address leaves it with LTH for gas. Details and limits: [`docs/testnet.md`](./docs/testnet.md).
 
-**Live demo: <https://latheon.xyz/demo>**. Pick a network and a token, claim test tokens, then either use one fixed pool, or deposit **any amount** through the router (one master key for all notes) and withdraw by **amount and master key**. You can also withdraw to another address and generate a disclosure proof for an auditor. Test tokens only, no real value. A browser wallet such as MetaMask is required.
+**Live demo: <https://latheon.xyz/demo>**. Pick a network and a token, claim test tokens, then either use one fixed pool, or deposit **any amount** through the router (one master key for all notes) and withdraw by **amount and master key**. You can also withdraw to another address and generate a disclosure proof for an auditor. Test tokens only, no real value. A browser wallet such as MetaMask is needed for deposits; a withdrawal through the chain's relayer needs none.
 
 ## Current generation: V7 (on the Latheon test chain)
 
@@ -26,6 +26,9 @@ Follow the work: X [@Latheon_xyz](https://x.com/Latheon_xyz) · Telegram [t.me/L
 - **Capacity:** each pool's Merkle tree has depth 20, so a pool holds up to 1,048,576 deposits, and it keeps its last 100 roots.
 - **Any amount, via a router:** the distribution router (`contracts/LatheonDistributionPoolV7Native.sol` on the test chain; the original `LatheonDistributionPool.sol` served the external testnets) is a stateless contract (no owner, no fee) that splits an amount into notes of 100 / 50 / 10 / 1 and deposits them into the four pools in one transaction; `withdrawMany` pays several notes to one address in one transaction (up to 16). The current router is the V7 native router on the Latheon test chain; the routers on the three external testnets are deprecated with their pools. Not independently reviewed. Several notes withdrawn to one address in one transaction are visibly linked to each other. Details: [`docs/distribution-pool-architecture.md`](./docs/distribution-pool-architecture.md), [`docs/distribution-pool-deployments.md`](./docs/distribution-pool-deployments.md).
 - **Selective disclosure:** a depositor can prove to one chosen auditor that they control a specific deposit, without giving that auditor any ability to spend it. The auditor learns which deposit it is (its commitment is public on-chain anyway), but not your keys, your other deposits, or where the funds went. Design: [`docs/selective-disclosure-design.md`](./docs/selective-disclosure-design.md).
+- **A report for an accountant or auditor:** many notes in one file bound to the auditor's one-time code; for notes already withdrawn the user may add their keys, and the auditor then sees where they went. Only the user can make it. The file format and its checking steps are specified in [`docs/disclosure-report-format.md`](./docs/disclosure-report-format.md); `node tools/verify-report.js` checks a file without a browser.
+- **What the network sees (`THREAT-MODEL.md` §8.6):** the demo and the SDK decide whether a note is spent from all withdrawals of a pool and never ask the RPC endpoint about one note (since 11 November 2026). A relayed withdrawal can be sent at a random moment within a window of up to 24 hours, which weakens matching by time; the relayer itself still sees when the request arrived and from which IP address.
+- **Without our interface:** a valid proof can be sent from any wallet, and a withdrawal sent through the chain's inbox on Arbitrum Sepolia, not through our RPC or relayer, was executed on 12 November 2026. Forcing a transaction in with the sequencer stopped takes 96 hours and is not tested, and leaving the chain depends on our validator: [`docs/withdraw-without-our-interface.md`](./docs/withdraw-without-our-interface.md).
 
 ## Do not deposit into pre-V7 pools
 
@@ -59,12 +62,15 @@ Full mechanics and limits: [`THREAT-MODEL.md`](./THREAT-MODEL.md).
 ```
 contracts/   Solidity contracts: token, faucet, pools (V3–V7; only V7 is current), distribution routers, verifiers, Poseidon hashing
 circuits/    circom circuits (withdraw v1/v2/v3/v4/v5, disclose), compiled proving artifacts in build/, the phase-1 ptau file in ptau/
-sdk/         JavaScript SDK for the V7 pools and router (notes, master keys, 20-level paths, withdraw_v5 proofs, withdraw / withdrawMany, relayer; V6 / V5 withdrawals only), pool and router registry (deployments.json), distribution helpers (distribution.js), reference app for the frozen V5 pools (demo-app-v5.html, withdrawals only)
+sdk/         JavaScript SDK for the V7 pools and router (notes, master keys, 20-level paths, withdraw_v5 proofs, withdraw / withdrawMany, relayer with delayed sending, payouts to a list, the disclosure report file; V6 / V5 withdrawals only), pool and router registry (deployments.json), distribution helpers (distribution.js), reference app for the frozen V5 pools (demo-app-v5.html, withdrawals only)
 demo/        the live demo (latheon.xyz/demo): index.html and deployments.json
 site/        source of the landing page (latheon.xyz)
 test/        Remix unit tests (V3/V4), Node tests with real proofs (v5-integration, distribution, native, native-v6,
-             native-v7, fuzz-v7, zk-review), browser end-to-end tests for the demo and the bridge page (demo-e2e)
-tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model), check-deployments.js and check-versions.js (offline consistency checks)
+             native-v7, fuzz-v7, zk-review, regression-v7), browser end-to-end tests for the demo and the bridge page (demo-e2e),
+             test vectors of the disclosure report file (vectors)
+tools/       zk-toolkit.html (browser trusted setup and proving), privacy-simulation (design model), check-deployments.js and check-versions.js (offline consistency checks),
+             registry-fill.js (deployment transactions read from the chain), make-headers.js (the site's CSP hashes), verify-report.js (checks a disclosure report file),
+             withdraw-via-parent.js and force-inclusion-params.js (a withdrawal through the parent chain's inbox; the chain's force-inclusion settings)
 docs/        technical documentation, see docs/README.md
 ```
 
@@ -84,6 +90,8 @@ docs/        technical documentation, see docs/README.md
 - `cd test/v5-integration && npm install && npm test`: 19 checks with real proofs on a local EVM (about a minute). It includes a reproduction of the V3/V4 flaw and a demonstration that V5 rejects it.
 - `cd test/distribution && npm install && npm test`: the router with real proofs on a local EVM (48 checks, a few minutes); `node wallet.js` checks the wallet-side helpers (25 checks).
 - `cd test/native && npm install && npm test`: the native-coin variant of the V5 pool and the router (no ERC-20: the pools take and pay the chain's gas coin), with real proofs on a local EVM (57 checks, a few minutes). This variant was the Latheon test chain's first pool set (20 October 2026), now frozen and superseded by V7; `test/native-v7` below covers the current one.
+- `cd sdk && npm ci && npm run test:report`: the disclosure report file: building it, checking it without a network, tampered and malformed files, and two test vectors, one made by the SDK and one made by the demo (17 checks on 12 November 2026). `node tools/verify-report.js test/vectors/disclosure-report/valid-v1.json --code 424242` checks a vector from the command line.
+- `node tools/force-inclusion-params.js`: reads from Arbitrum Sepolia how long a transaction must wait before it can be forced in without the sequencer, and whether the inbox and the validator set are open (read-only).
 - `node test/demo-e2e/rpc-robust.js`: the demo's log scanning against fake endpoints modelled on real ones (whole range in one request, range caps, rate limits, pruned nodes, an endpoint that is down), and that the reference app carries the same code (13 checks, no network, no packages).
 - `node test/demo-e2e/landing-e2e.js`: the website's live deposit counters (9 checks, Playwright).
 - `test/demo-e2e`: browser tests of the demo on local chains (reference scripts; see its README).

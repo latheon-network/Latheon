@@ -222,7 +222,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <li><b>Router payouts</b>: notes withdrawn together in one transaction are visibly linked.</li>
     <li><b>Payouts to a list of recipients</b>: amounts are public. Each deposit shows its amount and sender, each payment the amount received; with few users, an unusual amount can be matched to its payer. A pause between recipients weakens this, it does not remove it.</li>
     <li><b>Labels in disclosure reports</b> are the user's own text: the proofs show that the notes are the user's, not what the label says.</li>
-    <li><b>Latheon test chain</b>: one sequencer and one validator, both run by us; owner powers sit with one development key. The relayer, also ours, sees the recipient and your IP address.</li>
+    <li><b>Latheon test chain</b>: one sequencer and one validator, both run by us; owner powers sit with one development key. The relayer, also ours, sees the recipient and your IP address. A transaction can also be sent through the chain inbox on Arbitrum Sepolia, without our RPC or relayer (one withdrawal done this way on 12 November 2026); forcing one in with the sequencer stopped takes 96 hours and is not tested, and leaving the chain depends on our validator.</li>
     <li><b>Relayer policy</b>: the testnet relayer does not check addresses against any list; it refuses requests only for technical reasons (invalid proof, unknown pool, limits). You never need it: the same proof can be sent from any wallet, and anyone can run the demo page (<a href="https://github.com/latheon-network/latheon/blob/main/docs/withdraw-without-our-interface.md" target="_blank" rel="noopener">how</a>). Any change to this policy will be published before it takes effect.</li>
   </ul></div>
 </div></section>
@@ -347,7 +347,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <li><b>Выплаты через роутер</b>: ноты, выведенные одной транзакцией, видимо связаны.</li>
     <li><b>Выплаты списку получателей</b>: суммы публичны. Каждый депозит показывает сумму и отправителя, каждая выплата — полученную сумму; пока пользователей мало, необычную сумму можно связать с плательщиком. Пауза между получателями ослабляет это, но не убирает.</li>
     <li><b>Метки в отчётах раскрытия</b> — текст самого пользователя: доказательства показывают, что ноты принадлежат ему, но не то, что написано в метке.</li>
-    <li><b>Тестовая сеть Latheon</b>: один секвенсер и один валидатор, оба наши; права владельца у одного dev-ключа. Релейер, тоже наш, видит получателя и ваш IP-адрес.</li>
+    <li><b>Тестовая сеть Latheon</b>: один секвенсер и один валидатор, оба наши; права владельца у одного dev-ключа. Релейер, тоже наш, видит получателя и ваш IP-адрес. Транзакцию можно отправить и через inbox сети на Arbitrum Sepolia, без нашего RPC и релейера (один вывод так сделан 12 ноября 2026 года); принудительное включение при остановленном секвенсере занимает 96 часов и не проверено, а выход из сети зависит от нашего валидатора.</li>
     <li><b>Политика релейера</b>: релейер тестовой сети не сверяет адреса ни с какими списками; он отказывает только по техническим причинам (неверное доказательство, неизвестный пул, лимиты). Он вам не обязателен: то же доказательство можно отправить из любого кошелька, а демо-страницу может запустить кто угодно (<a href="https://github.com/latheon-network/latheon/blob/main/docs/withdraw-without-our-interface.md" target="_blank" rel="noopener">как</a>). Любое изменение этой политики будет опубликовано до того, как вступит в силу.</li>
   </ul></div>
 </div></section>
@@ -472,7 +472,7 @@ footer { border-top:1px solid var(--border); margin-top:72px; padding:40px 0 48p
     <li><b>路由合约支付</b>：在一笔交易中一起取出的票据可被看出相互关联。</li>
     <li><b>向收款人列表付款</b>：金额是公开的。每笔存款显示金额和发送方，每笔付款显示收到的金额；用户较少时，特殊金额可能与付款人对应起来。收款人之间的间隔会减弱这一点，但不能消除。</li>
     <li><b>披露报告中的标签</b>是用户自己的文字：证明只表明这些票据属于用户，而不证明标签内容。</li>
-    <li><b>Latheon 测试链</b>：一个排序器和一个验证者，均由我们运行；所有者权限由一把开发密钥掌握。中继器同样由我们运行，能看到收款人和您的 IP 地址。</li>
+    <li><b>Latheon 测试链</b>：一个排序器和一个验证者，均由我们运行；所有者权限由一把开发密钥掌握。中继器同样由我们运行，能看到收款人和您的 IP 地址。交易也可以通过该链在 Arbitrum Sepolia 上的 inbox 发送，不经过我们的 RPC 和中继器（2026 年 11 月 12 日已有一笔取款这样完成）；在排序器停止的情况下强制纳入需要 96 小时且尚未测试，离开该链依赖我们的验证者。</li>
     <li><b>中继器政策</b>：测试网中继器不会将地址与任何名单比对；它只因技术原因拒绝请求（证明无效、未知资金池、限额）。您并不需要它：同一个证明可以从任何钱包发送，任何人都可以自行运行演示页面（<a href="https://github.com/latheon-network/latheon/blob/main/docs/withdraw-without-our-interface.md" target="_blank" rel="noopener">方法</a>）。此政策的任何变更都会在生效前公布。</li>
   </ul></div>
 </div></section>
