@@ -1,0 +1,37 @@
+{
+  "chainInfo": {
+    "chainName": "Latheon Testnet",
+    "chainId": 60531373273,
+    "parentChainId": 421614,
+    "rpcUrl": "https://rpc.testnet.latheon.xyz",
+    "explorerUrl": "https://explorer.testnet.latheon.xyz",
+    "nativeToken": "0xcB44A83A9AD6dE27af7936A4fEbBEDb25c58db02"
+  },
+  "coreContracts": {
+    "rollup": "0xdDcA9a000d2DE69D6C11050B9e8fe90B5e02Bd89",
+    "inbox": "0x3F306353543EB48F419C8F8a19BfAd9fcB86aB17",
+    "outbox": "0x61615B1b8493df67846C6BF17ab2EC4Fcb1775f7",
+    "sequencerInbox": "0x3b7f5F7fF9b38DFb848d9a4724dD45da7647Bea2",
+    "bridge": "0x4D1FdE71BAd635148727694FEa04f24CAf881990"
+  },
+  "tokenBridgeContracts": {
+    "l2Contracts": {
+      "customGateway": "0x171a7C32Bc537277e4d661856E3E420E5241F9F3",
+      "multicall": "0xce1CAd780c529e66e3aa6D952a1ED9A6447791c1",
+      "proxyAdmin": "0x7BE6900Ac988398a3b8c1B133A853848dB9121A3",
+      "router": "0x30f56D73F0Fb786036BD461936eE5Be3ef9d796f",
+      "standardGateway": "0xc882639c64c3bc49b77841a3B002f02Ab796d690",
+      "weth": "0x0000000000000000000000000000000000000000",
+      "wethGateway": "0x0000000000000000000000000000000000000000"
+    },
+    "l3Contracts": {
+      "customGateway": "0x048bEbDA2c843B938E8bb7Df3E2df181E6bb9106",
+      "multicall": "0x904cE42E1Cc9841849108AdC1Ce6924265e9ddD0",
+      "proxyAdmin": "0x56a3660005E5F75BB4C084cF0244Fc8C75de5Ab8",
+      "router": "0xaFe76F5638ba4a16921CEcF39904cFe6b4E75573",
+      "standardGateway": "0xCb0c8421a39116FbF967aA36AB32fE3710A577B5",
+      "weth": "0x0000000000000000000000000000000000000000",
+      "wethGateway": "0x0000000000000000000000000000000000000000"
+    }
+  }
+}

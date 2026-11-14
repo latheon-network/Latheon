@@ -24,11 +24,11 @@ Latheon's own test chain: an Arbitrum Orbit chain that settles to Arbitrum Sepol
 
 The demo adds the network to your wallet when you connect. To add it by hand, use the values above.
 
-**Getting test LTH:** the faucet gives 100 LTH per address once a day (also once a day per IP, at most 50,000 LTH a day in total (raised from 5,000 on 26 October 2026), and not to an address that already holds 100 LTH or more). That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
+**Getting test LTH:** the faucet gives 300 LTH per address once a day (also once a day per IP, at most 300,000 LTH a day in total, and not to an address that already holds 300 LTH or more). Raised from 100 LTH and 50,000 a day on 14 November 2026, for the testnet quests. That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
 
 ## Try it
 
-1. Open the faucet, paste your address, receive 100 LTH.
+1. Open the faucet, paste your address, receive 300 LTH.
 2. Open the demo, pick **Latheon Testnet**, connect your wallet.
 3. Deposit into a V7 fixed pool (100 / 50 / 10 / 1 LTH), or any whole amount through the V7 router; save the note or the master key. The demo offers deposits only into V7; the V5/V6 entries marked "frozen" are there for withdrawals of old notes.
 4. Withdraw to a fresh, empty address, through the relayer (the default; no wallet needed). It receives the LTH and can use it for gas right away.
@@ -43,6 +43,20 @@ The page https://latheon.xyz/bridge moves test LTH between Arbitrum Sepolia, whe
 - **Bridging is public.** It links your Arbitrum Sepolia address to the same address here. Privacy comes from the pools (deposit, then withdraw to a new address), not from the bridge; private funding of the chain is an open question (`docs/bridge-privacy-design.md`).
 
 Machine-readable: the `bridge` entry of this network in [`sdk/deployments.json`](../sdk/deployments.json).
+
+### Arbitrum's own bridge (bridge.arbitrum.io)
+
+The chain also works with the official bridge at https://bridge.arbitrum.io, added by each user in its settings; it is not in the bridge's public list (request: OffchainLabs/arbitrum-portal#637, open, no answer yet).
+
+1. Open bridge.arbitrum.io, connect a wallet, open Settings, turn on testnet mode.
+2. Paste the contents of [`docs/latheon-arbitrum-bridge.json`](latheon-arbitrum-bridge.json) (also at https://latheon.xyz/developers/latheon-arbitrum-bridge.json) into "Add Custom Arbitrum Chain" and press Add Chain. It is stored only in your browser.
+3. Bridge LTH as with our page. The token bridge (ERC-20 gateways and routers on both sides) is in that file; WETH and its gateway are zero addresses because the chain's gas coin is LTH, not ETH.
+
+Confirmed on 14 November 2026: a deposit of 1 LTH from Arbitrum Sepolia (`0xa9ced062d3078e81e6080d7535262c25975fb76dfa08c22b2dc8737310aeb05c`, `createRetryableTicket` on the inbox) arrived here within seconds (`0x3a3f3cc2201cca188ab97c0922b809f34bf9d16c3765e3ca231219579d50d36e`, block 27268); a withdrawal of 1 LTH (`0xbfad263af676944bb2d5bd4e46a0cbb5585b9265d0ca8f10a979486c5bc01c32`, block 27267) was claimed on Arbitrum Sepolia (`0xf964f260fa78cfb13108e74177578771d53e108ecd55f621eb113690326b804c`, `Outbox.executeTransaction`). The same limits apply as for our page: about two hours before a withdrawal can be claimed, and bridging is public.
+
+## Testnet quests
+
+https://explorer.testnet.latheon.xyz/quests checks three steps for quest platforms (Zealy, Galxe): LTH received from the faucet, a deposit into a current (V7) pool or router, and a disclosure report for one deposit, made for a one-time code tied to the participant's address and for a deposit sent from that address. Withdrawals are never checked: that would require linking a deposit wallet to a withdrawal address. The service reads only public data (explorer API, RPC); it keeps the addresses with an accepted report and the time. Code: `testnet/quests` in `latheon-network/l2-eval-ci`.
 
 ## Contracts
 
