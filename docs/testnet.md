@@ -24,7 +24,7 @@ Latheon's own test chain: an Arbitrum Orbit chain that settles to Arbitrum Sepol
 
 The demo adds the network to your wallet when you connect. To add it by hand, use the values above.
 
-**Getting test LTH:** the faucet gives 300 LTH per address once a day (also once a day per IP, at most 300,000 LTH a day in total, and not to an address that already holds 300 LTH or more). Raised from 100 LTH and 50,000 a day on 14 November 2026, for the testnet quests. That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
+**Getting test LTH:** the faucet gives 300 LTH per address once a day (up to three claims a day from one IP address, since mobile carriers put many people behind one address; at most 300,000 LTH a day in total; not to an address that already holds 300 LTH or more). Raised from 100 LTH and 50,000 a day on 14 November 2026, for the testnet quests; claims per IP raised from one to three on 15 November 2026 (`latheon-network/l2-eval-ci` commit `96daebb`). That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
 
 ## Try it
 
