@@ -22,7 +22,7 @@ Latheon's own test chain: an Arbitrum Orbit chain that settles to Arbitrum Sepol
 | Bridge | https://latheon.xyz/bridge (test LTH between Arbitrum Sepolia and this chain) |
 | Settles to | Arbitrum Sepolia (421614), Rollup mode |
 
-The demo adds the network to your wallet when you connect. To add it by hand, use the values above.
+The demo adds the network to your wallet when you connect. To add it by hand, use the values above. The chain is also listed in the public chain registry `ethereum-lists/chains` as `eip155-60531373273` (merged 21 November 2026), which chainid.network and chainlist.org read.
 
 **Getting test LTH:** the faucet gives 300 LTH per address once a day (up to three claims a day from one IP address, since mobile carriers put many people behind one address; at most 300,000 LTH a day in total; not to an address that already holds 300 LTH or more). Raised from 100 LTH and 50,000 a day on 14 November 2026, for the testnet quests; claims per IP raised from one to three on 15 November 2026 (`latheon-network/l2-eval-ci` commit `96daebb`). That covers many deposits and withdrawals: on this chain a transaction costs a small fraction of one LTH.
 
