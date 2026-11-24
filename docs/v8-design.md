@@ -1,6 +1,6 @@
 # V8: one circuit and contract revision (design draft, 7 November 2026)
 
-Status: draft for outside review. Nothing here is built or deployed. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
+Status: being built. The final V8 circuits exist since 24 November 2026 (`circuits/withdraw_v6.circom`, `disclose_v2.circom`, `disclose_link.circom`, shared `latheon_v8.circom`; tests `test/circuits-v8`); contracts, keys and deployment are not done yet, and nothing is deployed. The questions in §11 are still open and still meant for an outside review; work did not wait for one because none is arranged. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
 
 ## 1. Why one revision
 
@@ -30,6 +30,14 @@ Prototype circuits in `circuits/drafts/v8/` (not the final circuits). circom 2.2
 | `disclose` (today) | — | 1,551 | not measured |
 | `disclose_link` draft | commitment ↔ nullifier, context, auditor code | 1,815 | 0.25 s |
 
+Final circuits (24 November 2026, `test/circuits-v8`; same toolchain; a 2-vCPU cloud machine, Intel Xeon 2.10 GHz; throwaway keys; median of 3 proofs after a warm-up):
+
+| Circuit | R1CS constraints | Public inputs | Proof time |
+|---|---|---|---|
+| `withdraw_v6` | 11,611 (5,449 non-linear) | 4: root, nullifierHash, ctx, extDataHash | 1.18 s |
+| `disclose_v2` | 1,210 | 3: commitment, disclosureTag, auditorNonce | 0.22 s |
+| `disclose_link` | 1,815 | 5: commitment, nullifierHash, ctx, auditorNonce, disclosureTag | 0.24 s |
+
 Draft a is slightly smaller than today because the commitment becomes one 3-input hash instead of two 2-input hashes. Tagging the tree nodes costs about 15 % more constraints in the circuit, and on chain every insert would use a 3-input Poseidon (20 per deposit); that gas is not measured yet. An association-set tree roughly doubles the circuit.
 
 ## 3. Binding a proof to its chain and pool
@@ -45,11 +53,14 @@ Proposal:
 
 Today commitment (`Poseidon(Poseidon(s, v), 0)`), nullifier (`Poseidon(s, 1)`) and tree nodes (`Poseidon(l, r)`) all use the same 2-input Poseidon, separated only by the constants 0 and 1. No collision is known to be exploitable, but the separation is implicit.
 
-Proposal: a 3-input Poseidon with a distinct first input per use: `TAG_COMMIT` (commitment `Poseidon(TAG_COMMIT, spendKey, viewKey)`), `TAG_NULL`, `TAG_DISC` (auditor tag `Poseidon(TAG_DISC, viewKey, auditorNonce)`), and possibly `TAG_NODE` for the tree. The draft uses 1–5; final values could be derived from a string (for example `keccak("latheon.v8.commit") mod p`).
+Proposal: a 3-input Poseidon with a distinct first input per use: `TAG_COMMIT` (commitment `Poseidon(TAG_COMMIT, spendKey, viewKey)`), `TAG_NULL`, `TAG_DISC` (auditor tag `Poseidon(TAG_DISC, viewKey, auditorNonce)`), and possibly `TAG_NODE` for the tree. The draft uses 1–5; final values could be derived from a string (for example `keccak("latheon.v8.commit") mod p`). Final (24 November 2026): each tag is `keccak256(string) mod p` for the strings `latheon.v8.commit`, `latheon.v8.null` and `latheon.v8.disc`; the context is computed by the contract (§3) and needs no tag in the circuit.
 
 Open: tag the tree nodes too (draft b), or leave the tree as standard `Poseidon(l, r)` (draft a), where leaves are already separated because a leaf is always a tagged commitment. Draft a keeps the on-chain tree and existing tooling unchanged; draft b is the cleaner separation at about 15 % more constraints and more gas per deposit.
 
 ## 5. `disclose_link`: receipts and reserves
+
+Added 24 November 2026: the plain disclosure ("this deposit is mine", layer 1 of the report today) also needs a V8 version, because the commitment format changes. `disclose_link` cannot replace it: it reveals the note's nullifier, so the auditor would recognise the withdrawal and its recipient later. So V8 has two disclosure circuits: `disclose_v2` (commitment and auditor code only, no nullifier; the default) and `disclose_link` (adds the nullifier, for receipts and reserves). §9 is corrected accordingly.
+
 
 One small circuit (1,815 constraints, 0.25 s) proves, for one auditor's code: "I know `spendKey`, `viewKey` such that this commitment and this nullifier belong to the same note in this pool."
 - Public: `commitment`, `nullifierHash`, `ctx`, `auditorNonce`, `disclosureTag`. Private: `spendKey`, `viewKey`.
@@ -93,7 +104,7 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 
 - New pools V8 and a router V8; V7 stays for withdrawals only (frozen for deposits in the interface).
 - New note string prefix (for example `latheon-v8:`); master keys stay (derivation unchanged; notes found per pool).
-- Demo, SDK, relayer, payout files and disclosure reports learn V8 next to V7. The disclosure report keeps layer 1 and 1b for V7 notes and uses `disclose_link` for V8 notes.
+- Demo, SDK, relayer, payout files and disclosure reports learn V8 next to V7. The disclosure report keeps layer 1 and 1b for V7 notes; for V8 notes it uses `disclose_v2` for layer 1 and `disclose_link` where a receipt or reserves are asked for (corrected 24 November 2026; the draft said `disclose_link` for V8 notes, which would have revealed every disclosed note's nullifier).
 - Requirement (decided 14 November 2026): a V7 master key and V7 notes stay usable after V8 is out. The same master key finds the user's V7 notes and V8 notes; nothing the user saved for V7 becomes worthless.
 - Demo "Move to V8" (planned with V8): withdraw V7 notes and deposit the same amounts into V8 from the same master key in one flow, through the relayer by default. A move is an ordinary withdrawal followed by an ordinary deposit, so it is public that some V7 note left and some V8 deposit arrived; with delayed sending the two are not linked by time. It cannot be done for the user without their keys, so there is no automatic transfer.
 
@@ -101,7 +112,7 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 
 - The existing pattern for every circuit: real proofs accepted; every public input altered refused.
 - New: a proof for pool A refused by pool B and by the same pool on another chain id; nullifiers differ across pools; `extDataHash` mismatch refused; `disclose_link` with a wrong nullifier, commitment, context or code refused; for §6, a proof with a non-member under a non-zero `aspRoot` refused.
-- Under-constraint tools beyond Circomspect (Picus, zkFuzz or Ecne, as they install), regression suite like `test/regression-v7`.
+- Under-constraint tools beyond Circomspect (Picus, zkFuzz or Ecne, as they install), regression suite like `test/regression-v7`. Done for the circuits on 24 November 2026: `test/circuits-v8` (44 checks: real proofs, every public input altered, other pool and other chain refused, every extData field changed, false statements refused by the witness generator, and the path-selector bit check shown at r1cs level against a copy of the circuit without it); Circomspect 0.9.0 reports no issue for `disclose_v2` and `disclose_link` and one expected warning for `withdraw_v6` (`extDataHashSquare` is used once by design, as the squares in `withdraw_v5`). Picus, zkFuzz and Ecne not run yet.
 - Development ceremony for the test chain as before; a public multi-party ceremony before any real value.
 - Measurements on named devices: browser and phone proof times for the chosen variant; deposit and withdrawal gas.
 
@@ -122,7 +133,7 @@ Decided by Vladimir on 8 November 2026: see §13.
 ## 12. Order of work
 
 1. Answers to §11 from the outside review; this document updated.
-2. Final circuits and their tests; constraint and time measurements; under-constraint tools.
+2. Final circuits and their tests; constraint and time measurements; under-constraint tools. — done 24 November 2026 (except the further under-constraint tools).
 3. Contracts V8 and their tests; gas on a local chain.
 4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`.
 

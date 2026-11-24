@@ -1,5 +1,7 @@
 # V8 circuit drafts (measurement prototypes, not reviewed, no keys)
 
+The final V8 circuits are `circuits/withdraw_v6.circom`, `disclose_v2.circom` and `disclose_link.circom` (24 November 2026).
+
 These files exist only to measure the options in `docs/v8-design.md`. They are not the V8 circuits, have not been
 reviewed, and no proving keys were made from them except throwaway ones for timing (deleted). Do not deploy them.
 
