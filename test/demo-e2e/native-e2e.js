@@ -5,9 +5,12 @@
 //   DEMO=/path/to/demo node native-e2e.js          (V5 native pools and router)
 //   V6=1 DEMO=/path/to/demo node native-e2e.js     (the same run on V6: 20-level trees, withdraw_v4, relayer and fee in the proof)
 //   V7=1 DEMO=/path/to/demo node native-e2e.js     (V7: withdraw_v5, the pathIndices fix; same interface as V6)
-const GEN = process.env.V7 === '1' ? 'v7' : process.env.V6 === '1' ? 'v6' : 'v5';
-const V6 = GEN !== 'v5';   // fee-bearing interface (V6 and V7 share it); V7 only fixes the circuit
-const V7 = GEN === 'v7';
+//   V8=1 DEMO=/path/to/demo node native-e2e.js     (V8: withdraw_v6, tagged hashes, extDataHash; V7 pools next to it for
+//                                                   "Move to V8", disclose_v2 and receipts; needs test/native-v8 installed)
+const GEN = process.env.V8 === '1' ? 'v8' : process.env.V7 === '1' ? 'v7' : process.env.V6 === '1' ? 'v6' : 'v5';
+const V6 = GEN !== 'v5';   // relayer and fee in the proof (V6, V7 and V8); V7 only fixes the circuit
+const V8 = GEN === 'v8';
+const V7 = GEN === 'v7' || V8;   // in the V8 run the V7 pools are deployed too (the generation users move from)
 const fs = require('fs'), path = require('path');
 const { cspFor } = require('../../tools/make-headers.js');   // pages are served with the CSP of site/_headers
 const NM = path.resolve(__dirname, '..', 'distribution', 'node_modules');
@@ -40,6 +43,15 @@ say('Compiling…');
 const out = JSON.parse(solc.compile(JSON.stringify({ language: 'Solidity', sources, settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: 'paris', outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences'] } } } }), { import: imp }));
 if ((out.errors || []).some((e) => e.severity === 'error')) { say(out.errors.filter((e) => e.severity === 'error').map((e) => e.formattedMessage).join('\n')); process.exit(1); }
 const K = (f, n) => out.contracts['contracts/' + f][n];
+// V8 contracts pin solc 0.8.39 (taken from test/native-v8, which installs it)
+let out8 = null;
+if (V8) {
+  const solc8 = require(path.join(REPO, 'test', 'native-v8', 'node_modules', 'solc'));
+  const s8 = {}; for (const f of ['ILatheonV8.sol', 'PoseidonT3.sol', 'LatheonShieldedPoolV8Native.sol', 'LatheonDistributionPoolV8Native.sol', 'WithdrawVerifierV6.sol', 'DiscloseVerifierV2.sol', 'DiscloseLinkVerifier.sol']) s8[f] = { content: rd(REPO + '/contracts/' + f) };
+  out8 = JSON.parse(solc8.compile(JSON.stringify({ language: 'Solidity', sources: s8, settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: 'paris', outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences'] } } } })));
+  if ((out8.errors || []).some((e) => e.severity === 'error')) { say(out8.errors.filter((e) => e.severity === 'error').map((e) => e.formattedMessage).join('\n')); process.exit(1); }
+}
+const K8 = (f, n) => out8.contracts[f][n];
 const C = {
   Pool5: K('V5.sol', 'LatheonShieldedPoolV5'), Pool5N: K('V5N.sol', 'LatheonShieldedPoolV5Native'),
   Dist: K('Dist.sol', 'LatheonDistributionPool'), DistN: K('DistN.sol', 'LatheonDistributionPoolNative'),
@@ -47,6 +59,8 @@ const C = {
   Pool6N: K('V6N.sol', 'LatheonShieldedPoolV6Native'), Dist6N: K('Dist6N.sol', 'LatheonDistributionPoolV6Native'), Ver4: K('VerifierV4.sol', 'WithdrawVerifierV4'),
   Pool7N: K('V7N.sol', 'LatheonShieldedPoolV7Native'), Dist7N: K('Dist7N.sol', 'LatheonDistributionPoolV7Native'), Ver5c: K('VerifierV5c.sol', 'WithdrawVerifierV5'),
 };
+if (V8) Object.assign(C, { Pool8N: K8('LatheonShieldedPoolV8Native.sol', 'LatheonShieldedPoolV8Native'), Dist8N: K8('LatheonDistributionPoolV8Native.sol', 'LatheonDistributionPoolV8Native'),
+  Ver6: K8('WithdrawVerifierV6.sol', 'WithdrawVerifierV6'), Disc2: K8('DiscloseVerifierV2.sol', 'DiscloseVerifierV2'), Link: K8('DiscloseLinkVerifier.sol', 'DiscloseLinkVerifier'), Poseidon8: K8('PoseidonT3.sol', 'PoseidonT3') });
 const linked = (c, libs) => { let code = c.evm.bytecode.object; const refs = c.evm.bytecode.linkReferences; for (const f in refs) for (const l in refs[f]) for (const { start, length } of refs[f][l]) code = code.slice(0, start * 2) + libs[l].slice(2).toLowerCase() + code.slice(start * 2 + length * 2); return code; };
 // The native network uses the Latheon test chain's real chainId; the wallet does not know it until the demo adds it.
 const CHAINS = { 'ethereum-sepolia': { id: 11155111, hex: '0xaa36a7' }, 'latheon-testnet': { id: 60531373273, hex: '0xe17f374d9' } };
@@ -54,9 +68,10 @@ const E18 = 10n ** 18n;
 const ERC20 = ['function balanceOf(address) view returns (uint256)'];
 const FAUCET_PAGE = 'https://explorer.testnet.latheon.test/faucet';
 const RELAY = 'https://relay.test/relay/api';
-const RELAY_POOL = V6 ? ['function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient, address relayer, uint256 fee)']
+const PROOF_T = 'tuple(uint256[2] pA, uint256[2][2] pB, uint256[2] pC)';
+const RELAY_POOL = V8 ? [`function withdraw(${PROOF_T} proof, uint256 root, uint256 nullifierHash, tuple(address recipient, address relayer, uint256 fee, bytes32 paymentRef, uint256 destChainId) ext)`] : V6 ? ['function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient, address relayer, uint256 fee)']
   : ['function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient)'];
-const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash, uint256 fee)[] items, address recipient, address relayer)']
+const RELAY_ROUTER = V8 ? [`function withdrawMany(tuple(uint256 pool, ${PROOF_T} proof, uint256 root, uint256 nullifierHash, uint256 fee, bytes32 paymentRef)[] items, address recipient, address relayer) returns (uint256 paid)`] : V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash, uint256 fee)[] items, address recipient, address relayer)']
   : ['function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash)[] items, address recipient)'];
 
 (async () => {
@@ -77,7 +92,15 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       const lib = await d(C.Poseidon), libs = { PoseidonT3: lib.addr };
       const ver5 = await d(k === 'latheon-testnet' && V7 ? C.Ver5c : k === 'latheon-testnet' && V6 ? C.Ver4 : C.Ver5);
       const pools = {}, ps = [];
-      if (k === 'latheon-testnet') {
+      if (k === 'latheon-testnet' && V8) {
+        // V8 (the default) and V7 (to move from), each with its own verifier; ids: LTH-<n> for V8, LTH-<n>:v7 for V7
+        const lib8 = await d(C.Poseidon8), libs8 = { PoseidonT3: lib8.addr };
+        const ver6 = await d(C.Ver6), disc2 = await d(C.Disc2), link = await d(C.Link);
+        const ps7 = [], pools7 = {};
+        for (const a of [100, 50, 10, 1]) { const p = await d(C.Pool8N, [ver6.addr, BigInt(a) * E18, ethers.ZeroAddress], libs8); pools['LTH-' + a] = p; ps.push(p.addr); }
+        for (const a of [100, 50, 10, 1]) { const p = await d(C.Pool7N, [ver5.addr, BigInt(a) * E18], libs); pools7['LTH-' + a] = p; ps7.push(p.addr); }
+        dep[k] = { ver5, ver6, disc2, link, pools, pools7, router: await d(C.Dist8N, [ps]), router7: await d(C.Dist7N, [ps7]) };
+      } else if (k === 'latheon-testnet') {
         for (const a of [100, 50, 10, 1]) { const p = await d(V7 ? C.Pool7N : V6 ? C.Pool6N : C.Pool5N, [ver5.addr, BigInt(a) * E18], libs); pools['LTH-' + a] = p; ps.push(p.addr); }
         dep[k] = { ver5, pools, router: await d(V7 ? C.Dist7N : V6 ? C.Dist6N : C.DistN, [ps]) };
       } else {
@@ -88,7 +111,8 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       say('  ' + k + ': 4 pools and a router deployed');
     }
     const net = (k, extra) => Object.assign({ name: k === 'latheon-testnet' ? 'Latheon Testnet' : 'Ethereum Sepolia', chainId: CHAINS[k].id, chainIdHex: CHAINS[k].hex,
-      rpcUrl: 'https://rpc.' + k + '.test', explorerUrl: 'https://explorer.' + k + '.test', v5Verifier: dep[k].ver5.addr, discloseVerifier: dep[k].ver5.addr }, k === 'latheon-testnet' && V7 ? { v7Verifier: dep[k].ver5.addr } : k === 'latheon-testnet' && V6 ? { v6Verifier: dep[k].ver5.addr } : {}, extra);
+      rpcUrl: 'https://rpc.' + k + '.test', explorerUrl: 'https://explorer.' + k + '.test', v5Verifier: dep[k].ver5.addr, discloseVerifier: dep[k].ver5.addr }, k === 'latheon-testnet' && V8 ?
+      { v7Verifier: dep[k].ver5.addr, v8Verifier: dep[k].ver6.addr, v8DiscloseVerifier: dep[k].disc2.addr, v8DiscloseLinkVerifier: dep[k].link.addr } : k === 'latheon-testnet' && V7 ? { v7Verifier: dep[k].ver5.addr } : k === 'latheon-testnet' && V6 ? { v6Verifier: dep[k].ver5.addr } : {}, extra);
     const cfg = {
       schema: 1, generated: 'test',
       networks: {
@@ -101,8 +125,12 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       pools: [], routers: [],
     };
     for (const k of Object.keys(CHAINS)) {
-      for (const a of [100, 50, 10, 1]) { const p = dep[k].pools['LTH-' + a]; cfg.pools.push({ id: k + ':LTH-' + a, network: k, version: k === 'latheon-testnet' ? (V7 ? 'v7-native' : V6 ? 'v6-native' : 'v5-native') : 'v5', token: 'LTH', amount: a, address: p.addr, deployBlock: p.block }); }
-      cfg.routers.push({ id: k + ':LTH', network: k, token: 'LTH', native: k === 'latheon-testnet' || undefined, version: k === 'latheon-testnet' ? (V7 ? 'v7' : V6 ? 'v6' : undefined) : undefined, address: dep[k].router.addr, deployBlock: dep[k].router.block });
+      for (const a of [100, 50, 10, 1]) { const p = dep[k].pools['LTH-' + a]; cfg.pools.push({ id: k + ':LTH-' + a, network: k, version: k === 'latheon-testnet' ? (V8 ? 'v8-native' : V7 ? 'v7-native' : V6 ? 'v6-native' : 'v5-native') : 'v5', token: 'LTH', amount: a, address: p.addr, deployBlock: p.block }); }
+      cfg.routers.push({ id: k + ':LTH', network: k, token: 'LTH', native: k === 'latheon-testnet' || undefined, version: k === 'latheon-testnet' ? (V8 ? 'v8' : V7 ? 'v7' : V6 ? 'v6' : undefined) : undefined, address: dep[k].router.addr, deployBlock: dep[k].router.block });
+      if (k === 'latheon-testnet' && V8) {
+        for (const a of [100, 50, 10, 1]) { const p = dep[k].pools7['LTH-' + a]; cfg.pools.push({ id: k + ':LTH-' + a + ':v7', network: k, version: 'v7-native', token: 'LTH', amount: a, address: p.addr, deployBlock: p.block }); }
+        cfg.routers.push({ id: k + ':LTH:v7', network: k, token: 'LTH', native: true, version: 'v7', address: dep[k].router7.addr, deployBlock: dep[k].router7.block });
+      }
     }
     const cfgJson = JSON.stringify(cfg);
     // a stand-in for the network's relayer: sends what it is given from its own account (index 3)
@@ -111,7 +139,7 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     // Stale-root drill: when floodNext names a pool, the next relayed withdrawal first gets HIST deposits into that pool
     // (random commitments from account 4), so the pool forgets the root the proof was made against and refuses it with
     // "Unknown root". The demo must make a new proof and succeed on its own.
-    const HIST = V6 ? 100 : 30, FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+    const HIST = V8 ? 5 : V6 ? 100 : 30, FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
     let floodNext = null, relayCalls = 0;
     const flooder = await eth['latheon-testnet'].getSigner(4);
     async function flood(poolAddr, amount) {
@@ -120,7 +148,14 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     }
     // Delayed sending ("delay": {withinSeconds}): the stand-in holds the request until the test calls relayDue().
     const held = new Map(); let heldSeq = 0;
-    const heldCall = (b, many) => { const Z = ethers.ZeroAddress; return many ? [new ethers.Contract(b.router, RELAY_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, ...(V6 ? [b.relayer || Z] : [])]]
+    // the stand-in relays V8 and V7 alike, telling them apart by the request's shape (as the real relayer tells them by address)
+    const R7_POOL = ['function withdraw(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256 root, uint256 nullifierHash, address recipient, address relayer, uint256 fee)'];
+    const R7_ROUTER = ['function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash, uint256 fee)[] items, address recipient, address relayer)'];
+    const heldCall = (b, many) => { const Z = ethers.ZeroAddress;
+      if (V8 && many && Array.isArray(b.items) && b.items[0] && b.items[0].length === 6) return [new ethers.Contract(b.router, RELAY_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, b.relayer || Z]];
+      if (V8 && !many && b.paymentRef) return [new ethers.Contract(b.pool, RELAY_POOL, relaySigner), 'withdraw', [[b.pA, b.pB, b.pC], b.root, b.nullifierHash, [b.recipient, b.relayer || Z, b.fee || 0, b.paymentRef, b.destChainId]]];
+      if (V8) return many ? [new ethers.Contract(b.router, R7_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, b.relayer || Z]] : [new ethers.Contract(b.pool, R7_POOL, relaySigner), 'withdraw', [b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, b.relayer || Z, b.fee || 0]];
+      return many ? [new ethers.Contract(b.router, RELAY_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, ...(V6 ? [b.relayer || Z] : [])]]
       : [new ethers.Contract(b.pool, RELAY_POOL, relaySigner), 'withdraw', [b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, ...(V6 ? [b.relayer || Z, b.fee || 0] : [])]]; };
     async function relayDue() { for (const x of held.values()) if (x.state === 'waiting') { try { const [c, fn, args] = heldCall(x.body, x.many); const tx = await c[fn](...args); await tx.wait(); relayed.push(tx.hash); x.state = 'sent'; x.tx = tx.hash; } catch (e) { x.state = 'failed'; x.error = String(e.reason || e.shortMessage || e.message).slice(0, 100); } } }
     async function relayRoute(route) {
@@ -142,9 +177,7 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       relayCalls++;
       if (floodNext) { const f = floodNext; floodNext = null; await flood(f.addr, f.amount); }
       try {
-        const Z = ethers.ZeroAddress;
-        const [c, fn, args] = url.endsWith('/withdrawMany') ? [new ethers.Contract(b.router, RELAY_ROUTER, relaySigner), 'withdrawMany', [b.items, b.recipient, ...(V6 ? [b.relayer || Z] : [])]]
-          : [new ethers.Contract(b.pool, RELAY_POOL, relaySigner), 'withdraw', [b.pA, b.pB, b.pC, b.root, b.nullifierHash, b.recipient, ...(V6 ? [b.relayer || Z, b.fee || 0] : [])]];
+        const [c, fn, args] = heldCall(b, url.endsWith('/withdrawMany'));
         try { await c[fn].staticCall(...args); } catch (e) { throw new Error('Refused before sending (the chain would reject it): ' + (e.reason || e.shortMessage || e.message)); }   // as the real relayer does
         const tx = await c[fn](...args);
         const rc = await tx.wait(); relayed.push(tx.hash);
@@ -176,7 +209,12 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     });
     await page.addInitScript(() => { window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { const r = JSON.parse(await window.__rpc(method, JSON.stringify(params || []))); if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; throw e; } return r.result; }, on() {}, removeListener() {} }; });
     const V3 = REPO + '/circuits/build/withdraw_v3/', V4 = REPO + '/circuits/build/withdraw_v4/', V5c = REPO + '/circuits/build/withdraw_v5/';
+    const CB = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/', B = REPO + '/circuits/build/';
     const FILES = {
+      [CB + 'withdraw_v6/withdraw_v6.wasm']: B + 'withdraw_v6/withdraw_v6.wasm', [CB + 'withdraw_v6/withdraw_v6_final.zkey']: B + 'withdraw_v6/withdraw_v6_final.zkey',
+      [CB + 'disclose_v2/disclose_v2.wasm']: B + 'disclose_v2/disclose_v2.wasm', [CB + 'disclose_v2/disclose_v2_final.zkey']: B + 'disclose_v2/disclose_v2_final.zkey',
+      [CB + 'disclose_link/disclose_link.wasm']: B + 'disclose_link/disclose_link.wasm', [CB + 'disclose_link/disclose_link_final.zkey']: B + 'disclose_link/disclose_link_final.zkey',
+      [CB + 'disclose/disclose.wasm']: B + 'disclose/disclose.wasm', [CB + 'disclose/disclose_final.zkey']: B + 'disclose/disclose_final.zkey',
       'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v5/withdraw_v5.wasm': V5c + 'withdraw_v5.wasm',
       'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v5/withdraw_v5_final.zkey': V5c + 'withdraw_v5_final.zkey',
       'https://cdn.jsdelivr.net/gh/latheon-network/latheon@main/circuits/build/withdraw_v4/withdraw_v4.wasm': V4 + 'withdraw_v4.wasm',
@@ -279,7 +317,9 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     rec('N10. Withdraw 161 by amount and key through the relayer: the empty address holds exactly 161 LTH, the transaction comes from the relayer, the user paid nothing',
       /Withdrawn 161 LTH/.test(ws) && (await coin(r2)) === 161n * E18 && tx10 && tx10.from === relayAddr && (await coin(accounts[0])) === userBefore10, ws.slice(0, 70));
     const log10 = await page.textContent('#log');
-    rec(`N16. Router withdrawal survives a stale root: ${HIST} deposits landed in the 1 LTH pool between proving and sending, the relayer was refused once ("Unknown root"), the demo made new proofs and the second attempt paid`,
+    if (V8) rec(`N16. V8 keeps every root: ${HIST} deposits landed in the 1 LTH pool between proving and sending, and the first attempt paid`,
+      !/no longer knows the root/.test(log10) && relayCalls - calls10 === 1 && (await coin(r2)) === 161n * E18, 'relayer calls ' + (relayCalls - calls10));
+    else rec(`N16. Router withdrawal survives a stale root: ${HIST} deposits landed in the 1 LTH pool between proving and sending, the relayer was refused once ("Unknown root"), the demo made new proofs and the second attempt paid`,
       /no longer knows the root/.test(log10) && relayCalls - calls10 === 2 && (await coin(r2)) === 161n * E18, 'relayer calls ' + (relayCalls - calls10));
 
     // ---- a visitor with NO wallet at all withdraws a note through the relayer
@@ -305,7 +345,9 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
     rec('N15. Without any wallet: the withdraw button works, the step says "Send through the relayer", the empty address gets exactly 1 LTH',
       enabledNoWallet && /Withdrawal successful/.test(st2) && steps2[5] === 'Send through the relayer' && (await coin(r3)) === 1n * E18 && !errs2.length, st2.slice(0, 60) + (errs2.length ? ' | ' + errs2[0] : ''));
     const log15 = await page2.textContent('#log');
-    rec(`N17. One-note withdrawal survives a stale root: ${HIST} deposits in the pool between proving and sending, refused once, new proof, paid on the second attempt`,
+    if (V8) rec(`N17. V8, one note: ${HIST} deposits in the pool between proving and sending, paid on the first attempt`,
+      !/no longer knows the root/.test(log15) && relayCalls - calls15 === 1 && (await coin(r3)) === 1n * E18, 'relayer calls ' + (relayCalls - calls15));
+    else rec(`N17. One-note withdrawal survives a stale root: ${HIST} deposits in the pool between proving and sending, refused once, new proof, paid on the second attempt`,
       /no longer knows the root/.test(log15) && relayCalls - calls15 === 2 && (await coin(r3)) === 1n * E18, 'relayer calls ' + (relayCalls - calls15));
     await page2.close();
 
@@ -392,6 +434,96 @@ const RELAY_ROUTER = V6 ? ['function withdrawMany((uint256 pool, uint256[2] pA, 
       rec('L4. A malformed request ID is refused in the page, without a request', /32 characters/.test(bad), bad.slice(0, 50));
       await page.screenshot({ path: SHOTS + '/delayed.png', fullPage: true });
       await page.click('#wdMode-any'); await page.selectOption('#waRelayDelay', '0');   // back to "now" for the steps below
+    }
+
+    // ---- V8 run only: disclosures (disclose_v2, receipts with disclose_link, a report) and moving V7 notes to V8
+    if (V8) {
+      // tick every "I saved it" box, also those in panels not on screen (the demo holds deposits until the last one is saved)
+      const saveAll = () => page.evaluate(() => { for (const id of ['noteSavedChk', 'keySavedChk', 'mvAnySavedChk', 'mvOneSavedChk', 'poRecSaved']) { const c = document.getElementById(id); if (c && !c.checked) { c.checked = true; c.dispatchEvent(new Event('change')); } } });
+      await saveAll();
+      // the auditor issues a code on this page
+      await page.click('#tab-auditor'); await page.click('#genNonceBtn');
+      const code = (await page.textContent('#nonceOut')).trim();
+      const disclose = async (noteText, link) => {
+        await page.click('#tab-disclose'); await page.fill('#discloseNoteInput', noteText); await page.fill('#auditorNonceInput', code);
+        if (link) await page.check('#dsLink'); else await page.uncheck('#dsLink');
+        await page.evaluate(() => { document.getElementById('discloseStatus').textContent = ''; });
+        await page.click('#discloseBtn'); await waitText('#discloseStatus', /verified|Failed|not/, 240000);
+        return { status: (await page.textContent('#discloseStatus')).trim(), block: (await page.locator('#discloseBlock').count()) ? await page.inputValue('#discloseBlock') : '' };
+      };
+      const audit = async (text) => {
+        await page.click('#tab-auditor'); await page.fill('#auditBlockInput', text);
+        await page.evaluate(() => { document.getElementById('auditStatus').textContent = ''; });
+        await page.click('#auditVerifyBtn'); await waitText('#auditStatus', /\S/, 240000);
+        return { status: (await page.textContent('#auditStatus')).trim(), details: (await page.textContent('#auditResult')).replace(/\s+/g, ' ') };
+      };
+      const d1 = await disclose(note, true), b1 = JSON.parse(d1.block || '{}');
+      const a1 = await audit(d1.block);
+      rec('D1. V8 receipt (disclose_link) for the note withdrawn in N7: the block names its circuit and the link verifier; the auditor sees "withdrawn" with the recipient',
+        /verified/.test(d1.status) && b1.circuit === 'disclose_link' && b1.verifierAddress === dep[N].link.addr && b1.pubSignals.length === 5 && /^Verified: .*receipt/.test(a1.status) && /Receipt: this note is withdrawn/.test(a1.details) && a1.details.includes(r1),
+        a1.status.slice(0, 60) + ' | ' + a1.details.slice(0, 80));
+      const d2 = await disclose(note2, false), b2 = JSON.parse(d2.block || '{}');
+      const a2 = await audit(d2.block);
+      rec('D2. V8 disclosure without a receipt (disclose_v2): verified with the V8 disclose verifier, and the auditor gets no withdrawal details',
+        b2.circuit === 'disclose_v2' && b2.verifierAddress === dep[N].disc2.addr && b2.pubSignals.length === 3 && /^Verified: the sender controls this specific deposit\. You did not/.test(a2.status) && !/Receipt/.test(a2.details), a2.status.slice(0, 60));
+      const forged = Object.assign({}, b2); delete forged.circuit;
+      const a3 = await audit(JSON.stringify(forged));
+      rec('D3. The same V8 proof presented as a V7 disclosure (no circuit field) is not verified', /^Not verified/.test(a3.status), a3.status.slice(0, 50));
+      // a report with receipts for the V8 master key withdrawn in N10 and the note of N15
+      await page.click('#tab-disclose'); await page.fill('#reportInput', key + ' # payroll\n' + note2); await page.fill('#reportNonceInput', code);
+      await page.check('#reportLink'); if (await page.isChecked('#reportKeys')) await page.uncheck('#reportKeys');
+      await page.click('#reportBtn'); await waitText('#reportStatus', /Report ready|Failed/, 600000);
+      const rep = JSON.parse(await page.evaluate(() => window.__latheonLastReport) || '{}');
+      const a4 = await audit(JSON.stringify(rep));
+      const csv = (await page.evaluate(() => window.__latheonLastCsv)) || '', lines = csv.trim().split('\n').slice(1);
+      rec('D4. Report with receipts: version 2, 5 V8 notes with disclose_link proofs and no keys; the auditor sees every note withdrawn, the payroll ones to the N10 recipient',
+        rep.version === 2 && rep.items.length === 5 && rep.items.every((x) => x.circuit === 'disclose_link' && !x.keys) && /Every note in the report is valid/.test(a4.status) && lines.length === 5 && lines.every((l) => /,true,/.test(l)) && lines.filter((l) => l.includes(r2)).length === 4,
+        a4.status.slice(0, 60) + ' · rows ' + lines.length);
+      await page.evaluate(() => { const c = document.getElementById('reportLink'); c.checked = false; c.dispatchEvent(new Event('change')); });
+
+      // ---- Move to V8: a V7 master key (made through the V7 router) and a single V7 note
+      const v8sum = async () => (await Promise.all([100, 50, 10, 1].map(poolCoin))).reduce((x, y) => x + y, 0n);
+      const v7sum = async () => (await Promise.all([100, 50, 10, 1].map((a) => eth[N].getBalance(dep[N].pools7['LTH-' + a].addr)))).reduce((x, y) => x + y, 0n);
+      await pickNT(N, 'LTH'); await page.selectOption('#poolSelect', N + ':LTH-10:v7'); await page.waitForTimeout(300);
+      const banner = (await page.textContent('#legacyBanner')).trim();
+      await page.click('#depMode-any'); await saveAll();
+      await page.fill('#daAmount', '61'); await page.check('input[name="daRound"][value="exact"]'); await page.waitForTimeout(200);
+      const oldKey = (await page.locator('#masterText').count()) ? (await page.textContent('#masterText')).trim() : '';
+      await page.click('#daDepositBtn');
+      await page.waitForFunction((o) => { const e = document.getElementById('masterText'); return e && e.textContent.trim() && e.textContent.trim() !== o; }, oldKey, { timeout: 240000 });
+      const key7 = (await page.textContent('#masterText')).trim(); await saveAll();
+      rec('M1. Choosing a V7 pool says V8 is current; "any amount" then uses the V7 router: the key names it', /V8 is the current generation/.test(banner) && key7.startsWith('latheon-master:' + CHAINS[N].id + ':' + dep[N].router7.addr + ':') && (await v7sum()) === 61n * E18, key7.slice(0, 40) + ' · ' + banner.slice(0, 40));
+      const v8Before = await v8sum(), walletBefore = await coin(accounts[0]), relayM = relayed.length;
+      await page.click('#tab-withdraw'); await page.click('#wdMode-any');
+      await page.fill('#waKey', key7); await page.fill('#waAmount', '61'); await page.fill('#waRecipient', fresh(31));
+      await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
+      const offered = await page.isVisible('#mvAny');
+      await page.click('#mvAnyBtn'); await waitText('#mvAnyStatus', /Moved|Nothing was moved|withdrawn to your wallet/, 1200000);
+      const mvs = (await page.textContent('#mvAnyStatus')).trim(), key8 = (await page.locator('#mvAnyKeyText').count()) ? (await page.textContent('#mvAnyKeyText')).trim() : '';
+      const spentGas = walletBefore - (await coin(accounts[0]));
+      rec('M2. "Move to V8" for the V7 key: offered after "Find my notes"; the notes are withdrawn to the wallet through the relayer and 61 LTH deposited into V8 under a new key that names the V8 router; the wallet paid only gas',
+        offered && /^Moved 61 LTH to V8/.test(mvs) && key8.startsWith('latheon-master:' + CHAINS[N].id + ':' + dep[N].router.addr + ':') && (await v7sum()) === 0n && (await v8sum()) - v8Before === 61n * E18 && relayed.length > relayM && spentGas > 0n && spentGas < E18 / 10n,
+        mvs.slice(0, 60) + ' · gas ' + ethers.formatEther(spentGas));
+      await saveAll();
+      await page.fill('#waKey', key8); await page.fill('#waAmount', ''); await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
+      const plan8 = (await page.textContent('#waPlan')).replace(/\s+/g, ' ');
+      rec('M3. The new key finds its 61 LTH in the V8 pools, and no move is offered for V8 notes', /61 LTH/.test(plan8) && !(await page.isVisible('#mvAny')), plan8.slice(0, 70));
+      // a single V7 note
+      await pickNT(N, 'LTH'); await page.click('#depMode-fixed'); await page.selectOption('#poolSelect', N + ':LTH-1:v7'); await page.waitForTimeout(300);
+      const oldN = (await page.locator('#noteText').count()) ? (await page.textContent('#noteText')).trim() : '';
+      await page.click('#depositBtn');
+      await page.waitForFunction((o) => { const e = document.getElementById('noteText'); return e && e.textContent.trim() && e.textContent.trim() !== o; }, oldN, { timeout: 240000 });
+      const note7 = (await page.textContent('#noteText')).trim(); await saveAll();
+      const v8b = await v8sum();
+      await page.click('#tab-withdraw'); await page.click('#wdMode-one'); await page.fill('#noteInput', note7);
+      await page.click('#checkNoteBtn'); await waitText('#withdrawStatus', /Note OK|Failed/, 120000);
+      const offered1 = await page.isVisible('#mvOne');
+      await page.click('#mvOneBtn'); await waitText('#mvOneStatus', /Moved|Nothing was moved|withdrawn to your wallet/, 600000);
+      const mv1 = (await page.textContent('#mvOneStatus')).trim();
+      rec('M4. "Move to V8" for one V7 note: offered after "Check note only"; 1 LTH leaves the V7 pool and arrives in V8 under a new master key',
+        offered1 && /^Moved 1 LTH to V8/.test(mv1) && (await v7sum()) === 0n && (await v8sum()) - v8b === E18 && /^latheon-master:/.test((await page.textContent('#mvOneKeyText')).trim()), mv1.slice(0, 60));
+      await saveAll();
+      await page.screenshot({ path: SHOTS + '/v8-move.png', fullPage: true });
     }
 
     // ---- back to the ERC-20 network: approval step and gas row are back

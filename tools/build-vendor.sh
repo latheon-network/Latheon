@@ -10,7 +10,7 @@ ETH=$(V ethers); SNK=$(V snarkjs); POS=$(V poseidon-lite)
 B=.vendor-build; mkdir -p $B demo/vendor
 npm i --no-save --prefix $B esbuild@0.24.0 >/dev/null 2>&1
 echo "export * from 'ethers';" > $B/eth.js
-echo "export { poseidon2, poseidon4 } from 'poseidon-lite';" > $B/pos.js
+echo "export { poseidon2, poseidon3, poseidon4 } from 'poseidon-lite';" > $B/pos.js
 printf "import * as s from '%s/snarkjs/build/browser.esm.js';\nexport const groth16 = s.groth16;\n" "$N" > $B/snk.js
 E=$B/node_modules/.bin/esbuild
 rm -f demo/vendor/*.mjs

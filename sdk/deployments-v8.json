@@ -1,5 +1,5 @@
 {
- "note": "V8 contracts on the Latheon test chain (testnet only, development keys, not reviewed). Not used by the demo yet; the demo reads deployments.json.",
+ "note": "V8 contracts on the Latheon test chain (testnet only, development keys, not reviewed). Since 24 November 2026 deployments.json (and the demo) list them too; this file keeps the deployment details (guardian, build, transactions).",
  "network": {
   "id": "latheon-testnet",
   "chainId": 60531373273,

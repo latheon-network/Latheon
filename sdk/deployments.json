@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-10-27",
+  "generated": "2026-11-24",
   "networks": {
     "latheon-testnet": {
       "name": "Latheon Testnet",
@@ -44,7 +44,11 @@
         "note": "Deposit: ERC20Inbox.depositERC20 on the parent chain (after approve). Withdrawal: ArbSys.withdrawEth on this chain, then Outbox.executeTransaction on the parent once confirmed (about two hours at low traffic; the page reads the outbox from rollup.outbox())."
       },
       "v6Verifier": "0x49694EF1977b4A201b378740557f2aa41BDC3857",
-      "v7Verifier": "0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51"
+      "v7Verifier": "0xD63EFf571f9c89C31E8cAe966f3f2cEd105d6b51",
+      "v8Verifier": "0xa31fc230f5017663C5A86B4D637f9247A3313A93",
+      "v8DiscloseVerifier": "0xc111fF19d94490957638d677bC69F02DbA9683C6",
+      "v8DiscloseLinkVerifier": "0xD56e01bB35bDCeFD7A8BE65158b2fEd500aab805",
+      "v8Guardian": "0x1719434AE21D573e650D36B6eb81609867235fD7"
     },
     "ethereum-sepolia": {
       "name": "Ethereum Sepolia",
@@ -124,6 +128,50 @@
     }
   },
   "pools": [
+    {
+      "id": "latheon-testnet:LTH-100:v8",
+      "network": "latheon-testnet",
+      "version": "v8-native",
+      "token": "LTH",
+      "amount": 100,
+      "address": "0x4E1D43E3eDA3c86926e2c1FCE7a4a0a2062F0947",
+      "deployBlock": 27304,
+      "deployTx": "0x4d1ec35c1f6a2a35c167c087dca41387edca30b57d565f43bc9b2cd845d761cb",
+      "commit": "c8c35ff043a5c7a8567f3931ecc88ac18d18ce10"
+    },
+    {
+      "id": "latheon-testnet:LTH-50:v8",
+      "network": "latheon-testnet",
+      "version": "v8-native",
+      "token": "LTH",
+      "amount": 50,
+      "address": "0x23eb645317752150b69E2Ad248e4f79A383FDC1f",
+      "deployBlock": 27305,
+      "deployTx": "0x6ee072fed5282b1835298fc1b82a36554f8fafc9327c8cccb21fcecb256cbe68",
+      "commit": "c8c35ff043a5c7a8567f3931ecc88ac18d18ce10"
+    },
+    {
+      "id": "latheon-testnet:LTH-10:v8",
+      "network": "latheon-testnet",
+      "version": "v8-native",
+      "token": "LTH",
+      "amount": 10,
+      "address": "0xC8841c395ECFa12EF22507d81Dc5E50dd5de4eD3",
+      "deployBlock": 27306,
+      "deployTx": "0x495e00c4e36012dfaf5a10a7b352a639c82b67bf3ef818139bbba9c680607a8f",
+      "commit": "c8c35ff043a5c7a8567f3931ecc88ac18d18ce10"
+    },
+    {
+      "id": "latheon-testnet:LTH-1:v8",
+      "network": "latheon-testnet",
+      "version": "v8-native",
+      "token": "LTH",
+      "amount": 1,
+      "address": "0xC6923cA39b69155e5261DE6EA9a7ddF7f1Ab4e6d",
+      "deployBlock": 27307,
+      "deployTx": "0x0da80b604f37ddcbc97eef317db74e06afe45dce7115c0fc4fdfa1dbc7bd4bf0",
+      "commit": "c8c35ff043a5c7a8567f3931ecc88ac18d18ce10"
+    },
     {
       "id": "latheon-testnet:LTH-100:v7",
       "network": "latheon-testnet",
@@ -502,6 +550,17 @@
     }
   ],
   "routers": [
+    {
+      "id": "latheon-testnet:LTH:v8",
+      "network": "latheon-testnet",
+      "token": "LTH",
+      "native": true,
+      "version": "v8",
+      "address": "0xBF4eD99D217e3F38522ddb19C6a1692a8EA71C01",
+      "deployBlock": 27308,
+      "deployTx": "0xcab8a7a4fe015819aac74d7e60937ca760a2c967eb568b37dbc94b80e0125724",
+      "commit": "c8c35ff043a5c7a8567f3931ecc88ac18d18ce10"
+    },
     {
       "id": "latheon-testnet:LTH:v7",
       "network": "latheon-testnet",

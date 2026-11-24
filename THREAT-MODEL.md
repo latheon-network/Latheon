@@ -24,7 +24,9 @@ Depending on deployment and usage, an observer of the public chain can see:
 - That a withdrawal transaction occurred, its block, timestamp, and recipient address.
 - Gas usage and other standard transaction metadata.
 - The size of the current anonymity set (how many unspent deposits exist) — the Merkle tree and its history are public by nature, even though individual leaf-to-withdrawal links are not.
-- Pool capacity: V6 and V7 pools (depth 20) accept 1,048,576 deposits each; the older V5 pools (depth 8) accept at most 256, after which a deposit reverts with "Tree is full".
+- Pool capacity: V6, V7 and V8 pools (depth 20) accept 1,048,576 deposits each; the older V5 pools (depth 8) accept at most 256, after which a deposit reverts with "Tree is full".
+
+- To an auditor who receives a V8 receipt (`disclose_link`, demo and SDK since 24 November 2026): the disclosed note's nullifier, so that auditor can see whether the note is withdrawn and, once it is, its withdrawal (recipient, relayer, fee, transaction), including a withdrawal made after the receipt. A plain disclosure (`disclose`, `disclose_v2`) does not reveal this. Like every disclosure, a receipt only verifies with the code of the auditor it was made for, but the nullifier it contains is a fact the auditor keeps and can pass on.
 
 **Privacy of the deposit↔withdrawal link should not be read as full network-level anonymity.** An observer with enough resources correlating transaction timing across a small anonymity set could still form probabilistic guesses. This is a known, disclosed limitation, not a defect being hidden.
 

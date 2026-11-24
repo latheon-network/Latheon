@@ -34,7 +34,15 @@ current V7 pools and router (`withdraw_v5`; 18/18 on 2 November 2026):
 DEMO=/path/to/demo node native-e2e.js
 V6=1 DEMO=/path/to/demo node native-e2e.js
 V7=1 DEMO=/path/to/demo node native-e2e.js
+V8=1 DEMO=/path/to/demo node native-e2e.js
 ```
+
+`V8=1` runs the V8 pools and router (`withdraw_v6`, tagged hashes, recipient, relayer, fee, payment reference and chain
+in one hash) with the V7 set deployed next to them, and adds: the stale-root drill becomes "V8 keeps every root" (the
+first attempt pays); a receipt (`disclose_link`) and a plain V8 disclosure (`disclose_v2`) checked in the auditor tab; a
+V8 proof presented as a V7 disclosure is refused; a report with receipts (version 2, no keys); "Move to V8" for a V7
+master key and for a single V7 note. It compiles the V8 contracts with solc 0.8.39 from `test/native-v8/node_modules`, so
+run `npm install` there first. The bundles must export `poseidon3` (`build-bundles.sh` does since 24 November 2026).
 
 ## Router features: `router-e2e.js`
 

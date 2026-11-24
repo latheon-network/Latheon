@@ -59,7 +59,9 @@ const v8file = require('../deployments-v8.json');
 ok('four V8 pools merged from deployments-v8.json: 100 / 50 / 10 / 1, withdraw_v6, 20 levels, v8 verifiers, depositable', pv8.length === 4 && pv8.map((p) => p.amount).join() === '100,50,10,1' && pv8.every((p) => p.circuit === 'withdraw_v6' && p.levels === 20 && p.feeVersion && sdk.isDepositable(p) && p.verifierAddr === ethers.getAddress(v8file.verifiers.withdraw) && p.discloseCircuit === 'disclose_v2' && p.discloseVerifierAddr === ethers.getAddress(v8file.verifiers.disclose) && p.discloseLinkVerifierAddr === ethers.getAddress(v8file.verifiers.discloseLink)));
 const r8 = sdk.routerById(reg, 'latheon-testnet:LTH:v8');
 ok('V8 router from deployments-v8.json with its four pools', r8 && r8.address === ethers.getAddress(v8file.routers[0].address) && r8.pools.every((p) => p.version === 'v8') && r8.version === 'v8');
-ok('the demo file is not changed by the merge (mergeV8 copies); passing deployments.json alone gives no V8', !require('../deployments.json').pools.some((p) => /v8/.test(p.version)) && sdk.loadDeployments(require('../deployments.json')).pools.every((p) => p.version !== 'v8'));
+ok('deployments.json lists V8 itself: loading it alone gives the four V8 pools and the V8 router, and merging deployments-v8.json again adds no duplicates',
+  sdk.listPools(sdk.loadDeployments(require('../deployments.json')), { version: 'v8' }).length === 4 && sdk.mergeV8(require('../deployments.json'), v8file).pools.length === require('../deployments.json').pools.length
+  && sdk.loadDeployments(require('../deployments.json')).routers.filter((r) => r.version === 'v8').length === 1);
 ok('poolContext = keccak256(abi.encode("latheon.v8.ctx", chainId, pool)) mod p; differs per pool and per chain', (() => {
   const a = pv8[0], c = sdk.contextOf(a);
   const want = BigInt(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['string', 'uint256', 'address'], ['latheon.v8.ctx', a.net.chainId, a.address]))) % P8;

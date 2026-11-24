@@ -350,6 +350,15 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     <ul class="steps" id="wdSteps" aria-live="polite"></ul>
     <div id="withdrawStatus" class="status info" style="display:none;"></div>
     <div id="checkResult"></div>
+    <div class="a-step" id="mvOne" hidden>
+      <h4 data-i18n="mv.h4">Move to V8</h4>
+      <p class="muted small" data-i18n="mv.lead">This note is in a V7 pool. V8 is the current generation. Moving withdraws it to your connected wallet and deposits the same amount into the V8 pools with a new master key, in two transactions.</p>
+      <ul class="warns"><li class="warn" data-i18n="mv.warn">Moving is public: anyone can see that your wallet received this amount from the V7 pools and deposited it into V8 right after. The move gives the amount no new privacy. To keep it private, withdraw to a fresh address instead and deposit from there later.</li></ul>
+      <button id="mvOneBtn" data-i18n="mv.btn" disabled>Move to V8</button>
+      <ul class="steps" id="mvOneSteps" aria-live="polite"></ul>
+      <div id="mvOneStatus" class="status info" style="display:none;"></div>
+      <div id="mvOneResult"></div>
+    </div>
     <div id="treeBox"></div>
     <details class="adv" id="advWithdraw">
       <summary data-i18n="adv.withdraw">Advanced: load withdraw circuit files manually</summary>
@@ -377,6 +386,15 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
       <div id="waStatus" class="status info" style="display:none;"></div>
       <div id="waPlan"></div>
       <div id="waSep"></div>
+      <div class="a-step" id="mvAny" hidden>
+        <h4 data-i18n="mv.h4">Move to V8</h4>
+        <p class="muted small" data-i18n="mv.leadKey">These notes are in V7 pools. V8 is the current generation. Moving withdraws all unspent notes of this key to your connected wallet and deposits the same amount into the V8 pools with a new master key.</p>
+        <ul class="warns"><li class="warn" data-i18n="mv.warn">Moving is public: anyone can see that your wallet received this amount from the V7 pools and deposited it into V8 right after. The move gives the amount no new privacy. To keep it private, withdraw to a fresh address instead and deposit from there later.</li></ul>
+        <button id="mvAnyBtn" data-i18n="mv.btn" disabled>Move to V8</button>
+        <ul class="steps" id="mvAnySteps" aria-live="polite"></ul>
+        <div id="mvAnyStatus" class="status info" style="display:none;"></div>
+        <div id="mvAnyResult"></div>
+      </div>
     </div>
   </section>
 
@@ -421,6 +439,8 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
     <textarea id="discloseNoteInput" placeholder="latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off"></textarea>
     <label class="field-label" for="auditorNonceInput" data-i18n="field.nonce">Auditor's one-time code</label>
     <input id="auditorNonceInput" placeholder="A number the auditor gave you" data-i18n-placeholder="field.noncePh" inputmode="numeric" autocomplete="off">
+    <label class="check-row"><input type="checkbox" id="dsLink"> <span data-i18n="ds.link">V8 notes: also prove which withdrawal is this note's (a receipt)</span></label>
+    <div class="status warn" id="dsLinkWarn" hidden data-i18n="ds.linkWarn">The proof then also contains the note's nullifier. The auditor can see whether the note is withdrawn and, once it is, the recipient, relayer, fee and transaction of that withdrawal, now or later. Nothing else changes: the auditor still cannot spend the note, and the proof works only with this auditor's code. V8 notes only.</div>
     <button id="discloseBtn" data-i18n="btn.disclose" disabled>Generate disclosure proof</button>
     <ul class="steps" id="dsSteps" aria-live="polite"></ul>
     <div id="discloseStatus" class="status info" style="display:none;"></div>
@@ -432,6 +452,8 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
       <textarea id="reportInput" placeholder="latheon-master:&lt;chainId&gt;:&lt;router&gt;:&lt;master&gt;&#10;latheon-v5:&lt;chainId&gt;:&lt;pool&gt;:&lt;spendKey&gt;:&lt;viewKey&gt;" spellcheck="false" autocomplete="off" style="min-height:90px"></textarea>
       <label class="field-label" for="reportNonceInput" data-i18n="field.nonce">Auditor's one-time code</label>
       <input id="reportNonceInput" placeholder="A number the auditor gave you" data-i18n-placeholder="field.noncePh" inputmode="numeric" autocomplete="off">
+      <label class="check-row"><input type="checkbox" id="reportLink"> <span data-i18n="rp.link">V8 notes: prove which withdrawal is each note's (receipts, no keys)</span></label>
+      <div class="status warn" id="reportLinkWarn" hidden data-i18n="rp.linkWarn">For V8 notes the proofs then also contain each note's nullifier: the auditor sees which notes are withdrawn and the recipient, relayer, fee and transaction of each withdrawal, including withdrawals made later. No keys go into the file, and the proofs work only with this auditor's code.</div>
       <label class="check-row"><input type="checkbox" id="reportKeys"> <span data-i18n="rp.keys">Also show where withdrawn notes went</span></label>
       <div class="status warn" id="reportKeysWarn" hidden data-i18n="rp.keysWarn">This adds the keys of notes that are already withdrawn, so the auditor can see the recipient, relayer and fee of each withdrawal. Those keys can no longer spend anything, but unlike a proof they are not tied to this auditor: whoever holds them can show them to anyone and can make new disclosures for those notes. Use it for your own accountant, not for strangers. Keys of notes that are not withdrawn are never added.</div>
       <button id="reportBtn" data-i18n="rp.btn" disabled>Build report</button>
@@ -481,7 +503,7 @@ footer { margin-top: 36px; border-top: 1px solid var(--border); padding: 24px 0 
 
 <script type="module">
 // Libraries served from this site, built from pinned versions (tools/build-vendor.sh; hashes in vendor/SHA256SUMS).
-import { poseidon2, poseidon4 } from './vendor/poseidon-lite-0.3.0.mjs';
+import { poseidon2, poseidon3, poseidon4 } from './vendor/poseidon-lite-0.3.0.mjs';
 import { ethers } from './vendor/ethers-6.17.0.mjs';
 import * as snarkjs from './vendor/snarkjs-0.7.6.mjs';
 
@@ -492,12 +514,39 @@ const $ = (id) => document.getElementById(id);
 // data-i18n sets innerHTML: nested markup lives inside the strings, in every language.
 const I18N = {
   en: {
+    'au.passLink': "Verified: the sender controls this specific deposit, and the receipt shows whether and where it was withdrawn. You did not receive their keys or their other deposits.",
+    'mv.lead': "This note is in a V7 pool. V8 is the current generation. Moving withdraws it to your connected wallet and deposits the same amount into the V8 pools with a new master key, in two transactions.",
+    'mv.leadKey': "These notes are in V7 pools. V8 is the current generation. Moving withdraws all unspent notes of this key to your connected wallet and deposits the same amount into the V8 pools with a new master key.",
+    'mv.warn': "Moving is public: anyone can see that your wallet received this amount from the V7 pools and deposited it into V8 right after. The move gives the amount no new privacy. To keep it private, withdraw to a fresh address instead and deposit from there later.",
+    'err.ctx': "The pool on chain does not match this page (its context differs). Nothing was sent.",
+    'ds.link': "V8 notes: also prove which withdrawal is this note's (a receipt)",
+    'ds.linkWarn': "The proof then also contains the note's nullifier. The auditor can see whether the note is withdrawn and, once it is, the recipient, relayer, fee and transaction of that withdrawal, now or later. Nothing else changes: the auditor still cannot spend the note, and the proof works only with this auditor's code. V8 notes only.",
+    'ds.linkV8': "A receipt can only be made for a V8 note. Untick the receipt box for this note.",
+    'rp.link': "V8 notes: prove which withdrawal is each note's (receipts, no keys)",
+    'rp.linkWarn': "For V8 notes the proofs then also contain each note's nullifier: the auditor sees which notes are withdrawn and the recipient, relayer, fee and transaction of each withdrawal, including withdrawals made later. No keys go into the file, and the proofs work only with this auditor's code.",
+    'au.errKind': "This kind of disclosure is not supported on {net} by this page.",
+    'au.ctxBad': "The receipt names a different pool than the one that holds this deposit",
+    'au.receipt': "receipt",
+    'au.rcWithdrawn': "Receipt: this note is withdrawn",
+    'au.rcWithdrawnSub': "to <code>{to}</code>, fee {fee} {token}, {when} UTC",
+    'au.rcRelayer': "relayer <code>{addr}</code>",
+    'au.rcNot': "Receipt: this note is not withdrawn yet",
+    'au.rcNotSub': "The proof binds its nullifier: checking this block again later shows its withdrawal once it happens.",
+    'mv.h4': "Move to V8",
+    'mv.btn': "Move to V8",
+    'mv.s3': "Withdraw to your wallet",
+    'mv.s4': "Deposit into the V8 pools",
+    'mv.s5': "Save the new master key",
+    'mv.ok': "Moved {amt} {token} to V8: {n} new notes under the master key below. Save it: the moved notes are withdrawn, the old note or key no longer holds them.",
+    'mv.halfway': "The V7 notes were withdrawn to your wallet, but the V8 deposit did not go through, so the coins are in your wallet now. Deposit them from the Deposit tab. Reason: ",
+    'mv.failed': "Nothing was moved: ",
+    'pool.v7note': "This is a V7 pool. V8 is the current generation: new deposits go to the V8 pools.",
     'intro.h1': 'Try Latheon on a testnet',
     'intro.p': 'Deposit, withdraw, pay a list of recipients, and prove deposits to an auditor, end to end, in your browser. Proofs are generated on your device; your note never leaves it.',
     'intro.pill': '● Testnets only · test tokens, no real value · no independent audit yet',
     'setup.pool': 'Network &amp; token', 'setup.net': 'Network', 'setup.tok': 'Token', 'setup.fixed': 'Pool (one fixed amount)', 'setup.poolHint': 'Each pool holds one fixed amount, so every deposit looks the same from outside.', 'setup.wallet': 'Wallet',
     'pool.loading': 'Loading deployments…', 'pool.info': '{net} · {label} · contract {addr}',
-    'dep.frozen': 'Deposits into this pool are frozen: it uses the pre-V7 circuit (or is on a deprecated network) and is kept only so existing notes can be withdrawn. Deposit into a V7 pool instead.', 'pool.frozenBanner': 'This pool is frozen for deposits. It predates the V7 fix (STATUS §7) or is on a deprecated network; its notes can still be withdrawn, but do not deposit fresh funds here — use a V7 pool.',
+    'dep.frozen': 'Deposits into this pool are frozen: it uses the pre-V7 circuit (or is on a deprecated network) and is kept only so existing notes can be withdrawn. Deposit into a current pool (V8) instead.', 'pool.frozenBanner': 'This pool is frozen for deposits. It predates the V7 fix (STATUS §7) or is on a deprecated network; its notes can still be withdrawn, but do not deposit fresh funds here — use a V7 pool.',
     'pool.legacyBanner': 'Legacy V4 pool: the withdrawal recipient is not bound to the proof, so a pending withdrawal could be front-run (same proof, different recipient). Deposits are frozen; use the V7 pools.',
     'pool.legacyGroup': 'Legacy V4 (deprecated, recipient not bound)',
     'wallet.notConnected': 'Not connected. Needed for the faucet and deposits; withdrawals through the relayer work without a wallet.', 'wallet.address': 'Address', 'wallet.eth': 'ETH balance', 'wallet.gas': '{coin} balance (gas)', 'wallet.token': '{token} balance',
@@ -600,7 +649,7 @@ const I18N = {
     'ago.s': '{n} s', 'ago.m': '{n} min', 'ago.h': '{n} h', 'ago.d': '{n} days',
     'ds.h3': 'Disclose to an auditor', 'ds.lead': 'Prove to <strong>one chosen auditor</strong> that you control a specific deposit, without giving them any ability to spend it. They give you a one-time code; the proof only works for that code.',
     'who.yes': 'The auditor learns', 'who.yes1': 'Which deposit (its commitment, already public)', 'who.yes2': 'That you hold its keys',
-    'who.no': 'The auditor does not get', 'who.no1': 'Your spendKey or viewKey', 'who.no2': 'Your other deposits', 'who.no3': 'Where the funds were withdrawn to',
+    'who.no': 'The auditor does not get', 'who.no1': 'Your spendKey or viewKey', 'who.no2': 'Your other deposits', 'who.no3': 'Where the funds were withdrawn to (unless you add a receipt, V8 notes)',
     'ds.s1': 'Load the disclosure circuit', 'ds.s2': 'Generate the proof in your browser', 'ds.s3': 'Check it on-chain (free)',
     'ds.proving': 'Generating disclosure proof in your browser…', 'ds.verifying': 'Verifying on-chain against the deployed verifier…',
     'ds.bad': 'Proof did not verify — check the note and the auditor nonce.', 'ds.ok': 'Disclosure proof verified. Send the block below to your auditor.',
@@ -711,12 +760,39 @@ const I18N = {
     'footer': 'Public prototype on testnets. Dev trusted-setup keys, no independent audit. Source: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
   },
   ru: {
+    'au.passLink': "Подтверждено: отправитель контролирует именно этот депозит, а квитанция показывает, выведен ли он и куда. Вы не получили его ключи и другие депозиты.",
+    'err.ctx': "Пул в сети не совпадает с этой страницей (другой контекст). Ничего не отправлено.",
+    'ds.link': "Ноты V8: также доказать, какой вывод относится к этой ноте (квитанция)",
+    'ds.linkWarn': "Тогда доказательство содержит и нуллификатор ноты. Аудитор видит, выведена ли нота, и, когда она выведена, получателя, релейер, комиссию и транзакцию этого вывода, сейчас или позже. Больше ничего не меняется: аудитор по-прежнему не может потратить ноту, а доказательство работает только с кодом этого аудитора. Только для нот V8.",
+    'ds.linkV8': "Квитанцию можно сделать только для ноты V8. Снимите галочку квитанции для этой ноты.",
+    'rp.link': "Ноты V8: доказать, какой вывод относится к каждой ноте (квитанции, без ключей)",
+    'rp.linkWarn': "Тогда для нот V8 доказательства содержат и нуллификатор каждой ноты: аудитор видит, какие ноты выведены, и получателя, релейер, комиссию и транзакцию каждого вывода, включая выводы, сделанные позже. Ключи в файл не попадают, а доказательства работают только с кодом этого аудитора.",
+    'au.errKind': "Такой вид раскрытия эта страница не поддерживает в сети {net}.",
+    'au.ctxBad': "Квитанция называет другой пул, не тот, где лежит этот депозит",
+    'au.receipt': "квитанция",
+    'au.rcWithdrawn': "Квитанция: эта нота выведена",
+    'au.rcWithdrawnSub': "на <code>{to}</code>, комиссия {fee} {token}, {when} UTC",
+    'au.rcRelayer': "релейер <code>{addr}</code>",
+    'au.rcNot': "Квитанция: эта нота ещё не выведена",
+    'au.rcNotSub': "Доказательство связано с её нуллификатором: если проверить этот блок позже, будет виден её вывод, когда он произойдёт.",
+    'mv.h4': "Перенести в V8",
+    'mv.btn': "Перенести в V8",
+    'mv.lead': "Эта нота в пуле V7. Текущее поколение — V8. Перенос выводит её на подключённый кошелёк и вносит ту же сумму в пулы V8 с новым мастер-ключом, двумя транзакциями.",
+    'mv.leadKey': "Эти ноты в пулах V7. Текущее поколение — V8. Перенос выводит все невыведенные ноты этого ключа на подключённый кошелёк и вносит ту же сумму в пулы V8 с новым мастер-ключом.",
+    'mv.warn': "Перенос публичен: любой увидит, что ваш кошелёк получил эту сумму из пулов V7 и сразу внёс её в V8. Переносом сумма не становится приватнее. Чтобы сохранить приватность, выведите на новый адрес и внесите депозит оттуда позже.",
+    'mv.s3': "Вывод на ваш кошелёк",
+    'mv.s4': "Депозит в пулы V8",
+    'mv.s5': "Сохраните новый мастер-ключ",
+    'mv.ok': "Перенесено {amt} {token} в V8: {n} новых нот под мастер-ключом ниже. Сохраните его: перенесённые ноты выведены, старая нота или ключ их больше не хранят.",
+    'mv.halfway': "Ноты V7 выведены на ваш кошелёк, но депозит в V8 не прошёл, поэтому монеты сейчас на кошельке. Внесите их во вкладке «Депозит». Причина: ",
+    'mv.failed': "Ничего не перенесено: ",
+    'pool.v7note': "Это пул V7. Текущее поколение — V8: новые депозиты идут в пулы V8.",
     'intro.h1': 'Попробуйте Latheon в тестовой сети',
     'intro.p': 'Депозит, вывод, выплаты списку получателей и доказательство депозитов аудитору, целиком, в вашем браузере. Доказательства создаются на вашем устройстве; нота его не покидает.',
     'intro.pill': '● Только тестовые сети · тестовые токены без реальной ценности · независимого аудита пока нет',
     'setup.pool': 'Сеть и токен', 'setup.net': 'Сеть', 'setup.tok': 'Токен', 'setup.fixed': 'Пул (одна фиксированная сумма)', 'setup.poolHint': 'В каждом пуле одна фиксированная сумма, поэтому снаружи все депозиты выглядят одинаково.', 'setup.wallet': 'Кошелёк',
     'pool.loading': 'Загружаю реестр…', 'pool.info': '{net} · {label} · контракт {addr}',
-    'dep.frozen': 'Депозиты в этот пул заморожены: он на схеме до V7 (или в снятой с эксплуатации сети) и оставлен только для вывода уже внесённых нот. Внесите депозит в пул V7.', 'pool.frozenBanner': 'Пул заморожен для депозитов. Он до исправления V7 (STATUS §7) или в снятой с эксплуатации сети; вывести ноты из него можно, но не вносите новые средства — используйте пул V7.',
+    'dep.frozen': 'Депозиты в этот пул заморожены: он на схеме до V7 (или в снятой с эксплуатации сети) и оставлен только для вывода уже внесённых нот. Внесите депозит в текущий пул (V8).', 'pool.frozenBanner': 'Пул заморожен для депозитов. Он до исправления V7 (STATUS §7) или в снятой с эксплуатации сети; вывести ноты из него можно, но не вносите новые средства — используйте пул V7.',
     'pool.legacyBanner': 'Устаревший пул V4: получатель вывода не привязан к доказательству, поэтому ожидающий вывод можно перехватить (то же доказательство, другой получатель). Депозиты заморожены; используйте пулы V7.',
     'pool.legacyGroup': 'Устаревшие V4 (получатель не привязан)',
     'wallet.notConnected': 'Не подключён. Нужен для крана и депозитов; вывод через релейер работает без кошелька.', 'wallet.address': 'Адрес', 'wallet.eth': 'Баланс ETH', 'wallet.gas': 'Баланс {coin} (газ)', 'wallet.token': 'Баланс {token}',
@@ -819,7 +895,7 @@ const I18N = {
     'ago.s': '{n} с', 'ago.m': '{n} мин', 'ago.h': '{n} ч', 'ago.d': '{n} дн.',
     'ds.h3': 'Раскрытие аудитору', 'ds.lead': 'Докажите <strong>одному выбранному аудитору</strong>, что контролируете конкретный депозит, не давая ему возможности его потратить. Аудитор даёт вам одноразовый код; доказательство работает только с этим кодом.',
     'who.yes': 'Аудитор узнаёт', 'who.yes1': 'Какой это депозит (его commitment и так публичен)', 'who.yes2': 'Что у вас есть его ключи',
-    'who.no': 'Аудитор не получает', 'who.no1': 'Ваши spendKey и viewKey', 'who.no2': 'Ваши другие депозиты', 'who.no3': 'Куда были выведены средства',
+    'who.no': 'Аудитор не получает', 'who.no1': 'Ваши spendKey и viewKey', 'who.no2': 'Ваши другие депозиты', 'who.no3': 'Куда были выведены средства (если вы не добавите квитанцию, ноты V8)',
     'ds.s1': 'Загрузить схему раскрытия', 'ds.s2': 'Создать доказательство в браузере', 'ds.s3': 'Проверить в сети (бесплатно)',
     'ds.proving': 'Создаю доказательство раскрытия в браузере…', 'ds.verifying': 'Проверяю в сети развёрнутым верификатором…',
     'ds.bad': 'Доказательство не прошло проверку — проверьте ноту и код аудитора.', 'ds.ok': 'Доказательство раскрытия проверено. Отправьте блок ниже аудитору.',
@@ -930,12 +1006,39 @@ const I18N = {
     'footer': 'Публичный прототип в тестовых сетях. Dev-ключи trusted setup, независимого аудита нет. Исходный код: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
   },
   zh: {
+    'au.passLink': "已验证：发送方控制这笔特定存款，回执显示它是否已取出以及取往何处。您没有获得其密钥或其他存款。",
+    'err.ctx': "链上的资金池与本页面不一致（上下文不同）。未发送任何交易。",
+    'ds.link': "V8 凭证：同时证明哪一笔取款属于这张凭证（回执）",
+    'ds.linkWarn': "这样证明中还包含该凭证的 nullifier。审计方可以看到该凭证是否已取出，以及取出后（现在或以后）该笔取款的接收地址、中继、手续费和交易。其他不变：审计方仍然无法花费该凭证，证明也只对该审计方的代码有效。仅限 V8 凭证。",
+    'ds.linkV8': "回执只能为 V8 凭证生成。请为这张凭证取消勾选回执。",
+    'rp.link': "V8 凭证：证明每张凭证对应哪一笔取款（回执，不含密钥）",
+    'rp.linkWarn': "这样 V8 凭证的证明中还包含每张凭证的 nullifier：审计方可以看到哪些凭证已取出，以及每笔取款的接收地址、中继、手续费和交易，包括以后的取款。文件中不包含任何密钥，证明也只对该审计方的代码有效。",
+    'au.errKind': "本页面不支持 {net} 上这种披露。",
+    'au.ctxBad': "回执指定的资金池与存放这笔存款的资金池不同",
+    'au.receipt': "回执",
+    'au.rcWithdrawn': "回执：这张凭证已取出",
+    'au.rcWithdrawnSub': "到 <code>{to}</code>，手续费 {fee} {token}，{when} UTC",
+    'au.rcRelayer': "中继 <code>{addr}</code>",
+    'au.rcNot': "回执：这张凭证尚未取出",
+    'au.rcNotSub': "证明绑定了它的 nullifier：以后再次检查这段数据，取款发生后即可看到。",
+    'mv.h4': "迁移到 V8",
+    'mv.btn': "迁移到 V8",
+    'mv.lead': "这张凭证在 V7 资金池中。当前一代是 V8。迁移会把它取到您已连接的钱包，再用新的主密钥把相同金额存入 V8 资金池，共两笔交易。",
+    'mv.leadKey': "这些凭证在 V7 资金池中。当前一代是 V8。迁移会把此密钥下所有未取出的凭证取到您已连接的钱包，再用新的主密钥把相同金额存入 V8 资金池。",
+    'mv.warn': "迁移是公开的：任何人都能看到您的钱包从 V7 资金池收到这笔金额并随即存入 V8。迁移不会让这笔金额更私密。若要保持私密，请改为取到新地址，以后再从那里存款。",
+    'mv.s3': "取到您的钱包",
+    'mv.s4': "存入 V8 资金池",
+    'mv.s5': "保存新的主密钥",
+    'mv.ok': "已将 {amt} {token} 迁移到 V8：下方主密钥下有 {n} 张新凭证。请保存它：已迁移的凭证已取出，旧凭证或旧密钥不再持有它们。",
+    'mv.halfway': "V7 凭证已取到您的钱包，但 V8 存款未成功，因此币现在在您的钱包里。请在“存款”标签页中存入。原因：",
+    'mv.failed': "未迁移任何资金：",
+    'pool.v7note': "这是 V7 资金池。当前一代是 V8：新的存款进入 V8 资金池。",
     'intro.h1': '在测试网上体验 Latheon',
     'intro.p': '存款、取款、向收款人列表付款，并向审计方证明存款属于您，全部流程在浏览器中完成。证明在您的设备上生成；您的凭证（note）不会离开设备。',
     'intro.pill': '● 仅限测试网 · 测试代币，无实际价值 · 尚无独立审计',
     'setup.pool': '网络与代币', 'setup.net': '网络', 'setup.tok': '代币', 'setup.fixed': '资金池（单一定额）', 'setup.poolHint': '每个资金池只有一种固定金额，因此从外部看所有存款都一样。', 'setup.wallet': '钱包',
     'pool.loading': '正在加载部署信息…', 'pool.info': '{net} · {label} · 合约 {addr}',
-    'dep.frozen': '此资金池的存款已冻结：它使用 V7 之前的电路（或位于已弃用的网络上），仅保留用于取出已有凭证。请改向 V7 资金池存款。', 'pool.frozenBanner': '此资金池已冻结存款。它早于 V7 修复（STATUS §7）或位于已弃用网络；仍可取出其凭证，但请勿存入新资金——请使用 V7 资金池。',
+    'dep.frozen': '此资金池的存款已冻结：它使用 V7 之前的电路（或位于已弃用的网络上），仅保留用于取出已有凭证。请改向当前资金池（V8）存款。', 'pool.frozenBanner': '此资金池已冻结存款。它早于 V7 修复（STATUS §7）或位于已弃用网络；仍可取出其凭证，但请勿存入新资金——请使用 V7 资金池。',
     'pool.legacyBanner': '旧版 V4 资金池：取款接收地址未绑定到证明中，待处理的取款可能被抢跑（同一证明，不同接收人）。存款已冻结；请使用 V7 资金池。',
     'pool.legacyGroup': '旧版 V4（已弃用，未绑定接收地址）',
     'wallet.notConnected': '未连接。领取测试币和存款需要钱包；通过中继器取款无需钱包。', 'wallet.address': '地址', 'wallet.eth': 'ETH 余额', 'wallet.gas': '{coin} 余额（Gas）', 'wallet.token': '{token} 余额',
@@ -1038,7 +1141,7 @@ const I18N = {
     'ago.s': '{n} 秒', 'ago.m': '{n} 分钟', 'ago.h': '{n} 小时', 'ago.d': '{n} 天',
     'ds.h3': '向审计方披露', 'ds.lead': '向<strong>一位选定的审计方</strong>证明您控制某一笔特定存款，而不给予对方任何动用资金的能力。审计方给您一个一次性代码；证明只对该代码有效。',
     'who.yes': '审计方得知', 'who.yes1': '是哪一笔存款（其 commitment 本来就公开）', 'who.yes2': '您持有它的密钥',
-    'who.no': '审计方得不到', 'who.no1': '您的 spendKey 或 viewKey', 'who.no2': '您的其他存款', 'who.no3': '资金被取往何处',
+    'who.no': '审计方得不到', 'who.no1': '您的 spendKey 或 viewKey', 'who.no2': '您的其他存款', 'who.no3': '资金被取往何处（除非您附加回执，仅 V8 凭证）',
     'ds.s1': '加载披露电路', 'ds.s2': '在浏览器中生成证明', 'ds.s3': '在链上验证（免费）',
     'ds.proving': '正在浏览器中生成披露证明…', 'ds.verifying': '正在使用已部署的验证合约进行链上验证…',
     'ds.bad': '证明未通过验证——请检查凭证和审计方代码。', 'ds.ok': '披露证明已验证。请将下方数据块发送给审计方。',
@@ -1168,9 +1271,12 @@ function applyStatic() {
 }
 
 const LEVELS = 8;                                   // V5 and legacy pools (withdraw_v3 / v2); V6 pools have 20 (withdraw_v4)
-const levelsOf = (version) => (version === 'v6' || version === 'v7' ? 20 : LEVELS);
-const modern = (version) => version === 'v5' || version === 'v6' || version === 'v7';   // recipient bound into the proof; notes name their pool
-const feeVer = (version) => version === 'v6' || version === 'v7';   // relayer and fee also bound into the proof (same interface)
+const levelsOf = (version) => (version === 'v6' || version === 'v7' || version === 'v8' ? 20 : LEVELS);
+const modern = (version) => version === 'v5' || version === 'v6' || version === 'v7' || version === 'v8';   // recipient bound into the proof; notes name their pool
+const feeVer = (version) => version === 'v6' || version === 'v7';   // V6/V7 interface: relayer and fee bound into the proof as public signals
+// V8 (docs/v8-design.md): tagged hashes, a nullifier that depends on the pool, recipient, relayer, fee, payment reference
+// and destination chain bound into the proof through one hash (extDataHash); circuit withdraw_v6.
+const isV8 = (version) => version === 'v8';
 const FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 // Circuit files from a fixed commit (not a branch), and each one checked against its SHA-256 before use.
@@ -1184,6 +1290,12 @@ const CIRCUITS = {
   v2:       circ('withdraw_v2', 'effefdcce687eb56289ecf3bdf0d9f95db529f5725a12a21dcc31a844fd32f68', 'ca43971075f129db592d38551159a00adf613102634f153a04848db2fe85659d'),
   disclose: circ('disclose',    '479e1ae4350000257c4dddfc1a7f19017dd361d1bcdd9ff11ed3fcf7b896ddfe', 'da2ef269e48c724d6dadc2ac2ed7f755a937c65640cac389d4805f25c71e18ea'),
 };
+// V8 circuits (development keys, docs/dev-ceremony-v8.md) from the commit that added them; same hashes as sdk/src/constants.js.
+const CIRCUIT_COMMIT_V8 = 'c8c35ff043a5c7a8567f3931ecc88ac18d18ce10';
+const circ8 = (dir, wasmSha, zkeySha) => { const base = 'https://cdn.jsdelivr.net/gh/latheon-network/latheon@' + CIRCUIT_COMMIT_V8 + '/circuits/build/'; return { wasm: base + dir + '/' + dir + '.wasm', zkey: base + dir + '/' + dir + '_final.zkey', wasmSha, zkeySha }; };
+CIRCUITS.v6 = circ8('withdraw_v6', 'c35826903926dd200414616c9d7d60dd8f7340899c5a1ad41c58b234fa6af041', '967c4e8b90b427bd22ab14df138631de1ca680cc6f97548982bec3b6b238b81c');
+CIRCUITS.disclose_v2 = circ8('disclose_v2', '1b09707268e800968d35e92ddbedfe9f82aa38094ce131227471bc96e9b83fa8', '2062e44c6685212eb87e19f3b34cf7943a4adeee1bfec6642ccf2250a1b751e8');
+CIRCUITS.disclose_link = circ8('disclose_link', 'babfe878006e4868fd3daed5040d616972c5709e06b4f54463388c4950cfe387', '3d010b4ce0b0ea7bfb5eeb63a57c4f6fb89083468815f7e817ee21c1e8049e97');
 
 const ERC20_ABI = [
   'function balanceOf(address) view returns (uint256)',
@@ -1213,13 +1325,21 @@ const VERIFIER_ABI = {
 };
 POOL_ABI.v7 = POOL_ABI.v6;         // V7 = V6 interface (withdraw_v5 only fixes the circuit, not the ABI)
 VERIFIER_ABI.v7 = VERIFIER_ABI.v6;
+// V8: the proof as one tuple, and the withdrawal's terms (recipient, relayer, fee, payment reference, destination chain) as another.
+const PROOF_T = 'tuple(uint256[2] pA, uint256[2][2] pB, uint256[2] pC)';
+POOL_ABI.v8 = ['function deposit(uint256 commitment) payable', 'function token() view returns (address)', 'function DENOMINATION() view returns (uint256)',
+  `function withdraw(${PROOF_T} proof, uint256 root, uint256 nullifierHash, tuple(address recipient, address relayer, uint256 fee, bytes32 paymentRef, uint256 destChainId) ext)`,
+  'function ctx() view returns (uint256)', 'function isKnownRoot(uint256) view returns (bool)', 'function nullifierHashes(uint256) view returns (bool)'].concat(EVENT_ABI);
+VERIFIER_ABI.v8 = ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[4] _pubSignals) view returns (bool)'];
+VERIFIER_ABI.disclose_v2 = VERIFIER_ABI.disclose;
+VERIFIER_ABI.disclose_link = ['function verifyProof(uint256[2] _pA, uint256[2][2] _pB, uint256[2] _pC, uint256[5] _pubSignals) view returns (bool)'];
 const FAUCET_ABI = ['function claim()'];
 const DEPOSIT_IFACE = new ethers.Interface(EVENT_ABI);
 const DEPOSIT_TOPIC = DEPOSIT_IFACE.getEvent('Deposit').topicHash;
 
 let CONFIG = null, POOLS = [], currentPoolId = null;
 let provider = null, signer = null, userAddress = null;
-const circuitBuf = { v5: null, v4: null, v3: null, v2: null, disclose: null };
+const circuitBuf = { v6: null, v5: null, v4: null, v3: null, v2: null, disclose: null, disclose_v2: null, disclose_link: null };
 const manualParts = { withdraw: {}, disclose: {} };
 const depositWallets = new Set();   // wallets that made a deposit in this session (lower-case)
 let daPlan = null;   // { router, plan } when the amount on screen can be deposited
@@ -1286,6 +1406,18 @@ function computeNullifierHash(spendKey) { return hash2(BigInt(spendKey), 1n); }
 function computeDisclosureTag(viewKey, auditorNonce) { return hash2(BigInt(viewKey), BigInt(auditorNonce)); }
 function computeZeroCascade(levels = LEVELS) { const z = [0n]; let c = 0n; for (let i = 0; i < levels; i++) { c = hash2(c, c); z.push(c); } return z; }
 function randomFieldElement() { return BigInt(ethers.hexlify(ethers.randomBytes(32))) % FIELD_SIZE; }
+// V8 hashes (the same as sdk/src/poseidon.js): domain tags keccak256(string) mod p, Poseidon over three inputs.
+const tagOf = (str) => BigInt(ethers.keccak256(ethers.toUtf8Bytes(str))) % FIELD_SIZE;
+const TAG_V8 = { COMMIT: tagOf('latheon.v8.commit'), NULL: tagOf('latheon.v8.null'), DISC: tagOf('latheon.v8.disc') };
+const ABI_CODER = ethers.AbiCoder.defaultAbiCoder();
+const poolCtx = (pool) => BigInt(ethers.keccak256(ABI_CODER.encode(['string', 'uint256', 'address'], ['latheon.v8.ctx', BigInt(pool.net.chainId), pool.address]))) % FIELD_SIZE;
+const extDataHash = (e) => BigInt(ethers.keccak256(ABI_CODER.encode(['address', 'address', 'uint256', 'bytes32', 'uint256'], [e.recipient, e.relayer, e.fee, e.paymentRef, e.destChainId]))) % FIELD_SIZE;
+// Commitment and nullifier of a note in a pool of `version` (V8: tagged; its nullifier also names the pool and chain).
+const commitFor = (version, spendKey, viewKey) => (isV8(version) ? poseidon3([TAG_V8.COMMIT, BigInt(spendKey), BigInt(viewKey)]) : computeCommitment(spendKey, viewKey));
+const nullifierOf = (pool, spendKey) => (isV8(pool.version) ? poseidon3([TAG_V8.NULL, BigInt(spendKey), poolCtx(pool)]) : computeNullifierHash(spendKey));
+const discTagFor = (version, viewKey, nonce) => (isV8(version) ? poseidon3([TAG_V8.DISC, BigInt(viewKey), BigInt(nonce)]) : computeDisclosureTag(viewKey, nonce));
+// Every V8 withdrawal carries a payment reference; when there is none to give, a random one, so all withdrawals look alike.
+const randomRef = () => ethers.hexlify(ethers.randomBytes(32));
 
 // distribution-core:begin
 /**
@@ -1458,6 +1590,8 @@ function assignNotes(countsList, notes, poolCount) {
   const c = computeCommitment(555111222n, 888444333n);
   const expected = '17532398397455971669194033134168638503125316998070411330403243243693265230884';
   log(c.toString() === expected ? '✓ Poseidon self-check passed — matches known on-chain data.' : '✗ Poseidon self-check FAILED: ' + c.toString());
+  const c8 = commitFor('v8', 555111222n, 888444333n), e8 = '4845140160546450499348866547669832788909963714022589951910540174315600327677';
+  log(c8.toString() === e8 ? '✓ V8 self-check passed (tagged commitment).' : '✗ V8 self-check FAILED: ' + c8.toString());
 })();
 
 // ---------- notes ----------
@@ -1500,26 +1634,31 @@ async function loadConfig() {
     // 'v5-native': the V5 pool for a network's own coin (deposit with msg.value, no approve); otherwise the same as V5
     // 'v6' / 'v6-native': 20-level tree, withdraw_v4 (recipient, relayer and fee in the proof)
     // 'v7' / 'v7-native': same interface as V6, circuit withdraw_v5 (fixes the under-constrained Merkle path); supersedes V6
-    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native', v6 = p.version === 'v6' || p.version === 'v6-native', v7 = p.version === 'v7' || p.version === 'v7-native';
-    const version = v7 ? 'v7' : v6 ? 'v6' : v5 ? 'v5' : p.version;
+    // 'v8' / 'v8-native': withdraw_v6, tagged hashes, extDataHash (docs/v8-design.md); supersedes V7
+    const net = CONFIG.networks[p.network], tok = net.tokens[p.token], v5 = p.version === 'v5' || p.version === 'v5-native', v6 = p.version === 'v6' || p.version === 'v6-native', v7 = p.version === 'v7' || p.version === 'v7-native', v8 = p.version === 'v8' || p.version === 'v8-native';
+    const version = v8 ? 'v8' : v7 ? 'v7' : v6 ? 'v6' : v5 ? 'v5' : p.version;
     return Object.assign({}, p, {
       net, tok, decimals: tok.decimals, version, native: !!tok.native, levels: levelsOf(version),
       denomination: BigInt(p.amount) * 10n ** BigInt(tok.decimals),
-      verifierAddr: v7 ? net.v7Verifier : v6 ? net.v6Verifier : v5 ? net.v5Verifier : p.verifier,
-      startBlock: (v5 || v6 || v7) ? p.deployBlock : p.startBlock,
-      circuit: v7 ? 'v5' : v6 ? 'v4' : v5 ? 'v3' : 'v2',
+      verifierAddr: v8 ? net.v8Verifier : v7 ? net.v7Verifier : v6 ? net.v6Verifier : v5 ? net.v5Verifier : p.verifier,
+      startBlock: (v5 || v6 || v7 || v8) ? p.deployBlock : p.startBlock,
+      circuit: v8 ? 'v6' : v7 ? 'v5' : v6 ? 'v4' : v5 ? 'v3' : 'v2',
       address: ethers.getAddress(p.address),
       label: (p.legacy ? 'legacy V4 · ' : '') + p.amount + ' ' + p.token,
     });
   });
-  // Only V7 is free of the pre-V7 Merkle-path flaw (STATUS §7). A pool is FROZEN for deposits — withdrawals of existing
-  // notes still work — when it is not V7 and either a V7 pool supersedes it, its network is deprecated, or it is legacy.
+  // Only V7 and V8 are free of the pre-V7 Merkle-path flaw (STATUS §7). A pool is FROZEN for deposits — withdrawals of
+  // existing notes still work — when it is older than V7 and either a V7 pool supersedes it, its network is deprecated, or
+  // it is legacy; deployments.json may also mark a pool frozen (V7 once V8 is the default).
   // (A config with a single generation and no 'deprecated' network — the e2e tests — freezes nothing, so deposits run.)
-  const hasV7 = (p) => POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v7');
+  const hasV7 = (p) => POOLS.some((q) => q.network === p.network && q.token === p.token && (q.version === 'v7' || q.version === 'v8'));
+  const hasV8 = (p) => POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v8');
   for (const p of POOLS) {
-    const secure = p.version === 'v7';
+    const secure = p.version === 'v7' || p.version === 'v8';
     p.frozen = !!p.frozen || (!secure && (!!p.legacy || !!p.net.deprecated || hasV7(p)));   // deployments.json marks pre-V7 pools frozen; older files are inferred
-    if (p.version === 'v6' && hasV7(p)) p.label = 'V6 (frozen) · ' + p.label;
+    if (p.version === 'v8' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version !== 'v8' && !q.legacy)) p.label = 'V8 · ' + p.label;
+    else if (p.version === 'v7' && hasV8(p)) p.label = (p.frozen ? 'V7 (frozen) · ' : 'V7 · ') + p.label;
+    else if (p.version === 'v6' && hasV7(p)) p.label = 'V6 (frozen) · ' + p.label;
     else if (p.version === 'v5' && (hasV7(p) || p.net.deprecated)) p.label = 'V5 (frozen) · ' + p.label;
     else if (p.version === 'v5' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v6')) p.label = 'V5 (256 max) · ' + p.label;
   }
@@ -1544,7 +1683,8 @@ function syncPoolControls() {
   for (const k of toks) { const o = document.createElement('option'); o.value = k; o.textContent = k; ts.appendChild(o); }
   ts.value = p.token;
   const ps = $('poolSelect'); ps.innerHTML = '';
-  const list = POOLS.filter((x) => x.network === p.network && x.token === p.token).sort((a, b) => (!!a.legacy - !!b.legacy) || (b.amount - a.amount));
+  const gen = (x) => (x.legacy ? 9 : x.version === 'v8' ? 0 : x.version === 'v7' ? 1 : 2);   // newest generation first
+  const list = POOLS.filter((x) => x.network === p.network && x.token === p.token).sort((a, b) => (gen(a) - gen(b)) || (!!a.frozen - !!b.frozen) || (b.amount - a.amount));
   for (const x of list) { const o = document.createElement('option'); o.value = x.id; o.textContent = x.label; ps.appendChild(o); }
   ps.value = p.id;
 }
@@ -1568,6 +1708,7 @@ function updatePoolUI() {
   const banner = $('legacyBanner');
   if (p.legacy) { banner.textContent = t('pool.legacyBanner'); banner.style.display = 'block'; }
   else if (p.frozen) { banner.textContent = t('pool.frozenBanner'); banner.style.display = 'block'; }
+  else if (p.version === 'v7' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v8' && !q.frozen)) { banner.textContent = t('pool.v7note'); banner.style.display = 'block'; }
   else banner.style.display = 'none';
   $('withdrawHelp').textContent = p.legacy ? t('wd.helpLegacy') : t('wd.help');
   syncWithdrawBtn();
@@ -1985,8 +2126,9 @@ function pickPool(netId, tok) {
   const inNet = POOLS.filter((x) => x.network === netId && !x.legacy);
   if (!inNet.length) return;
   const wantTok = tok && inNet.some((x) => x.token === tok) ? tok : (inNet.some((x) => x.token === cur.token) ? cur.token : inNet[0].token);
-  const cand = inNet.filter((x) => x.token === wantTok).sort((a, b) => b.amount - a.amount);
-  return (cand.find((x) => x.amount === cur.amount) || cand[0]).id;
+  const rank = (x) => (x.frozen ? 10 : 0) + (x.version === 'v8' ? 0 : x.version === 'v7' ? 1 : 2);   // newest open generation first
+  const cand = inNet.filter((x) => x.token === wantTok).sort((a, b) => rank(a) - rank(b) || b.amount - a.amount);
+  return (cand.find((x) => x.amount === cur.amount && x.version === cur.version) || cand.find((x) => x.amount === cur.amount && !x.frozen) || cand[0]).id;
 }
 $('poolSelect').addEventListener('change', (e) => onPoolChosen(e.target.value));
 $('netSelect').addEventListener('change', (e) => onPoolChosen(pickPool(e.target.value, null)));
@@ -2003,7 +2145,7 @@ $('connectBtn').addEventListener('click', async () => {
     setWalletStatus('wallet.connected', { net: currentPool().net.name }, 'ok');
     $('addrOut').textContent = userAddress;
     if (currentPool().tok.faucet) $('claimBtn').disabled = false;
-    syncDepositBtn(); $('withdrawBtn').disabled = false; $('discloseBtn').disabled = false;
+    syncDepositBtn(); $('withdrawBtn').disabled = false; $('discloseBtn').disabled = false; mvSync();
     $('connectBtn').textContent = t('btn.reconnect');
     await refreshBalances();
     updateWarnings();
@@ -2041,7 +2183,7 @@ $('depositBtn').addEventListener('click', async () => {
       if (onchainDecimals !== p.decimals) throw new Error(t('dep.decimals', { cfg: p.decimals, chain: onchainDecimals }));
     }
     const spendKey = randomFieldElement(), viewKey = randomFieldElement();
-    const commitment = computeCommitment(spendKey, viewKey);
+    const commitment = commitFor(p.version, spendKey, viewKey);
     const note = encodeNote(p, spendKey, viewKey);
     log('Generated keys. Commitment: ' + commitment.toString());
     if (p.native) st.go(1, '');
@@ -2105,7 +2247,7 @@ $('discloseZkeyFile').addEventListener('change', async (e) => { const f = e.targ
 // ---------- check a note (read-only) ----------
 $('checkNoteBtn').addEventListener('click', async () => {
   const btn = $('checkNoteBtn'); btn.disabled = true;
-  $('checkResult').innerHTML = ''; hideStatus('withdrawStatus');
+  $('checkResult').innerHTML = ''; hideStatus('withdrawStatus'); mvShow('one', null);
   const st = Steps('wdSteps', ['ck.s1', 'ck.s2', 'ck.s3']);
   try {
     st.go(0);
@@ -2114,14 +2256,20 @@ $('checkNoteBtn').addEventListener('click', async () => {
     if (pool.id !== currentPoolId) { log(`The note belongs to ${pool.net.name} · ${pool.label}; switching to it.`); selectPool(pool.id); }
     const rp = readProvider(pool.net);
     st.go(1);
-    const commitment = computeCommitment(note.spendKey, note.viewKey);
+    const commitment = commitFor(pool.version, note.spendKey, note.viewKey);
     const { deposits, mine } = await findDeposit(pool, commitment);
     if (!mine) throw new Error(t('err.notFound'));
     st.go(2);
-    const spent = await spentLookup()(pool, computeNullifierHash(note.spendKey));
+    const spent = await spentLookup()(pool, nullifierOf(pool, note.spendKey));
     st.done();
     lastScan = { poolId: pool.id, count: deposits.length, myLeaf: mine.leafIndex, myTimestamp: mine.timestamp };
     renderTree(pool, deposits, mine.leafIndex);
+    // a V7 note can be moved to V8 through the V7 router of its network (the note is one of the router's four pools)
+    const r7 = routersOf(pool.network, pool.token).find((r) => r.version === pool.version), pi = r7 ? r7.pools.findIndex((p) => p.id === pool.id) : -1;
+    if (r7 && pi >= 0 && !spent) {
+      const deps = await Promise.all(r7.pools.map((p, i) => (i === pi ? deposits : [])));
+      mvShow('one', mvOffer(r7, rp, deps, [{ pi, leafIndex: mine.leafIndex, value: pool.amount, spendKey: note.spendKey, viewKey: note.viewKey, nullifierHash: nullifierOf(pool, note.spendKey), spent: false }]));
+    }
     setStatus('withdrawStatus', t('ck.ok', { net: pool.net.name, label: pool.label, leaf: mine.leafIndex }) +
       (mine.timestamp ? t('ck.ago', { ago: ago(mine.timestamp) }) : '') + '. ' +
       (spent ? t('ck.spent') : t('ck.unspent')), spent ? 'info' : 'ok');
@@ -2157,7 +2305,7 @@ $('withdrawBtn').addEventListener('click', async () => {
      try {
       st.go(1);
       setStatus('withdrawStatus', t('wd.finding'), 'info');
-      const commitment = computeCommitment(note.spendKey, note.viewKey);
+      const commitment = commitFor(pool.version, note.spendKey, note.viewKey);
       const { deposits, mine } = await findDeposit(pool, commitment, attempt > 1);   // read through the network's RPC, not the wallet's
       if (!mine) throw new Error(t('err.notFound'));
       log('Found deposit at leaf index ' + mine.leafIndex);
@@ -2168,23 +2316,27 @@ $('withdrawBtn').addEventListener('click', async () => {
       const zeros = computeZeroCascade(pool.levels);
       const leaves = []; for (const d of deposits) leaves[d.leafIndex] = d.commitment;
       const { pathElements, pathIndices, root } = getMerklePath(buildTreeLevels(leaves, zeros), mine.leafIndex, zeros);
-      const nullifierHash = computeNullifierHash(note.spendKey);
+      const nullifierHash = nullifierOf(pool, note.spendKey);
 
       const poolRead = new ethers.Contract(pool.address, POOL_ABI[pool.version], readProvider(pool.net));
       if (await spentLookup()(pool, nullifierHash)) throw new Error(t('err.spent'));
       if (!(await poolRead.isKnownRoot(root))) throw staleRootErr();
+      if (isV8(pool.version) && BigInt(await poolRead.ctx()) !== poolCtx(pool)) throw new Error(t('err.ctx'));
 
       st.go(3); st.tick(3);
       setStatus('withdrawStatus', t('wd.proving'), 'info');
       const input = { root: root.toString(), nullifierHash: nullifierHash.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
-      if (modern(pool.version)) input.recipient = BigInt(recipient).toString();
+      // V8: the withdrawal's terms go into the proof as one hash; no relayer fee today (relayer address 0, fee 0)
+      const ext = isV8(pool.version) ? { recipient, relayer: ethers.ZeroAddress, fee: 0n, paymentRef: randomRef(), destChainId: BigInt(pool.net.chainId) } : null;
+      if (ext) { input.ctx = poolCtx(pool).toString(); input.extDataHash = extDataHash(ext).toString(); }
+      else if (modern(pool.version)) input.recipient = BigInt(recipient).toString();
       if (feeVer(pool.version)) { input.relayer = '0'; input.fee = '0'; }   // no relayer fee today: relayer address 0, fee 0
       const t0 = performance.now();
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
       st.stopTick(); st.extra(3, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
       log('Proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
       const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
-      if (modern(pool.version) && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+      if (ext ? BigInt(pub[3]) !== extDataHash(ext) : modern(pool.version) && BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
 
       st.go(4);
       setStatus('withdrawStatus', t('wd.checking'), 'info');
@@ -2195,7 +2347,8 @@ $('withdrawBtn').addEventListener('click', async () => {
       if (viaRelay) {
         st.go(5, t('x.block'));
         setStatus('withdrawStatus', t('wd.relaying'), 'info');
-        const r = await relayPost(pool.net, '/withdraw', withDelay(Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient }, feeVer(pool.version) ? { relayer: ethers.ZeroAddress, fee: '0' } : {}), relayDelay('relayDelay')));
+        const r = await relayPost(pool.net, '/withdraw', withDelay(Object.assign({ pool: pool.address, pA, pB, pC, root: pub[0], nullifierHash: pub[1], recipient },
+          ext ? { relayer: ext.relayer, fee: '0', paymentRef: ext.paymentRef, destChainId: ext.destChainId.toString() } : feeVer(pool.version) ? { relayer: ethers.ZeroAddress, fee: '0' } : {}), relayDelay('relayDelay')));
         st.extra(5, ''); st.done();
         if (r.scheduled) { setStatus('withdrawStatus', relayScheduledMsg(r), 'ok'); break; }
         log('Relayed withdraw tx: ' + r.tx + (r.gasUsed ? ', gas ' + r.gasUsed : ''));
@@ -2206,7 +2359,8 @@ $('withdrawBtn').addEventListener('click', async () => {
       setStatus('withdrawStatus', t('wd.submitting'), 'info');
       const poolW = new ethers.Contract(pool.address, POOL_ABI[pool.version], signer);
       const fees = await feeOverrides(pool.net);
-      const tx = feeVer(pool.version) ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
+      const tx = ext ? await poolW.withdraw([pA, pB, pC], pub[0], pub[1], [ext.recipient, ext.relayer, ext.fee, ext.paymentRef, ext.destChainId], fees)
+        : feeVer(pool.version) ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, ethers.ZeroAddress, 0n, fees)
         : pool.version === 'v5' ? await poolW.withdraw(pA, pB, pC, pub[0], pub[1], recipient, fees) : await poolW.withdraw(pA, pB, pC, pub, recipient, fees);
       log('Withdraw tx: ' + tx.hash);
       st.extra(5, t('x.block'));
@@ -2249,18 +2403,26 @@ const ROUTER_ABI = [
 ];
 // V6 routers: each item carries its fee and withdrawMany names the relayer (both bound into the proofs).
 const ROUTER_ABI_V6 = ROUTER_ABI.map((f) => f.startsWith('function withdrawMany') ? 'function withdrawMany((uint256 pool, uint256[2] pA, uint256[2][2] pB, uint256[2] pC, uint256 root, uint256 nullifierHash, uint256 fee)[] items, address recipient, address relayer)' : f);
-const routerAbi = (router) => (feeVer(router.version) ? ROUTER_ABI_V6 : ROUTER_ABI);
+// V8 router: each item carries its proof as a tuple, its fee and its payment reference; withdrawMany skips notes already
+// spent and returns how many it paid (it refuses a batch in which nothing is left to pay).
+const ROUTER_ABI_V8 = ROUTER_ABI.map((f) => f.startsWith('function withdrawMany') ? `function withdrawMany(tuple(uint256 pool, ${PROOF_T} proof, uint256 root, uint256 nullifierHash, uint256 fee, bytes32 paymentRef)[] items, address recipient, address relayer) returns (uint256 paid)` : f);
+const routerAbi = (router) => (isV8(router.version) ? ROUTER_ABI_V8 : feeVer(router.version) ? ROUTER_ABI_V6 : ROUTER_ABI);
 const ROUTER_IFACE = new ethers.Interface(['event Distributed(address indexed depositor, uint256 amount, uint256 notes)']);
 function loadRouters() {
   ROUTERS = (CONFIG.routers || []).map((r) => {
     const net = CONFIG.networks[r.network], tok = net.tokens[r.token];
-    const version = r.version === 'v7' ? 'v7' : r.version === 'v6' ? 'v6' : 'v5';   // a router serves the four pools of its own version
-    const circuit = version === 'v7' ? 'v5' : version === 'v6' ? 'v4' : 'v3';
+    const version = r.version === 'v8' ? 'v8' : r.version === 'v7' ? 'v7' : r.version === 'v6' ? 'v6' : 'v5';   // a router serves the four pools of its own version
+    const circuit = version === 'v8' ? 'v6' : version === 'v7' ? 'v5' : version === 'v6' ? 'v4' : 'v3';
     const pools = POOLS.filter((p) => p.network === r.network && p.token === r.token && p.version === version && !p.legacy).sort((a, b) => b.amount - a.amount);
     return Object.assign({}, r, { net, tok, decimals: tok.decimals, address: ethers.getAddress(r.address), pools, version, circuit });
   }).filter((r) => r.pools.length === 4);
 }
-const routerFor = (pool) => pool ? ROUTERS.find((r) => r.network === pool.network && r.token === pool.token) : null;
+// The router for a pool: the one of the pool's own generation, else the newest one on its network and token.
+const ROUTER_RANK = { v8: 0, v7: 1, v6: 2, v5: 3 };
+const routersOf = (network, token) => ROUTERS.filter((r) => r.network === network && r.token === token).sort((a, b) => ROUTER_RANK[a.version] - ROUTER_RANK[b.version]);
+const routerFor = (pool) => pool ? (routersOf(pool.network, pool.token).find((r) => r.version === pool.version) || routersOf(pool.network, pool.token)[0] || null) : null;
+// The V8 router of a network and token, where V7 notes can be moved (null if there is none).
+const v8RouterOf = (network, token) => routersOf(network, token).find((r) => isV8(r.version) && !r.pools.some((p) => p.frozen)) || null;
 const units = (amount, dec) => ethers.parseUnits(String(amount), dec);
 const fmt = (v, dec) => { const x = ethers.formatUnits(v, dec); return x.replace(/\.0$/, ''); };
 const partsText = (counts, denoms) => counts.map((c, i) => [c, denoms[i]]).filter((x) => x[0] > 0).map((x) => x[0] + '×' + x[1]).join(' + ');
@@ -2340,7 +2502,7 @@ $('daDepositBtn').addEventListener('click', async () => {
     if (bal < plan.amount) throw new Error(t('da.lowBal', { token: router.token, have: fmt(bal, dec), need: fmt(plan.amount, dec) }));
     const master = randomFieldElement();
     const commitments = [];
-    for (let i = 0; i < total; i++) { const k = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(computeCommitment(k.spendKey, k.viewKey)); }
+    for (let i = 0; i < total; i++) { const k = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(commitFor(router.version, k.spendKey, k.viewKey)); }
     const keyText = formatMasterKey(router.net.chainId, router.address, master);
     log('Master key generated; ' + total + ' commitments derived.');
     if (native) st.go(1, '');
@@ -2422,8 +2584,8 @@ async function waScan(st) {
   const found = [];
   for (let i = 0; i < MASTER_SCAN_LIMIT; i++) {
     const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i);
-    const hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey));
-    if (hit) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) });
+    const hit = byCommit.get(commitFor(router.version, k.spendKey, k.viewKey));
+    if (hit) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: nullifierOf(router.pools[hit.pi], k.spendKey) });
   }
   const isSpentNow = spentLookup();
   await Promise.all(found.map((n) => isSpentNow(router.pools[n.pi], n.nullifierHash).then((x) => { n.spent = x; })));
@@ -2453,7 +2615,7 @@ function waRenderPlan(sc, target) {
   return plan;
 }
 $('waFindBtn').addEventListener('click', async () => {
-  const btn = $('waFindBtn'); btn.disabled = true; waFound = null; syncWaButtons();
+  const btn = $('waFindBtn'); btn.disabled = true; waFound = null; syncWaButtons(); mvShow('any', null);
   $('waSep').innerHTML = ''; $('waPlan').innerHTML = ''; hideStatus('waStatus');
   const st = Steps('waSteps', ['wa.s1', 'wa.s2', 'wa.s3']);
   try {
@@ -2463,6 +2625,7 @@ $('waFindBtn').addEventListener('click', async () => {
     const plan = waRenderPlan(sc, target);
     st.done();
     waFound = Object.assign(sc, { plan, target });
+    mvShow('any', mvOffer(sc.router, sc.rp, sc.deps, sc.found));
   } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { btn.disabled = false; syncWaButtons(); waWarnings(); }
 });
@@ -2477,7 +2640,7 @@ $('waSepBtn').addEventListener('click', () => {
 // Proves and sends notes of one router to one recipient: withdrawMany in batches of MAX_WITHDRAWALS, from the wallet or
 // through the relayer. Steps s0, s0+1, s0+2 of `st` show proving, simulating and sending. Returns the transaction hashes.
 async function sendNotesTo(router, rp, deps, notes, recipient, viaRelay, st, s0, statusId, delaySec = 0) {
-  const tok = router.token, v6 = feeVer(router.version), circ = await loadCircuit(router.circuit);
+  const tok = router.token, v6 = feeVer(router.version) || isV8(router.version), v8 = isV8(router.version), circ = await loadCircuit(router.circuit);
   const zeros = computeZeroCascade(levelsOf(router.version));
   let pending = notes.slice().sort((a, b) => a.pi - b.pi || a.leafIndex - b.leafIndex);   // notes not yet paid out
   let depsNow = deps; const txs = [];
@@ -2499,12 +2662,15 @@ async function sendNotesTo(router, rp, deps, notes, recipient, viaRelay, st, s0,
         if (!(await new ethers.Contract(pool.address, POOL_ABI.v5, rp).isKnownRoot(root))) throw staleRootErr();
         rootChecked[n.pi] = root;
       }
-      const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices, recipient: BigInt(recipient).toString() };
-      if (v6) { input.relayer = '0'; input.fee = '0'; }
+      const input = { root: root.toString(), nullifierHash: n.nullifierHash.toString(), spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString(), pathElements: pathElements.map(String), pathIndices };
+      // V8: the router builds each note's terms from (recipient, relayer, the item's fee and payment reference, this chain)
+      const ext = v8 ? { recipient, relayer: ethers.ZeroAddress, fee: 0n, paymentRef: randomRef(), destChainId: BigInt(router.net.chainId) } : null;
+      if (ext) { input.ctx = poolCtx(pool).toString(); input.extDataHash = extDataHash(ext).toString(); }
+      else { input.recipient = BigInt(recipient).toString(); if (v6) { input.relayer = '0'; input.fee = '0'; } }
       const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
       const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
-      if (BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
-      items.push(v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
+      if (ext ? BigInt(pub[3]) !== extDataHash(ext) : BigInt(pub[2]) !== BigInt(recipient)) throw new Error(t('err.binding'));
+      items.push(v8 ? [n.pi, [pA, pB, pC], pub[0], pub[1], 0n, ext.paymentRef] : v6 ? [n.pi, pA, pB, pC, pub[0], pub[1], 0n] : [n.pi, pA, pB, pC, pub[0], pub[1]]);
       log('Proof ' + (i + 1) + '/' + pending.length + ' made (pool ' + pool.amount + ' ' + tok + ').');
     }
     st.stopTick(); st.extra(s0, '');
@@ -2560,6 +2726,92 @@ $('waGoBtn').addEventListener('click', async () => {
   } catch (e) { st.fail(); setStatus('waStatus', t('wa.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { syncWaButtons(); }
 });
+
+// ---------- move V7 notes to V8 ----------
+// Withdraws the given notes of a V7 router to the connected wallet (through the relayer when that box is ticked), then
+// deposits the same amount into the V8 router of the same network and token with a fresh master key. Two public steps
+// that anyone can link (same wallet, same amount, one after the other): it moves the funds, it does not add privacy.
+let mvCtx = { one: null, any: null };   // what each Move button would move: { router, rp, deps, notes }
+function mvShow(which, ctx) {
+  mvCtx[which] = ctx;
+  const box = $(which === 'one' ? 'mvOne' : 'mvAny');
+  box.hidden = !ctx;
+  if (ctx) { $(which === 'one' ? 'mvOneResult' : 'mvAnyResult').innerHTML = ''; hideStatus(which === 'one' ? 'mvOneStatus' : 'mvAnyStatus'); }
+  mvSync();
+}
+function mvSync() { for (const w of ['one', 'any']) $(w === 'one' ? 'mvOneBtn' : 'mvAnyBtn').disabled = !(mvCtx[w] && signer); }
+// The move offer for notes found in `router`: only for V7 notes, when the network has a V8 router and something is unspent.
+function mvOffer(router, rp, deps, notes) {
+  if (!router || router.version !== 'v7' || !v8RouterOf(router.network, router.token)) return null;
+  const left = notes.filter((n) => !n.spent);
+  return left.length ? { router, rp, deps, notes: left } : null;
+}
+function keyBox(prefix, router, keyText, total, amount, parts, txHash, st) {
+  const dec = router.decimals, explorerTx = router.net.explorerUrl + '/tx/' + txHash;
+  const html = '<div class="secret-box"><strong>' + esc(t('da.keyTitle')) + '</strong>' +
+    '<div class="muted small" style="margin-top:4px">' + th('da.keySub', { n: total }) + '</div>' +
+    '<code id="' + prefix + 'KeyText"></code>' +
+    '<div class="btn-row"><button id="' + prefix + 'DlBtn" class="small">' + esc(t('btn.download')) + '</button><button id="' + prefix + 'CopyBtn" class="secondary small">' + esc(t('btn.copyKey')) + '</button></div>' +
+    '<label class="check"><input type="checkbox" id="' + prefix + 'SavedChk"><span>' + esc(t('da.saved')) + '</span></label>' +
+    '<div class="muted small" style="margin-top:10px">' + esc(router.net.name) + ' · ' + th('da.sum', { n: total, amt: fmt(amount, dec), token: router.token }) + ' (' + esc(parts) + ') · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a></div></div>';
+  return { html, bind() {
+    $(prefix + 'KeyText').textContent = keyText;
+    $(prefix + 'CopyBtn').addEventListener('click', () => { copyText(keyText, 'what.key'); $(prefix + 'CopyBtn').textContent = t('btn.copied'); });
+    $(prefix + 'DlBtn').addEventListener('click', () => {
+      const body = [t('file.l1'), t('file.l2'), '', t('file.network') + ': ' + router.net.name + ' (chainId ' + router.net.chainId + ')', 'Router: ' + router.address,
+        t('da.sum', { n: total, amt: fmt(amount, dec), token: router.token }) + ' (' + parts + ')', t('file.tx') + ': ' + explorerTx, '', t('da.fileKey') + ':', keyText, ''].join('\n');
+      downloadFile('latheon-master-key-' + router.network + '-' + router.token + '-' + txHash.slice(2, 10) + '.txt', body, 'text/plain;charset=utf-8');
+      $(prefix + 'DlBtn').textContent = t('btn.downloaded');
+    });
+    $(prefix + 'SavedChk').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked && st) st.done(); });
+  } };
+}
+async function moveToV8(which) {
+  const ctx = mvCtx[which]; if (!ctx) return;
+  const P = which === 'one' ? 'mvOne' : 'mvAny', btn = $(P + 'Btn'); btn.disabled = true;
+  $(P + 'Result').innerHTML = ''; hideStatus(P + 'Status');
+  const st = Steps(P + 'Steps', ['wa.s4', 'wa.s5', 'mv.s3', 'mv.s4', 'mv.s5']);
+  let withdrawn = false;
+  try {
+    if (!signer) throw new Error(t('wallet.notConnected'));
+    const { router, rp, deps, notes } = ctx, target = v8RouterOf(router.network, router.token), dec = target.decimals;
+    const amount = notes.reduce((x, n) => x + router.pools[n.pi].denomination, 0n);
+    // the V8 router must take this amount in one deposit (at most MAX_NOTES notes) and match the page's idea of it
+    const rd = new ethers.Contract(target.address, ROUTER_ABI, rp);
+    for (let i = 0; i < 4; i++) if (ethers.getAddress(await rd.pools(i)) !== target.pools[i].address || (await rd.denominations(i)) !== target.pools[i].denomination) throw new Error(t('da.mismatch'));
+    const plan = await rd.split(amount);
+    if (plan.total > 32n) throw new Error(t('da.errMax', { n: plan.total, max: 32 }));
+    await ensureCorrectNetwork({ net: router.net });
+    const me = userAddress, viaRelay = relayOn(router.net, which === 'one' ? 'useRelay' : 'waUseRelay');
+    log('Moving ' + notes.length + ' note(s), ' + fmt(amount, dec) + ' ' + router.token + ', from V7 to V8 through ' + short(me) + (viaRelay ? ' (withdrawal through the relayer)' : '') + '.');
+    const txs = await sendNotesTo(router, rp, deps, notes, me, viaRelay, st, 0, P + 'Status');
+    withdrawn = true; notes.forEach((n) => { n.spent = true; });
+    log('V7 notes withdrawn to the wallet: ' + txs.join(', '));
+    st.go(3);
+    const bal = await provider.getBalance(me);
+    if (bal < amount) throw new Error(t('da.lowBal', { token: router.token, have: fmt(bal, dec), need: fmt(amount, dec) }));
+    const master = randomFieldElement(), total = Number(plan.total), commitments = [];
+    for (let i = 0; i < total; i++) { const k = deriveNoteKeys(poseidon4, master, target.net.chainId, i); commitments.push(commitFor('v8', k.spendKey, k.viewKey)); }
+    const keyText = formatMasterKey(target.net.chainId, target.address, master);
+    st.go(3, t('x.confirm'));
+    const tx = await sendWithGasMargin(new ethers.Contract(target.address, ROUTER_ABI, signer), 'deposit', [amount, commitments], { value: amount });
+    st.extra(3, t('x.block')); const rc = await tx.wait(); st.extra(3, '');
+    log('V8 router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+    depositWallets.add(me.toLowerCase());
+    st.go(4); unsavedNote = true; syncDepositBtn();
+    const parts = partsText(plan.counts.map(Number), target.pools.map((p) => p.amount));
+    const kb = keyBox(P, target, keyText, total, amount, parts, tx.hash, st);
+    $(P + 'Result').innerHTML = kb.html; kb.bind();
+    setStatus(P + 'Status', t('mv.ok', { amt: fmt(amount, dec), token: router.token, n: total }), 'ok');
+    mvCtx[which] = null; await refreshBalances();
+  } catch (e) {
+    st.fail(); log('ERROR: ' + errText(e));
+    setStatus(P + 'Status', (withdrawn ? t('mv.halfway') : t('mv.failed')) + errText(e), 'err');
+    if (withdrawn) mvCtx[which] = null;
+  } finally { mvSync(); }
+}
+$('mvOneBtn').addEventListener('click', () => moveToV8('one'));
+$('mvAnyBtn').addEventListener('click', () => moveToV8('any'));
 
 // ---------- payouts to a list of recipients ----------
 // The same record format as the SDK (sdk/src/payout.js): every amount split on its own, the union of notes packed into
@@ -2635,7 +2887,7 @@ $('poDepositBtn').addEventListener('click', async () => {
     for (let k = 0; k < chunks.length; k++) {
       st.extra(2, t('po.depN', { i: k + 1, n: chunks.length }) + ' · ' + t('x.confirm'));
       const master = randomFieldElement(), n = Number(chunks[k].total), commitments = [];
-      for (let i = 0; i < n; i++) { const key = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(computeCommitment(key.spendKey, key.viewKey)); }
+      for (let i = 0; i < n; i++) { const key = deriveNoteKeys(poseidon4, master, router.net.chainId, i); commitments.push(commitFor(router.version, key.spendKey, key.viewKey)); }
       const tx = await sendWithGasMargin(new ethers.Contract(router.address, ROUTER_ABI, signer), 'deposit', [chunks[k].amount, commitments], native ? { value: chunks[k].amount } : {});
       rec.masterKeys.push(formatMasterKey(router.net.chainId, router.address, master)); rec.depositTxs.push(tx.hash);
       unsavedNote = true; syncDepositBtn();
@@ -2685,7 +2937,7 @@ $('poPayBtn').addEventListener('click', async () => {
     const byCommit = new Map(); deps.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex })));
     st.go(1);
     const notes = [];
-    mks.forEach((mk, m) => { for (let i = 0; i < MASTER_SCAN_LIMIT; i++) { const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i), hit = byCommit.get(computeCommitment(k.spendKey, k.viewKey)); if (hit) notes.push({ mk: m, index: i, poolIndex: hit.pi, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: computeNullifierHash(k.spendKey) }); } });
+    mks.forEach((mk, m) => { for (let i = 0; i < MASTER_SCAN_LIMIT; i++) { const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i), hit = byCommit.get(commitFor(router.version, k.spendKey, k.viewKey)); if (hit) notes.push({ mk: m, index: i, poolIndex: hit.pi, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: nullifierOf(router.pools[hit.pi], k.spendKey) }); } });
     const isSpentNow = spentLookup();
     await mapLimit(notes, 4, (n) => isSpentNow(router.pools[n.pi], n.nullifierHash).then((x) => { n.spent = !!x; }));
     let assigned; try { assigned = assignNotes(payees.map((p) => p.counts), notes, 4); } catch (e) { throw new Error(t('po.errNotes')); }
@@ -2725,29 +2977,34 @@ $('discloseBtn').addEventListener('click', async () => {
     const auditorNonce = BigInt(nonceText);
     await ensureCorrectNetwork(pool);
     st.go(0);
-    const circ = await loadCircuit('disclose');
+    // V5–V7 notes: disclose. V8 notes: disclose_v2, or disclose_link when the receipt is asked for (it adds the nullifier).
+    const v8 = isV8(pool.version), link = v8 && $('dsLink').checked;
+    if ($('dsLink').checked && !v8) throw new Error(t('ds.linkV8'));
+    const kind = link ? 'disclose_link' : v8 ? 'disclose_v2' : 'disclose';
+    const circ = await loadCircuit(kind);
 
     st.go(1); st.tick(1);
     setStatus('discloseStatus', t('ds.proving'), 'info');
-    const commitment = computeCommitment(note.spendKey, note.viewKey);
-    const disclosureTag = computeDisclosureTag(note.viewKey, auditorNonce);
+    const commitment = commitFor(pool.version, note.spendKey, note.viewKey);
+    const disclosureTag = discTagFor(pool.version, note.viewKey, auditorNonce);
+    const dInput = { commitment: commitment.toString(), disclosureTag: disclosureTag.toString(), auditorNonce: auditorNonce.toString(), spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString() };
+    if (link) { dInput.nullifierHash = nullifierOf(pool, note.spendKey).toString(); dInput.ctx = poolCtx(pool).toString(); }
     const t0 = performance.now();
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve({
-      commitment: commitment.toString(), disclosureTag: disclosureTag.toString(), auditorNonce: auditorNonce.toString(),
-      spendKey: note.spendKey.toString(), viewKey: note.viewKey.toString() }, circ.wasm, circ.zkey);
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(dInput, circ.wasm, circ.zkey);
     st.stopTick(); st.extra(1, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
     log('Disclosure proof generated in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
     const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
 
     st.go(2);
     setStatus('discloseStatus', t('ds.verifying'), 'info');
-    const ok = await new ethers.Contract(pool.net.discloseVerifier, VERIFIER_ABI.disclose, provider).verifyProof(pA, pB, pC, pub);
+    const verifierAddress = discloseVerifierOf(pool.net, kind);
+    const ok = await new ethers.Contract(verifierAddress, VERIFIER_ABI[kind], readProvider(pool.net)).verifyProof(pA, pB, pC, pub);
     log('Disclosure on-chain verification: ' + (ok ? 'TRUE' : 'FALSE'));
     if (!ok) { st.fail(); setStatus('discloseStatus', t('ds.bad'), 'err'); return; }
     st.done();
 
-    const block = JSON.stringify({ pA, pB, pC, pubSignals: pub, pubSignalsOrder: ['commitment', 'disclosureTag', 'auditorNonce'],
-      verifierAddress: pool.net.discloseVerifier, network: pool.net.name, chainId: pool.net.chainId }, null, 2);
+    const block = JSON.stringify(Object.assign(kind === 'disclose' ? {} : { circuit: kind }, { pA, pB, pC, pubSignals: pub, pubSignalsOrder: DISCLOSE_ORDER[kind],
+      verifierAddress, network: pool.net.name, chainId: pool.net.chainId }), null, 2);
     setStatus('discloseStatus', t('ds.ok'), 'ok');
     $('discloseResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('ds.boxTitle')) + '</strong>' +
       '<div class="muted small" style="margin-top:4px">' + esc(t('ds.boxSub')) + '</div>' +
@@ -2765,11 +3022,18 @@ $('discloseBtn').addEventListener('click', async () => {
 // longer spend), so the auditor can see where each went. Keys of notes that are not withdrawn are never written.
 // Design: docs/disclosure-v2-design.md (layers 1 and 1b).
 const REPORT_TYPE = 'latheon-disclosure-report', REPORT_MAX = 500;
+// Disclosure circuits: 'disclose' (V5–V7 notes), 'disclose_v2' (V8) and 'disclose_link' (V8, with the nullifier: a receipt).
+const DISCLOSE_ORDER = { disclose: ['commitment', 'disclosureTag', 'auditorNonce'], disclose_v2: ['commitment', 'disclosureTag', 'auditorNonce'], disclose_link: ['commitment', 'nullifierHash', 'ctx', 'auditorNonce', 'disclosureTag'] };
+const discloseVerifierOf = (net, kind) => (kind === 'disclose_link' ? net.v8DiscloseLinkVerifier : kind === 'disclose_v2' ? net.v8DiscloseVerifier : net.discloseVerifier);
+const discloseKinds = (net) => Object.keys(DISCLOSE_ORDER).filter((k) => discloseVerifierOf(net, k));
+// A proof made with `kind` can only be about a note in a pool of the matching generation.
+const kindFits = (kind, pool) => (kind === 'disclose' ? !isV8(pool.version) : isV8(pool.version));
 const WD_IFACE = {
   v5: new ethers.Interface(['event Withdrawal(address indexed to, uint256 nullifierHash, uint256 timestamp)']),
   v6: new ethers.Interface(['event Withdrawal(address indexed to, uint256 nullifierHash, address indexed relayer, uint256 fee, uint256 timestamp)']),
+  v8: new ethers.Interface(['event Withdrawal(address indexed to, uint256 nullifierHash, address indexed relayer, uint256 fee, bytes32 paymentRef, uint256 timestamp)']),
 };
-const wdIfaceFor = (pool) => (pool.version === 'v6' || pool.version === 'v7') ? WD_IFACE.v6 : pool.version === 'v5' ? WD_IFACE.v5 : null;
+const wdIfaceFor = (pool) => isV8(pool.version) ? WD_IFACE.v8 : (pool.version === 'v6' || pool.version === 'v7') ? WD_IFACE.v6 : pool.version === 'v5' ? WD_IFACE.v5 : null;
 const fmtUnits = (v, d) => ethers.formatUnits(v, d).replace(/\.0$/, '');
 const utc = (ts) => (ts ? new Date(ts * 1000).toISOString().slice(0, 16).replace('T', ' ') : '');
 function sumsText(list) {   // [{amount, token}] -> "123 LTH, 4 USDG"
@@ -2806,7 +3070,7 @@ async function withdrawalMap(pool) {
   const topic = iface.getEvent('Withdrawal').topicHash, latest = await scanHead(pool.net);
   const logs = await getLogsAdaptive(logsWithFallback(pool.net, (pr, a, b) => pr.getLogs({ address: pool.address, topics: [topic], fromBlock: a, toBlock: b })), pool.startBlock, latest, 'Withdrawal scan');
   const m = new Map();
-  for (const lg of logs) { const ev = iface.parseLog(lg); m.set(BigInt(ev.args.nullifierHash), { to: ev.args.to, relayer: ev.args.relayer || null, fee: ev.args.fee != null ? BigInt(ev.args.fee) : 0n, timestamp: Number(ev.args.timestamp), txHash: lg.transactionHash }); }
+  for (const lg of logs) { const ev = iface.parseLog(lg); m.set(BigInt(ev.args.nullifierHash), { to: ev.args.to, relayer: ev.args.relayer || null, fee: ev.args.fee != null ? BigInt(ev.args.fee) : 0n, paymentRef: ev.args.paymentRef || null, timestamp: Number(ev.args.timestamp), txHash: lg.transactionHash }); }
   return m;
 }
 // Every line: a latheon-v5 note or a master key. Returns notes with their pool, keys and commitment (no duplicates).
@@ -2837,14 +3101,14 @@ async function reportNotes(text) {
         if (!router) throw new Error(t('wa.errRouter', { addr: short(mk.router), chain: mk.chainId }));
         const maps = await Promise.all(router.pools.map((p) => depositMap(p)));
         for (let k = 0; k < MASTER_SCAN_LIMIT; k++) {
-          const key = deriveNoteKeys(poseidon4, mk.master, mk.chainId, k), c = computeCommitment(key.spendKey, key.viewKey);
+          const key = deriveNoteKeys(poseidon4, mk.master, mk.chainId, k), c = commitFor(router.version, key.spendKey, key.viewKey);
           const pi = maps.findIndex((m) => m.has(c));
           if (pi >= 0 && !notes.has(c)) notes.set(c, { pool: router.pools[pi], spendKey: key.spendKey, viewKey: key.viewKey, commitment: c, label });
         }
       } else {
         const note = decodeNote(keyText);
         if (note.kind !== 'v5') throw new Error(t('rp.errV5'));
-        const pool = poolForNote(note), c = computeCommitment(note.spendKey, note.viewKey);
+        const pool = poolForNote(note), c = commitFor(pool.version, note.spendKey, note.viewKey);
         if (!notes.has(c)) notes.set(c, { pool, spendKey: note.spendKey, viewKey: note.viewKey, commitment: c, label });
       }
     } catch (e) { throw new Error(t('rp.errLine', { n: i + 1, err: errText(e) })); }
@@ -2856,13 +3120,15 @@ async function reportNotes(text) {
   return list;
 }
 $('reportKeys').addEventListener('change', () => { $('reportKeysWarn').hidden = !$('reportKeys').checked; });
+$('reportLink').addEventListener('change', () => { $('reportLinkWarn').hidden = !$('reportLink').checked; });
+$('dsLink').addEventListener('change', () => { $('dsLinkWarn').hidden = !$('dsLink').checked; });
 $('reportBtn').addEventListener('click', async () => {
   const btn = $('reportBtn'); btn.disabled = true; $('reportResult').innerHTML = '';
   const st = Steps('rpSteps', ['rp.s1', 'rp.s2', 'rp.s3']);
   try {
     const nonceText = $('reportNonceInput').value.trim();
     if (!/^\d+$/.test(nonceText)) throw new Error(t('err.nonce'));
-    const auditorNonce = BigInt(nonceText), withKeys = $('reportKeys').checked;
+    const auditorNonce = BigInt(nonceText), withKeys = $('reportKeys').checked, withLink = $('reportLink').checked;
     st.go(0);
     depositMaps.clear();   // each report scans blocks added since the last one (the scan cache is incremental)
     const notes = await reportNotes($('reportInput').value);
@@ -2873,41 +3139,46 @@ $('reportBtn').addEventListener('click', async () => {
       n.leafIndex = d.leafIndex; n.timestamp = d.timestamp;
     }
     const isSpentNow = spentLookup();
-    await mapLimit(notes, 4, (n) => isSpentNow(n.pool, computeNullifierHash(n.spendKey)).then((x) => { n.spent = !!x; }));
+    await mapLimit(notes, 4, (n) => isSpentNow(n.pool, nullifierOf(n.pool, n.spendKey)).then((x) => { n.spent = !!x; }));
     // Keys of a withdrawn note go into the file only when two signals agree: a Withdrawal event with that nullifier
     // (above) and the pool's nullifier flag. A wrong answer here would put the keys of an unspent note, i.e. the money,
     // in the file. The flag is asked only for nullifiers that a Withdrawal event already made public.
     if (withKeys) {
       for (const n of notes.filter((x) => x.spent)) {
-        try { n.wdConfirmed = !!(await withRetry(() => new ethers.Contract(n.pool.address, POOL_ABI[n.pool.version], rp).nullifierHashes(computeNullifierHash(n.spendKey)), 'checking a nullifier')); }
+        try { n.wdConfirmed = !!(await withRetry(() => new ethers.Contract(n.pool.address, POOL_ABI[n.pool.version], rp).nullifierHashes(nullifierOf(n.pool, n.spendKey)), 'checking a nullifier')); }
         catch (e) { n.wdConfirmed = false; log('Nullifier check failed, keys not added: ' + errText(e)); }
       }
     }
     st.go(1);
-    const circ = await loadCircuit('disclose'), t0 = performance.now();
+    const t0 = performance.now();
     for (let i = 0; i < notes.length; i++) {
       setStatus('reportStatus', t('rp.proving', { i: i + 1, n: notes.length }), 'info');
-      const n = notes[i];
-      const { proof, publicSignals } = await snarkjs.groth16.fullProve({
-        commitment: n.commitment.toString(), disclosureTag: computeDisclosureTag(n.viewKey, auditorNonce).toString(), auditorNonce: auditorNonce.toString(),
-        spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() }, circ.wasm, circ.zkey);
+      const n = notes[i], v8 = isV8(n.pool.version);
+      n.kind = v8 ? (withLink ? 'disclose_link' : 'disclose_v2') : 'disclose';
+      const circ = await loadCircuit(n.kind);
+      const input = { commitment: n.commitment.toString(), disclosureTag: discTagFor(n.pool.version, n.viewKey, auditorNonce).toString(), auditorNonce: auditorNonce.toString(),
+        spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() };
+      if (n.kind === 'disclose_link') { input.nullifierHash = nullifierOf(n.pool, n.spendKey).toString(); input.ctx = poolCtx(n.pool).toString(); }
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, circ.wasm, circ.zkey);
       const [pA, pB, pC, pub] = JSON.parse('[' + (await snarkjs.groth16.exportSolidityCallData(proof, publicSignals)) + ']');
       n.proof = { pA, pB, pC, pubSignals: pub };
     }
     st.extra(1, ((performance.now() - t0) / 1000).toFixed(1) + ' s');
     log('Report: ' + notes.length + ' disclosure proofs in ' + ((performance.now() - t0) / 1000).toFixed(2) + 's');
     st.go(2);
-    const verifier = new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, rp);
-    await mapLimit(notes, 4, async (n) => { const ok = await withRetry(() => verifier.verifyProof(n.proof.pA, n.proof.pB, n.proof.pC, n.proof.pubSignals), 'verifying a disclosure'); if (!ok) throw new Error(t('rp.errBad', { c: short(n.commitment.toString()) })); });
+    const verifierFor = (kind) => new ethers.Contract(discloseVerifierOf(net, kind), VERIFIER_ABI[kind], rp);
+    await mapLimit(notes, 4, async (n) => { const ok = await withRetry(() => verifierFor(n.kind).verifyProof(n.proof.pA, n.proof.pB, n.proof.pC, n.proof.pubSignals), 'verifying a disclosure'); if (!ok) throw new Error(t('rp.errBad', { c: short(n.commitment.toString()) })); });
     st.done();
     const items = notes.sort((a, b) => a.timestamp - b.timestamp || a.leafIndex - b.leafIndex).map((n) => {
       const it = { pool: n.pool.address, version: n.pool.version, token: n.pool.token, amount: n.pool.amount, commitment: n.commitment.toString(), leafIndex: n.leafIndex, depositTime: n.timestamp, withdrawn: n.spent, proof: n.proof };
+      if (n.kind !== 'disclose') it.circuit = n.kind;   // V8 proofs name their circuit; V5–V7 items look as before
       if (n.label) it.label = n.label;   // the user's own label, not proven
       if (withKeys && n.spent && n.wdConfirmed) it.keys = { spendKey: n.spendKey.toString(), viewKey: n.viewKey.toString() };   // only withdrawn notes, confirmed twice above
       return it;
     });
-    const report = { type: REPORT_TYPE, version: 1, created: new Date().toISOString(), network: net.name, chainId: net.chainId, verifierAddress: net.discloseVerifier,
-      auditorNonce: auditorNonce.toString(), items, totals: { notes: items.length, deposited: sumsText(items), withdrawn: items.filter((x) => x.withdrawn).length } };
+    // version 2 when the file holds V8 proofs (older pages refuse it instead of misreading it); verifierAddress stays the V5–V7 one
+    const report = { type: REPORT_TYPE, version: items.some((x) => x.circuit) ? 2 : 1, created: new Date().toISOString(), network: net.name, chainId: net.chainId, verifierAddress: net.discloseVerifier,
+      verifiers: Object.fromEntries(discloseKinds(net).map((k) => [k, discloseVerifierOf(net, k)])), auditorNonce: auditorNonce.toString(), items, totals: { notes: items.length, deposited: sumsText(items), withdrawn: items.filter((x) => x.withdrawn).length } };
     const text = JSON.stringify(report, null, 1), keyed = items.filter((x) => x.keys).length, unspent = items.filter((x) => !x.withdrawn).length;
     const skipped = withKeys ? notes.filter((n) => n.spent && !n.wdConfirmed).length : 0;
     setStatus('reportStatus', t('rp.ok', { n: items.length, total: report.totals.deposited }) + (withKeys ? ' ' + t('rp.okKeys', { k: keyed, u: unspent }) : '') + (skipped ? ' ' + t('rp.okKeysSkip', { s: skipped }) : ''), skipped ? 'warn' : 'ok');
@@ -2926,19 +3197,24 @@ $('reportBtn').addEventListener('click', async () => {
 // withdrawal (recipient, relayer, fee) is read from the pool's Withdrawal event.
 async function verifyReport(b) {
   const box = $('auditReport');
-  if (!b || b.version !== 1 || !Array.isArray(b.items) || !b.items.length || b.items.length > REPORT_MAX || !/^\d+$/.test(String(b.auditorNonce))) throw new Error(t('au.errReport'));
+  if (!b || (b.version !== 1 && b.version !== 2) || !Array.isArray(b.items) || !b.items.length || b.items.length > REPORT_MAX || !/^\d+$/.test(String(b.auditorNonce))) throw new Error(t('au.errReport'));
   const net = Object.values(CONFIG.networks).find((n) => n.chainId === Number(b.chainId));
   if (!net) throw new Error(t('au.errNet', { id: b.chainId, list: Object.values(CONFIG.networks).map((n) => n.name).join(', ') }));
   const st = Steps('auSteps', ['au.st1', 'au.st2', 'au.st3']); st.go(0);
   depositMaps.clear();   // a deposit made after this tab was opened must still be found
-  const rp = readProvider(net), nonce = BigInt(b.auditorNonce), verifier = new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, rp);
-  const rows = b.items.map((x) => ({ x: x || {}, pool: (x && ethers.isAddress(String(x.pool)) && findPool(net.chainId, String(x.pool))) || null, label: x && typeof x.label === 'string' ? reportLabel(x.label) : '' }));
+  const rp = readProvider(net), nonce = BigInt(b.auditorNonce);
+  // Each item is checked with the verifier of its circuit, taken from this page's config (never from the file).
+  const rows = b.items.map((x) => ({ x: x || {}, kind: x && x.circuit !== undefined ? String(x.circuit) : 'disclose', pool: (x && ethers.isAddress(String(x.pool)) && findPool(net.chainId, String(x.pool))) || null, label: x && typeof x.label === 'string' ? reportLabel(x.label) : '' }));
   st.go(1);
   // valid: true / false / null (the network did not answer: no verdict)
   await mapLimit(rows, 4, async (r) => {
-    const p = r.x.proof || {};
-    if (!Array.isArray(p.pA) || !Array.isArray(p.pB) || !Array.isArray(p.pC) || !Array.isArray(p.pubSignals) || p.pubSignals.length !== 3) { r.valid = false; return; }
-    try { r.commitment = BigInt(p.pubSignals[0]); r.nonce = BigInt(p.pubSignals[2]); } catch (e) { r.valid = false; return; }
+    const p = r.x.proof || {}, order = DISCLOSE_ORDER[r.kind], vAddr = order && discloseVerifierOf(net, r.kind);
+    if (!vAddr || !Array.isArray(p.pA) || !Array.isArray(p.pB) || !Array.isArray(p.pC) || !Array.isArray(p.pubSignals) || p.pubSignals.length !== order.length) { r.valid = false; return; }
+    try { r.commitment = BigInt(p.pubSignals[0]); r.nonce = BigInt(p.pubSignals[order.indexOf('auditorNonce')]); } catch (e) { r.valid = false; return; }
+    if (r.kind === 'disclose_link') { r.linkNh = BigInt(p.pubSignals[1]); r.linkCtx = BigInt(p.pubSignals[2]); }
+    // the proof must be of the pool's generation, and a link proof must name this very pool (its ctx)
+    if (r.pool && (!kindFits(r.kind, r.pool) || (r.kind === 'disclose_link' && r.linkCtx !== poolCtx(r.pool)))) { r.valid = false; return; }
+    const verifier = new ethers.Contract(vAddr, VERIFIER_ABI[r.kind], rp);
     try { r.valid = !!(await withRetry(() => verifier.verifyProof(p.pA, p.pB, p.pC, p.pubSignals), 'verifying a disclosure')); }
     catch (e) { if (['CALL_EXCEPTION', 'INVALID_ARGUMENT', 'BAD_DATA'].includes(e && e.code)) r.valid = false; else { r.valid = null; r.netErr = true; } }
     if (String(r.commitment) !== String(r.x.commitment)) r.valid = false;
@@ -2954,12 +3230,19 @@ async function verifyReport(b) {
   }
   const keyed = rows.filter((r) => r.x.keys && r.pool && r.found && !r.dup);
   const wmaps = new Map();
+  // Receipts (disclose_link, V8): the proof itself gives the nullifier; whether and where it was withdrawn is read from the pool.
+  for (const r of rows.filter((x) => x.linkNh != null && x.valid === true && x.found && !x.dup && x.pool)) {
+    try {
+      if (!wmaps.has(r.pool.id)) wmaps.set(r.pool.id, await withdrawalMap(r.pool));
+      r.wd = wmaps.get(r.pool.id).get(r.linkNh) || null; r.spentOnChain = !!r.wd; r.linked = true;
+    } catch (e) { r.keyErr = true; r.netErr = true; }
+  }
   for (const r of keyed) {
     let sk, vk;
     try { sk = BigInt(r.x.keys.spendKey); vk = BigInt(r.x.keys.viewKey); } catch (e) { r.keyBad = true; continue; }
-    if (computeCommitment(sk, vk) !== r.commitment) { r.keyBad = true; continue; }
+    if (commitFor(r.pool.version, sk, vk) !== r.commitment) { r.keyBad = true; continue; }
     try {
-      const nh = computeNullifierHash(sk);
+      const nh = nullifierOf(r.pool, sk);
       r.spentOnChain = !!(await withRetry(() => new ethers.Contract(r.pool.address, POOL_ABI[r.pool.version], rp).nullifierHashes(nh), 'checking a nullifier'));
       if (!wmaps.has(r.pool.id)) wmaps.set(r.pool.id, await withdrawalMap(r.pool));
       r.wd = wmaps.get(r.pool.id).get(nh) || null;
@@ -2974,11 +3257,12 @@ async function verifyReport(b) {
   const yes = esc(t('au.yes')), no = esc(t('au.no'));
   const gen = (pool) => String(pool.version || '').toUpperCase();
   const poolLabel = (pool) => pool.label + (/^V\d/.test(pool.label) ? '' : ' (' + gen(pool) + ')');
-  const wdText = (r) => r.x.keys ? (r.keyBad ? t('au.keyBad') : r.keyErr ? t('au.keyErr') : null) : t('au.claimed', { v: r.x.withdrawn ? t('au.yes') : t('au.no') });
+  const proven = (r) => (r.x.keys || r.linked) && !r.keyBad && !r.keyErr;   // withdrawal state checked on chain (keys or a receipt)
+  const wdText = (r) => r.x.keys || r.linked ? (r.keyBad ? t('au.keyBad') : r.keyErr ? t('au.keyErr') : null) : t('au.claimed', { v: r.x.withdrawn ? t('au.yes') : t('au.no') });
   const body = rows.map((r, i) => {
     const pool = r.pool, dec = pool ? pool.decimals : 18, wdKnown = r.wd && !r.keyBad && !r.keyErr;
     const [vc, vs] = mark(r.valid), [fc, fs] = r.dup ? ['no', '✗'] : mark(r.found);
-    const wdCell = r.dup ? esc(t('au.dup')) : r.x.keys && !r.keyBad && !r.keyErr ? (r.spentOnChain ? yes : no) : '<small>' + esc(wdText(r)) + '</small>';
+    const wdCell = r.dup ? esc(t('au.dup')) : proven(r) ? (r.spentOnChain ? yes : no) + (r.linked ? '<br><small>' + esc(t('au.receipt')) + '</small>' : '') : '<small>' + esc(wdText(r)) + '</small>';
     return '<tr>' + cell('', i + 1) +
       cell(pool ? (pool.frozen ? 'warn' : '') : 'no', pool ? esc(poolLabel(pool)) + (pool.frozen ? '<br><small>' + esc(t('au.frozen')) + '</small>' : '') : esc(t('au.unknown'))) +
       cell('', esc(pool ? pool.amount + ' ' + pool.token : '?')) +
@@ -2992,7 +3276,8 @@ async function verifyReport(b) {
   const withdrawnShown = good.filter((r) => r.wd && !r.keyBad && !r.keyErr);
   const labels = [...new Set(good.map((r) => r.label).filter(Boolean))];
   const labelTotals = labels.map((l) => l + ': ' + sumsText(good.filter((r) => r.label === l).map((r) => ({ amount: r.pool.amount, token: r.pool.token })))).join('; ');
-  const otherVerifier = b.verifierAddress && String(b.verifierAddress).toLowerCase() !== net.discloseVerifier.toLowerCase();
+  const otherVerifier = (b.verifierAddress && String(b.verifierAddress).toLowerCase() !== net.discloseVerifier.toLowerCase()) ||
+    (b.verifiers && typeof b.verifiers === 'object' && Object.entries(b.verifiers).some(([k, a]) => !discloseVerifierOf(net, k) || String(a).toLowerCase() !== String(discloseVerifierOf(net, k)).toLowerCase()));
   const dups = rows.filter((r) => r.dup).length, netErrs = rows.filter((r) => r.netErr).length;
   box.innerHTML = '<h4 style="margin-top:14px">' + esc(t('au.rpTitle', { n: rows.length, net: net.name })) + '</h4>' +
     '<div class="rep-wrap"><table class="rep"><thead><tr>' + cols.map((c) => '<th>' + esc(c) + '</th>').join('') + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
@@ -3009,7 +3294,7 @@ async function verifyReport(b) {
       const wdKnown = r.wd && !r.keyBad && !r.keyErr, tri = (v) => v === true ? 'true' : v === false ? 'false' : 'not checked (network)';
       return [i + 1, net.name, r.pool ? r.pool.address : '', r.pool ? gen(r.pool) : '', r.pool ? !!r.pool.frozen : '', r.pool ? r.pool.token : '', r.pool ? r.pool.amount : '',
         r.commitment != null ? r.commitment.toString() : '', utc(r.timestamp), tri(r.valid), codeOk(r), r.dup ? 'false' : tri(r.found), !!r.dup,
-        r.x.keys ? (r.keyBad ? 'keys do not match' : r.keyErr ? 'not checked (network)' : !!r.spentOnChain) : 'claimed ' + (r.x.withdrawn ? 'yes' : 'no') + ', not verified',
+        r.x.keys || r.linked ? (r.keyBad ? 'keys do not match' : r.keyErr ? 'not checked (network)' : !!r.spentOnChain) : 'claimed ' + (r.x.withdrawn ? 'yes' : 'no') + ', not verified',
         wdKnown ? r.wd.to : '', wdKnown && r.wd.relayer ? r.wd.relayer : '', wdKnown ? fmtUnits(r.wd.fee, r.pool ? r.pool.decimals : 18) : '', wdKnown ? r.wd.txHash : '', wdKnown ? utc(r.wd.timestamp) : '', r.label];
     }));
   const csvCell = (v) => { let s = String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
@@ -3074,18 +3359,24 @@ $('auditVerifyBtn').addEventListener('click', async () => {
     let b; try { b = JSON.parse($('auditBlockInput').value); } catch (e) { throw new Error(t('au.errJson')); }
     $('auditReport').innerHTML = '';
     if (b && b.type === REPORT_TYPE) { await verifyReport(b); return; }
-    if (!b || !Array.isArray(b.pA) || !Array.isArray(b.pB) || !Array.isArray(b.pC) || !Array.isArray(b.pubSignals) || b.pubSignals.length !== 3)
+    const kind = b && b.circuit !== undefined ? String(b.circuit) : 'disclose', order = DISCLOSE_ORDER[kind];
+    if (!b || !order || !Array.isArray(b.pA) || !Array.isArray(b.pB) || !Array.isArray(b.pC) || !Array.isArray(b.pubSignals) || b.pubSignals.length !== order.length)
       throw new Error(t('au.errFields'));
     const net = Object.values(CONFIG.networks).find((n) => n.chainId === Number(b.chainId));
     if (!net) throw new Error(t('au.errNet', { id: b.chainId, list: Object.values(CONFIG.networks).map((n) => n.name).join(', ') }));
-    const [commitment, , nonce] = b.pubSignals.map((x) => BigInt(x));
+    const vAddr = discloseVerifierOf(net, kind);
+    if (!vAddr) throw new Error(t('au.errKind', { net: net.name }));
+    const sig = (name) => BigInt(b.pubSignals[order.indexOf(name)]);
+    const commitment = sig('commitment'), nonce = sig('auditorNonce');
 
     st.go(1);
-    const ok = await new ethers.Contract(net.discloseVerifier, VERIFIER_ABI.disclose, readProvider(net)).verifyProof(b.pA, b.pB, b.pC, b.pubSignals);
-    log('Auditor check — on-chain verification: ' + (ok ? 'TRUE' : 'FALSE'));
-    if (ok) add('ok', esc(t('au.valid')), th('au.validSub', { addr: short(net.discloseVerifier), net: net.name }));
+    let ok;   // a verifier that rejects the call outright (malformed proof, wrong shape) counts as "not valid", like in a report
+    try { ok = await new ethers.Contract(vAddr, VERIFIER_ABI[kind], readProvider(net)).verifyProof(b.pA, b.pB, b.pC, b.pubSignals); }
+    catch (e) { if (['CALL_EXCEPTION', 'INVALID_ARGUMENT', 'BAD_DATA'].includes(e && e.code)) ok = false; else throw e; }
+    log('Auditor check — on-chain verification (' + kind + '): ' + (ok ? 'TRUE' : 'FALSE'));
+    if (ok) add('ok', esc(t('au.valid')), th('au.validSub', { addr: short(vAddr), net: net.name }));
     else add('no', esc(t('au.invalid')), th('au.invalidSub', { net: net.name }));
-    if (b.verifierAddress && String(b.verifierAddress).toLowerCase() !== net.discloseVerifier.toLowerCase())
+    if (b.verifierAddress && String(b.verifierAddress).toLowerCase() !== vAddr.toLowerCase())
       add('warn', esc(t('au.otherVerifier')), th('au.otherVerifierSub', { addr: b.verifierAddress }));
 
     if (issuedNonce != null) {
@@ -3094,19 +3385,29 @@ $('auditVerifyBtn').addEventListener('click', async () => {
     } else add('warn', esc(t('au.codeCheck')), th('au.codeCheckSub', { code: nonce.toString() }));
 
     st.go(2);
-    const pools = POOLS.filter((p) => p.net.chainId === net.chainId).sort((x, y) => (x.legacy ? 1 : 0) - (y.legacy ? 1 : 0));
-    const hit = await findCommitment(net, pools, commitment);
+    const pools = POOLS.filter((p) => p.net.chainId === net.chainId && kindFits(kind, p)).sort((x, y) => (x.legacy ? 1 : 0) - (y.legacy ? 1 : 0));
+    let hit = await findCommitment(net, pools, commitment);
+    // a receipt names its pool (ctx): it must be the pool that holds the deposit
+    if (hit && kind === 'disclose_link' && sig('ctx') !== poolCtx(hit.pool)) { add('no', esc(t('au.ctxBad')), ''); hit = null; }
     if (hit) {
       add('ok', esc(t('au.found')), th('au.foundSub', { net: net.name, label: hit.pool.label + (hit.pool.legacy ? ' (legacy)' : ' (' + String(hit.pool.version).toUpperCase() + ')'), leaf: hit.leafIndex }) +
         (hit.timestamp ? ' · ' + esc(new Date(hit.timestamp * 1000).toISOString().slice(0, 16).replace('T', ' ')) + ' UTC' : '') +
         ' · <a href="' + esc(net.explorerUrl + '/tx/' + hit.txHash) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a>');
     } else add('no', esc(t('au.notFound')), th('au.notFoundSub', { net: net.name }));
+    // Receipt (V8 disclose_link): the proof binds the note's nullifier, so its withdrawal, if any, is read from the pool.
+    if (hit && ok && kind === 'disclose_link') {
+      const wd = (await withdrawalMap(hit.pool)).get(sig('nullifierHash'));
+      if (wd) add('ok', esc(t('au.rcWithdrawn')), th('au.rcWithdrawnSub', { to: wd.to, fee: fmtUnits(wd.fee, hit.pool.decimals), token: hit.pool.token, when: utc(wd.timestamp) }) +
+        (wd.relayer && wd.relayer !== ethers.ZeroAddress ? ' · ' + th('au.rcRelayer', { addr: wd.relayer }) : '') +
+        ' · <a href="' + esc(net.explorerUrl + '/tx/' + wd.txHash) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a>');
+      else add('warn', esc(t('au.rcNot')), esc(t('au.rcNotSub')));
+    }
     st.done();
 
     // Verified only against a code issued on this page: without one, an old or forwarded disclosure would also pass.
     const pass = ok && hit && issuedNonce != null && nonce === issuedNonce;
     if (!pass && ok && hit && issuedNonce == null) setStatus('auditStatus', t('au.passNoCode', { code: nonce.toString() }), 'info');
-    else setStatus('auditStatus', pass ? t('au.pass') : t('au.fail'), pass ? 'ok' : 'err');
+    else setStatus('auditStatus', pass ? t(kind === 'disclose_link' ? 'au.passLink' : 'au.pass') : t('au.fail'), pass ? 'ok' : 'err');
   } catch (e) { st.fail(); setStatus('auditStatus', t('status.failed') + errText(e), 'err'); log('ERROR: ' + errText(e)); }
   finally { btn.disabled = false; }
 });
@@ -3116,7 +3417,7 @@ $('auditVerifyBtn').addEventListener('click', async () => {
   try {
     await loadConfig();
     populatePoolSelect();
-    selectPool((POOLS.filter((p) => !p.frozen && !p.legacy)[0] || POOLS.filter((p) => !p.legacy)[0]).id);
+    selectPool((POOLS.filter((p) => !p.frozen && !p.legacy)[0] || POOLS.filter((p) => !p.legacy)[0]).id);   // deployments.json lists the current generation first
     $('connectBtn').disabled = false; $('checkNoteBtn').disabled = false;
     $('genNonceBtn').disabled = false; $('auditVerifyBtn').disabled = false; $('reportBtn').disabled = false;
     log(`Loaded ${POOLS.length} pools on ${Object.keys(CONFIG.networks).length} networks.`);
