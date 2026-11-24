@@ -1,6 +1,6 @@
 # V8: one circuit and contract revision (design draft, 7 November 2026)
 
-Status: being built. The final V8 circuits exist since 24 November 2026 (`circuits/withdraw_v6.circom`, `disclose_v2.circom`, `disclose_link.circom`, shared `latheon_v8.circom`; tests `test/circuits-v8`); contracts, keys and deployment are not done yet, and nothing is deployed. The questions in §11 are still open and still meant for an outside review; work did not wait for one because none is arranged. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
+Status: being built. The final V8 circuits and the native-coin contracts exist since 24 November 2026 (`circuits/withdraw_v6.circom`, `disclose_v2.circom`, `disclose_link.circom`, shared `latheon_v8.circom`; tests `test/circuits-v8`); contracts `LatheonShieldedPoolV8Native` and `LatheonDistributionPoolV8Native`, tests `test/native-v8`); keys and deployment are not done yet, and nothing is deployed. The questions in §11 are still open and still meant for an outside review; work did not wait for one because none is arranged. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
 
 ## 1. Why one revision
 
@@ -100,6 +100,17 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 - Stealth addresses, if added later: an ERC-5564 announcement publishes an ephemeral secp256k1 key, which a quantum computer could later use to link payments to a recipient. Either use a post-quantum key encapsulation (ML-KEM) for that step or state the loss in `THREAT-MODEL.md` (see §11, question 6).
 - Deposit pause (decided for the test chain): deposits only, never withdrawals; held by a multisig with a time delay, not by one key. Before any chain with real value this is a question for a lawyer (an operator with a lever), and the alternative without any key (deposits close by themselves at a date fixed at deployment) stays on the table.
 
+### 8a. How the V8 native contracts implement §8 (24 November 2026)
+
+- `deposit` refuses a commitment outside 0 < c < p ("Commitment out of range").
+- Payouts: a call with at most `payoutGas` gas (100,000 at deployment) that copies no return data. Measured: a recipient that burns all gas or reverts with 200 KB of data makes the attempt cost under 500,000 gas, and the note stays unspent. 100,000 is enough for ordinary contract wallets; ordinary addresses spend no gas on receipt. A recipient that needs more is not paid, the note stays unspent and can be withdrawn to another address. Decided 24 November 2026 (Vladimir): the limit can be raised later, so the guardian (the timelock) may raise `payoutGas`, only upwards and at most to 1,000,000; it can never lower it, so this lever cannot block withdrawals.
+- `withdrawMany` skips a spent note (event `NoteSkipped`), returns how many notes were paid, and reverts only if none could be paid ("Nothing to withdraw") or something else fails.
+- Compiler pinned: `pragma solidity 0.8.39` in all V8 files; the shared interface is `contracts/ILatheonV8.sol`. In Solidity the payment reference is called `paymentRef` (`reference` is a reserved word).
+- Root history (decided 24 November 2026, Vladimir): every root the pool ever had stays known for the pool's whole life (`knownRoots[root]`, one lookup), so a proof made now and sent later never goes stale, whatever the traffic. An old root only proves membership in the tree as it was then; the nullifier still stops a second withdrawal, and the demo and SDK always prove against the newest root. Measured on the local chain: a 32-note router deposit 22,275,427 gas against 21,850,278 for V6/V7 (+1.9%, one new storage slot per deposit); a one-note withdrawal 306,417 against 310,789.
+- Deposit pause and payout gas: `guardian` is set at deployment and is meant to be a timelock controlled by a multisig; tested with OpenZeppelin `TimelockController` (1-hour delay). It can pause deposits and raise `payoutGas`; nothing else. `guardian = address(0)` means neither can ever happen. Withdrawals have no pause.
+- `ctx()` is computed on every call from `block.chainid` and the pool's address, not stored at deployment.
+- `extData.destChainId` must equal `block.chainid` ("Wrong destination chain").
+
 ## 9. Migration
 
 - New pools V8 and a router V8; V7 stays for withdrawals only (frozen for deposits in the interface).
@@ -134,12 +145,13 @@ Decided by Vladimir on 8 November 2026: see §13.
 
 1. Answers to §11 from the outside review; this document updated.
 2. Final circuits and their tests; constraint and time measurements; under-constraint tools. — done 24 November 2026 (except the further under-constraint tools).
-3. Contracts V8 and their tests; gas on a local chain.
+3. Contracts V8 and their tests; gas on a local chain. — native-coin pool and router done 24 November 2026 (`contracts/LatheonShieldedPoolV8Native.sol`, `LatheonDistributionPoolV8Native.sol`, `ILatheonV8.sol`; `test/native-v8`, 56 checks with real proofs). ERC-20 variants not written (not needed on the test chain; the ERC-20 items of §8 stay open for them).
 4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`.
 
 ## 12a. Ideas after V8 (not in this revision)
 
-- Payment names (24 November 2026, idea only): a name a payer can send to, so that the payment lands in a shielded pool for the named person instead of at a public address. It needs a way to deliver a note to someone else, which V7 and this draft do not have, and that delivery is exactly the step where §8 (stealth addresses) and §11 question 6 apply. A plain public name registry is not planned: it would permanently link a label to an address.
+- Payment names (24 November 2026, idea only): a name a payer can send to, so that the payment lands in a shielded pool for the named person instead of at a public address. Not possible with the V8 note format: whoever creates a note knows its spendKey, so a payer who created a note for someone else could spend it back. Paying another person needs a note bound to the recipient's public key that only the recipient's private key can spend (the model of Zcash and Railgun): a new circuit and note format, so a generation after V8. It also needs encrypted delivery of the note to the recipient, which is exactly the step where §8 (stealth addresses) and §11 question 6 apply. A plain public name registry is not planned: it would permanently link a label to an address.
+- Pool capacity at scale (24 November 2026, open): each pool holds 1,048,576 deposits (20 levels); the 1-LTH pool fills first because the router puts most notes there. A full pool refuses deposits and keeps paying withdrawals. For a production chain with many users this needs a decision: a deeper tree (each level adds about 550 constraints to the withdrawal circuit) or new pools when one fills.
 - Kohaku plugin interface (Ethereum Foundation wallet privacy framework; shield, unshield, balance): an adapter in the SDK after V8, decided 23 November 2026.
 
 ## 13. Decisions (8 November 2026)

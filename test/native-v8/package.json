@@ -1,0 +1,19 @@
+{
+  "name": "latheon-native-v8-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tests for the V8 native-coin pool and router (withdraw_v6) with real Groth16 proofs on a local EVM. Needs circom 2.2.3 in $CIRCOM; keys are throwaway, made in the test.",
+  "scripts": {
+    "test": "node run.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "circomlib": "2.0.5",
+    "ejs": "7.0.1",
+    "ethers": "6.17.0",
+    "ganache": "7.9.2",
+    "poseidon-lite": "0.3.0",
+    "snarkjs": "0.7.6",
+    "solc": "0.8.39"
+  }
+}
