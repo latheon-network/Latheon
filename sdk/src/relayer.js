@@ -73,7 +73,11 @@ async function relayStatus(net, fetchImpl) {
  */
 async function relayWithdraw(pool, proof, recipient, opts = {}) {
   const body = { pool: pool.address, pA: proof.pA, pB: proof.pB, pC: proof.pC, root: proof.pubSignals[0], nullifierHash: proof.pubSignals[1], recipient };
-  if (pool.feeVersion) { body.relayer = opts.relayer || ZeroAddress; body.fee = (opts.fee !== undefined ? BigInt(opts.fee) : 0n).toString(); }
+  if (pool.version === 'v8') {
+    // V8: the relayer must call the pool with the extData the proof was made for
+    if (!proof.ext) throw new Error('This V8 proof carries no extData (make it with proveWithdraw)');
+    Object.assign(body, { relayer: proof.ext.relayer, fee: proof.ext.fee.toString(), paymentRef: proof.ext.paymentRef, destChainId: proof.ext.destChainId.toString() });
+  } else if (pool.feeVersion) { body.relayer = opts.relayer || ZeroAddress; body.fee = (opts.fee !== undefined ? BigInt(opts.fee) : 0n).toString(); }
   return relayPost(pool.net, '/withdraw', withDelay(body, opts.delay), opts.fetch);
 }
 

@@ -1,5 +1,9 @@
 # @latheon/sdk
 
+**0.3.0: V8 added.** The SDK now handles the V8 pools and router deployed on the test chain on 24 November 2026
+(`withdraw_v6`; addresses in [`deployments-v8.json`](./deployments-v8.json), merged into the registry automatically
+until the demo's `deployments.json` lists V8). See [V8 in this SDK](#v8-in-this-sdk). V7 keeps working unchanged.
+
 JavaScript SDK for Latheon's **V7** shielded pools and distribution router on the Latheon test chain: notes and master
 keys, 20-level Merkle paths, `withdraw_v5` proofs (recipient, relayer and fee bound into the proof), deposits,
 `withdraw` and `withdrawMany` (up to 16 notes in one transaction), and the network's relayer. Addresses come from
@@ -51,6 +55,36 @@ await sdk.withdrawNote(otherSigner, pool, note.note, recipient, { circuit, relay
 ```
 
 `examples/v7-flow.js` runs this against the test chain.
+
+## V8 in this SDK
+
+What changes for a caller (design: `docs/v8-design.md`):
+
+- **Registry.** `loadDeployments()` without arguments adds the V8 pools and router from `deployments-v8.json`
+  (`mergeV8`); V8 comes first, so `listRouters(reg, { depositable: true })[0]` is the V8 router. V8 and V7 are both
+  depositable until V7 is frozen in `deployments.json`.
+- **Hashes.** Commitment `Poseidon(TAG_COMMIT, spendKey, viewKey)`; nullifier `Poseidon(TAG_NULL, spendKey, ctx)` where
+  `ctx = keccak256(abi.encode("latheon.v8.ctx", chainId, pool)) mod p` (`contextOf(pool)`, equal to the pool's `ctx()`);
+  disclosure tag `Poseidon(TAG_DISC, viewKey, nonce)`. Tags: `TAG_V8`. `commitmentFor(version, …)` and
+  `nullifierFor(pool, spendKey)` pick the right formula; a V8 nullifier needs the pool.
+- **Notes and master keys** keep their text formats. The keys a master key derives are the same in every generation, so
+  `findNotesAll(provider, registry, masterKey)` finds a master's notes in the V7 and the V8 router alike.
+- **Withdrawals.** `buildWithdrawInput({ version: 'v8', …, ctx, recipient, relayer, fee, paymentRef, destChainId })`;
+  `paymentRef` (32 bytes) is random when not given, so withdrawals with and without a reference look alike. The proof
+  carries its `ext` (recipient, relayer, fee, paymentRef, destChainId) and `withdraw()`, `withdrawMany` items and the
+  relayer request repeat it exactly; the pool accepts only its own chain as destination. `withdrawNote` and
+  `withdrawByAmount` do all of this for V8 pools and routers; pass `paymentRef` (one note) or `paymentRefs` (per note).
+- **Spent notes in a batch.** The V8 router skips a note someone already withdrew instead of reverting; `withdrawMany`
+  and `withdrawByAmount` report them as `skipped`.
+- **Disclosure.** `buildDiscloseInput({ …, version: 'v8' })` + `loadCircuit('disclose_v2')` + `proveDisclose` (no
+  nullifier; the default), and `buildDiscloseLinkInput` + `loadCircuit('disclose_link')` + `proveDiscloseLink` for a
+  receipt or reserves (reveals the nullifier: the auditor will recognise that note's withdrawal). Verifier addresses:
+  `pool.discloseVerifierAddr`, `pool.discloseLinkVerifierAddr`. The report file (`buildReport`) does not hold V8 notes
+  yet and refuses them.
+- **Circuits.** `withdraw_v6`, `disclose_v2`, `disclose_link`, development keys from `docs/dev-ceremony-v8.md`, pinned
+  to commit `c8c35ff` with their SHA-256.
+- **Relayer.** V8 requests carry `paymentRef` and `destChainId` next to `relayer` and `fee`. The test chain's relayer
+  does not accept V8 yet (next step); until then send V8 withdrawals from a wallet.
 
 ## What a V7 withdrawal is
 
@@ -189,8 +223,9 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
 ## Tests
 
 ```bash
-npm test                # unit (80 checks, no network, no proofs) + proof (12 checks, real withdraw_v5 / v4 / v3 / disclose proofs)
-npm run test:e2e        # 45 checks: the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
+npm test                # unit (94 checks, no network, no proofs) + proof (19 checks, real withdraw_v6 / v5 / v4 / v3, disclose, disclose_v2, disclose_link proofs) + report
+npm run test:e2e        # the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
+npm run test:e2e-v8     # 21 checks: the SDK against the V8 (and V7) contracts with the committed V8 development keys
 ```
 
 The e2e test compiles `LatheonShieldedPoolV7Native`, `LatheonDistributionPoolV7Native`, `WithdrawVerifierV5` (and the

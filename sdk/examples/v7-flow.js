@@ -18,7 +18,7 @@ async function main() {
   if (!pk) { console.log('Reference example. Set PRIVATE_KEY (a wallet with LTH on the Latheon test chain) to run it.'); return; }
 
   const reg = sdk.loadDeployments();
-  const router = sdk.listRouters(reg, { depositable: true })[0];          // the V7 LTH router
+  const router = sdk.listRouters(reg, { depositable: true, version: 'v7' })[0];   // the V7 LTH router
   const provider = new ethers.JsonRpcProvider(process.env.LATHEON_RPC_URL || router.net.rpcUrl, router.net.chainId, { staticNetwork: true });
   const signer = new ethers.Wallet(pk, provider);
   console.log('Wallet', await signer.getAddress(), 'on', router.net.name, '· router', router.id, router.address);
@@ -42,7 +42,7 @@ async function main() {
   console.log('Withdrawn 111 LTH to', recipient, 'in', out.txHashes.join(', '));
 
   // 4. one fixed pool: deposit one note of 10 LTH, withdraw it from this wallet (use another wallet in practice)
-  const pool10 = sdk.listPools(reg, { depositable: true, amount: 10 })[0];
+  const pool10 = sdk.listPools(reg, { depositable: true, version: 'v7', amount: 10 })[0];
   const note = await sdk.deposit(signer, pool10);
   console.log('NOTE (save it):', note.note);
   const w = await sdk.withdrawNote(signer, pool10, note.note, ethers.Wallet.createRandom().address, { circuit, log: console.log, minBlock: note.receipt.blockNumber });

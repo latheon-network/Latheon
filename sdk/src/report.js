@@ -45,6 +45,7 @@ async function buildReport({ net, auditorNonce, notes, circuit, created }) {
   if (!isFieldElement(nonce)) throw new Error('The auditor code is not a field element');
   const seen = new Set(), items = [];
   for (const n of notes) {
+    if (n.pool && n.pool.version === 'v8') throw new Error('Report files do not hold V8 notes yet (version 1 of the format is for disclose proofs of V5–V7 notes); use proveDisclose with disclose_v2 directly');
     const sk = BigInt(n.spendKey), vk = BigInt(n.viewKey), commitment = computeCommitment(sk, vk);
     if (seen.has(commitment)) throw new Error('The same note is listed twice');
     seen.add(commitment);

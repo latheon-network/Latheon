@@ -7,7 +7,7 @@ const { Contract, ZeroAddress, getAddress, parseUnits, formatUnits } = require('
 const { ROUTER_ABI, ERC20_ABI, MAX_NOTES, MAX_WITHDRAWALS, POOL_COUNT } = require('./constants');
 const dist = require('../distribution');
 const { assertDepositable } = require('./deployments');
-const { randomFieldElement, computeZeroCascade } = require('./poseidon');
+const { randomFieldElement, computeZeroCascade, nullifierFor, contextOf } = require('./poseidon');
 const { deriveNotes, formatMasterKey, parseMasterKey, encodeNote, MASTER_SCAN_LIMIT } = require('./notes');
 const { fetchDeposits, fetchSpent, buildTreeLevels, getMerklePath } = require('./merkleTree');
 const { loadCircuit, buildWithdrawInput, proveWithdraw } = require('./prove');
@@ -66,8 +66,8 @@ async function depositAny(signer, router, amount, opts = {}) {
   const plan = planDeposit(router, amount, opts);
   if (!opts.skipChecks) await checkRouterOnChain(signer.provider, router, plan.amount);
   const master = opts.master !== undefined ? BigInt(opts.master) : randomFieldElement();
-  const derived = deriveNotes(master, router.net.chainId, plan.total);
-  const notes = derived.map((n, i) => Object.assign(n, { pool: plan.notes[i], note: encodeNote(plan.notes[i], n.spendKey, n.viewKey) }));
+  const derived = deriveNotes(master, router.net.chainId, plan.total, router.version);
+  const notes = derived.map((n, i) => Object.assign(n, { pool: plan.notes[i], nullifierHash: nullifierFor(plan.notes[i], n.spendKey), note: encodeNote(plan.notes[i], n.spendKey, n.viewKey) }));
   const commitments = notes.map((n) => n.commitment);
   if (!router.native) {
     const token = new Contract(router.tok.address, ERC20_ABI, signer);
@@ -91,18 +91,19 @@ async function depositAny(signer, router, amount, opts = {}) {
  */
 async function findNotes(provider, router, masterKey, opts = {}) {
   const mk = typeof masterKey === 'string' ? parseMasterKey(masterKey) : masterKey;
-  if (mk.chainId !== router.net.chainId || mk.router.toLowerCase() !== router.address.toLowerCase()) throw new Error(`This master key belongs to router ${mk.router} on chain ${mk.chainId}, not to ${router.id || router.address}`);
+  if (mk.chainId !== router.net.chainId) throw new Error(`This master key belongs to chain ${mk.chainId}, not to ${router.net.chainId}`);
+  if (!opts.anyRouter && mk.router.toLowerCase() !== router.address.toLowerCase()) throw new Error(`This master key belongs to router ${mk.router} on chain ${mk.chainId}, not to ${router.id || router.address} (findNotesAll looks in every router of the chain)`);
   const p = providerOf(provider);
   const scanOpts = Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {});
   const deposits = opts.deposits || await Promise.all(router.pools.map((pool) => fetchDeposits(p, pool, scanOpts)));
   const byCommit = new Map();
   deposits.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex, timestamp: d.timestamp })));
   const notes = [];
-  for (const k of deriveNotes(mk.master, mk.chainId, opts.scanLimit || MASTER_SCAN_LIMIT)) {
+  for (const k of deriveNotes(mk.master, mk.chainId, opts.scanLimit || MASTER_SCAN_LIMIT, router.version)) {
     const hit = byCommit.get(k.commitment);
     if (!hit) continue;
     const pool = router.pools[hit.pi];
-    notes.push(Object.assign(k, { poolIndex: hit.pi, pool, leafIndex: hit.leafIndex, timestamp: hit.timestamp, value: pool.amount, note: encodeNote(pool, k.spendKey, k.viewKey) }));
+    notes.push(Object.assign(k, { poolIndex: hit.pi, pool, leafIndex: hit.leafIndex, timestamp: hit.timestamp, value: pool.amount, nullifierHash: nullifierFor(pool, k.spendKey), note: encodeNote(pool, k.spendKey, k.viewKey) }));
   }
   // Spent or not: from all withdrawals of the four pools (fetchSpent), never by asking about these notes one by one,
   // which would show the RPC endpoint that they belong to one owner.
@@ -113,6 +114,24 @@ async function findNotes(provider, router, masterKey, opts = {}) {
 }
 
 /**
+ * The notes of a master key in EVERY router of its chain listed in the registry (V8, V7 and older): the keys of a
+ * master key are the same in every generation, so a V7 master key also finds notes moved into V8 under the same master.
+ * @returns {Promise<{byRouter: Array<{router, result}>, notes: object[], unspent: object[]}>}  notes carry .router
+ */
+async function findNotesAll(provider, registry, masterKey, opts = {}) {
+  const mk = typeof masterKey === 'string' ? parseMasterKey(masterKey) : masterKey;
+  const routers = registry.routers.filter((r) => r.net.chainId === mk.chainId);
+  const byRouter = [];
+  for (const router of routers) {
+    const result = await findNotes(provider, router, mk, Object.assign({}, opts, { anyRouter: true, deposits: undefined, spent: undefined }));
+    result.notes.forEach((n) => { n.router = router; });
+    byRouter.push({ router, result });
+  }
+  const notes = byRouter.flatMap((x) => x.result.notes);
+  return { byRouter, notes, unspent: notes.filter((n) => !n.spent) };
+}
+
+/**
  * Picks unspent notes that add up to exactly `amountTokens` (a whole number of tokens), as few as possible.
  * @returns {{chosen: object[]|null, nearest: number}}  nearest: the largest reachable sum below the target when none fits
  */
@@ -120,9 +139,13 @@ function selectNotesForAmount(notes, amountTokens) {
   return dist.selectNotes(notes.filter((n) => !n.spent), Number(amountTokens));
 }
 
-/** One withdrawMany item (array form, exactly what the contract tuple and the relayer take). */
+/** One withdrawMany item (array form, exactly what the contract tuple and the relayer take). V8: fee and payment reference come from the proof's extData. */
 function buildWithdrawManyItem(router, poolIndex, proof, fee = 0n) {
   if (!Number.isInteger(poolIndex) || poolIndex < 0 || poolIndex >= POOL_COUNT) throw new Error('poolIndex must be 0..3');
+  if (router.version === 'v8') {
+    if (!proof.ext) throw new Error('This V8 proof carries no extData (make it with proveWithdraw)');
+    return [poolIndex, [proof.pA, proof.pB, proof.pC], proof.pubSignals[0], proof.pubSignals[1], proof.ext.fee, proof.ext.paymentRef];
+  }
   const base = [poolIndex, proof.pA, proof.pB, proof.pC, proof.pubSignals[0], proof.pubSignals[1]];
   return router.feeVersion ? base.concat([BigInt(fee)]) : base;
 }
@@ -151,7 +174,14 @@ async function withdrawMany(signer, router, items, recipient, opts = {}) {
   if (opts.simulate !== false) await c.withdrawMany.staticCall(...args);   // refuses early, before any gas is spent
   const tx = await c.withdrawMany(...args, overrides);
   const receipt = await tx.wait();
-  return { txHash: receipt.hash, receipt };
+  return Object.assign({ txHash: receipt.hash, receipt }, router.version === 'v8' ? skippedOf(c, receipt) : {});
+}
+
+/** V8: which notes the router skipped because they were already spent ({ paid, skipped: [{ pool, nullifierHash }] }). */
+function skippedOf(c, receipt) {
+  const evs = receipt.logs.map((l) => { try { return c.interface.parseLog(l); } catch (e) { return null; } }).filter(Boolean);
+  const many = evs.find((e) => e.name === 'WithdrawnMany');
+  return { paid: many ? Number(many.args.paid) : null, skipped: evs.filter((e) => e.name === 'NoteSkipped').map((e) => ({ pool: Number(e.args.pool), nullifierHash: e.args.nullifierHash })) };
 }
 
 /**
@@ -181,7 +211,7 @@ async function withdrawByAmount(signerOrProvider, router, masterKey, amountToken
   const zeros = computeZeroCascade(router.levels);
   const chosen = sel.chosen.slice().sort((a, b) => a.poolIndex - b.poolIndex || a.leafIndex - b.leafIndex);
   let pending = chosen.slice(), depositsNow = found.deposits;
-  const txHashes = [], scheduled = [];   // scheduled: delayed batches the relayer accepted (opts.delay), not sent yet
+  const txHashes = [], scheduled = [], skippedAll = [];   // scheduled: delayed batches the relayer accepted (opts.delay), not sent yet
   let batches = 0;
 
   for (let attempt = 1; ; attempt++) {
@@ -195,7 +225,8 @@ async function withdrawByAmount(signerOrProvider, router, masterKey, amountToken
           if (!(await poolContract(n.pool, provider).isKnownRoot(root))) throw Object.assign(new Error('Unknown root'), { staleRoot: true });
           rootChecked[n.poolIndex] = root;
         }
-        const input = buildWithdrawInput({ version: router.version, spendKey: n.spendKey, viewKey: n.viewKey, pathElements, pathIndices, root, nullifierHash: n.nullifierHash, recipient: to, relayer: router.feeVersion ? relayerAddr : undefined, fee: router.feeVersion ? fee : undefined });
+        const input = buildWithdrawInput({ version: router.version, spendKey: n.spendKey, viewKey: n.viewKey, pathElements, pathIndices, root, nullifierHash: n.nullifierHash, recipient: to, relayer: router.feeVersion ? relayerAddr : undefined, fee: router.feeVersion ? fee : undefined,
+          ctx: router.version === 'v8' ? contextOf(n.pool) : undefined, destChainId: router.net.chainId, paymentRef: opts.paymentRefs ? opts.paymentRefs[i] : undefined });
         const proof = await proveWithdraw(input, circuit);
         items.push(buildWithdrawManyItem(router, n.poolIndex, proof, fee));
         log(`Proof ${i + 1}/${pending.length} made (${n.pool.amount} ${router.token}, leaf ${n.leafIndex})`);
@@ -210,11 +241,11 @@ async function withdrawByAmount(signerOrProvider, router, masterKey, amountToken
           if (r.scheduled) { scheduled.push({ id: r.id, notAfter: r.notAfter, notes: b.length }); log('Delayed withdrawMany accepted, to be sent before ' + r.notAfter); }
           else { txHashes.push(r.tx); log('Relayed withdrawMany tx ' + r.tx); }
         }
-        else { const { txHash } = await withdrawMany(signerOrProvider, router, b, to, { relayer: relayerAddr, simulate: false, overrides: opts.overrides }); txHashes.push(txHash); log('withdrawMany tx ' + txHash); }
+        else { const r = await withdrawMany(signerOrProvider, router, b, to, { relayer: relayerAddr, simulate: false, overrides: opts.overrides }); txHashes.push(r.txHash); if (r.skipped && r.skipped.length) skippedAll.push(...r.skipped); log('withdrawMany tx ' + r.txHash); }
         batches++;
         pending = pending.slice(b.length);   // this batch is paid
       }
-      return Object.assign({ txHashes, notes: chosen, batches, relayed: viaRelayer }, scheduled.length ? { scheduled } : {});
+      return Object.assign({ txHashes, notes: chosen, batches, relayed: viaRelayer }, scheduled.length ? { scheduled } : {}, skippedAll.length ? { skipped: skippedAll } : {});
     } catch (e) {
       if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
       log(`A pool no longer knows the root of these proofs; ${pending.length} note(s) left: scanning again (attempt ${attempt + 1} of ${ROOT_RETRIES})`);
@@ -223,4 +254,4 @@ async function withdrawByAmount(signerOrProvider, router, masterKey, amountToken
   }
 }
 
-module.exports = { toUnits, fromUnits, planDeposit, checkRouterOnChain, depositAny, findNotes, selectNotesForAmount, buildWithdrawManyItem, batchItems, withdrawMany, withdrawByAmount, routerContract };
+module.exports = { findNotesAll, toUnits, fromUnits, planDeposit, checkRouterOnChain, depositAny, findNotes, selectNotesForAmount, buildWithdrawManyItem, batchItems, withdrawMany, withdrawByAmount, routerContract };

@@ -4,7 +4,7 @@
  *
  * A note is one deposit in one fixed pool. Its text names the network and the pool, so nothing else has to be remembered:
  *   latheon-v5:<chainId>:<poolAddress>:<spendKey>:<viewKey>
- * (the format is unchanged since V5; V6 and V7 notes look the same). The spendKey alone can spend the note; the viewKey
+ * (the format is unchanged since V5; V6, V7 and V8 notes look the same: the pool address says which generation it is). The spendKey alone can spend the note; the viewKey
  * is needed with it to prove ownership (commitment) and for disclosures.
  *
  * A master key stands for all the notes of one router deposit (up to 32):
@@ -15,7 +15,7 @@
 const { getAddress, isAddress } = require('ethers');
 const { poseidon4 } = require('poseidon-lite');
 const dist = require('../distribution');
-const { computeCommitment, computeNullifierHash, randomFieldElement, isFieldElement } = require('./poseidon');
+const { computeCommitment, computeNullifierHash, randomFieldElement, isFieldElement, commitmentFor, nullifierFor } = require('./poseidon');
 
 const NOTE_PREFIX = 'latheon-v5';
 
@@ -55,7 +55,8 @@ function isMasterKey(text) { try { dist.parseMasterKey(text); return true; } cat
 function generateNote(pool, keys = {}) {
   const spendKey = keys.spendKey !== undefined ? BigInt(keys.spendKey) : randomFieldElement();
   const viewKey = keys.viewKey !== undefined ? BigInt(keys.viewKey) : randomFieldElement();
-  return { spendKey, viewKey, commitment: computeCommitment(spendKey, viewKey), nullifierHash: computeNullifierHash(spendKey), note: encodeNote(pool, spendKey, viewKey) };
+  const version = pool.version || 'v7';
+  return { spendKey, viewKey, commitment: commitmentFor(version, spendKey, viewKey), nullifierHash: version === 'v8' ? nullifierFor(pool, spendKey) : computeNullifierHash(spendKey), note: encodeNote(pool, spendKey, viewKey) };
 }
 
 /** Keys of note number `index` of a master key on chain `chainId` (sdk/distribution.js, with poseidon-lite bound). */
@@ -63,12 +64,17 @@ function deriveNoteKeys(master, chainId, index) { return dist.deriveNoteKeys(pos
 
 /**
  * Keys, commitment and nullifier of notes 0 .. count-1 of a master key (what a router deposit registers, in order).
+ * The keys are the same in every generation, so one master key finds its notes in V7 and V8 pools alike. `version`
+ * chooses the commitment formula; a V8 nullifier depends on the pool, so for 'v8' nullifierHash is left out (it is
+ * filled in once the note's pool is known: findNotes, or nullifierFor(pool, spendKey)).
  */
-function deriveNotes(master, chainId, count) {
+function deriveNotes(master, chainId, count, version = 'v7') {
   const out = [];
   for (let i = 0; i < Number(count); i++) {
     const k = deriveNoteKeys(master, chainId, i);
-    out.push({ index: i, spendKey: k.spendKey, viewKey: k.viewKey, commitment: computeCommitment(k.spendKey, k.viewKey), nullifierHash: computeNullifierHash(k.spendKey) });
+    const n = { index: i, spendKey: k.spendKey, viewKey: k.viewKey, commitment: commitmentFor(version, k.spendKey, k.viewKey) };
+    if (version !== 'v8') n.nullifierHash = computeNullifierHash(k.spendKey);
+    out.push(n);
   }
   return out;
 }

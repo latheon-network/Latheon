@@ -1,7 +1,7 @@
 'use strict';
 /*
- * @latheon/sdk: the V7 pools and router on the Latheon test chain (addresses from deployments.json).
- * V6 and V5 pools are supported for withdrawals of existing notes only; see README.md.
+ * @latheon/sdk: the V8 and V7 pools and routers on the Latheon test chain (addresses from deployments.json and
+ * deployments-v8.json). V6 and V5 pools are supported for withdrawals of existing notes only; see README.md.
  */
 const constants = require('./constants');
 const poseidon = require('./poseidon');
@@ -21,7 +21,7 @@ module.exports = Object.assign({},
   { REPORT_TYPE: report.REPORT_TYPE, REPORT_VERSION: report.REPORT_VERSION, REPORT_MAX: report.REPORT_MAX, buildReport: report.buildReport, verifyReport: report.verifyReport, checkReportOnChain: report.checkReportOnChain, proofFromCallData: report.proofFromCallData },
   // constants and ABIs
   {
-    FIELD_SIZE: constants.FIELD_SIZE, VERSIONS: constants.VERSIONS, CURRENT_VERSION: constants.CURRENT_VERSION,
+    FIELD_SIZE: constants.FIELD_SIZE, VERSIONS: constants.VERSIONS, CURRENT_VERSION: constants.CURRENT_VERSION, DEPOSIT_VERSIONS: constants.DEPOSIT_VERSIONS, DISCLOSE_OF: constants.DISCLOSE_OF,
     LEVELS: constants.LEVELS, levelsOf: constants.levelsOf, ROOT_HISTORY: constants.ROOT_HISTORY, circuitOf: constants.circuitOf, feeVersion: constants.feeVersion,
     CIRCUITS: constants.CIRCUITS, PUBLIC_SIGNALS: constants.PUBLIC_SIGNALS, MAX_NOTES: constants.MAX_NOTES, MAX_WITHDRAWALS: constants.MAX_WITHDRAWALS, POOL_COUNT: constants.POOL_COUNT,
     ERC20_ABI: constants.ERC20_ABI, POOL_ABI: constants.POOL_ABI, VERIFIER_ABI: constants.VERIFIER_ABI, ROUTER_ABI: constants.ROUTER_ABI,
@@ -30,6 +30,8 @@ module.exports = Object.assign({},
   {
     hash2: poseidon.hash2, hash4: poseidon.hash4, computeCommitment: poseidon.computeCommitment, computeNullifierHash: poseidon.computeNullifierHash,
     computeDisclosureTag: poseidon.computeDisclosureTag, computeZeroCascade: poseidon.computeZeroCascade, randomFieldElement: poseidon.randomFieldElement, isFieldElement: poseidon.isFieldElement,
+    TAG_V8: poseidon.TAG_V8, computeCommitmentV8: poseidon.computeCommitmentV8, computeNullifierHashV8: poseidon.computeNullifierHashV8, computeDisclosureTagV8: poseidon.computeDisclosureTagV8,
+    poolContext: poseidon.poolContext, contextOf: poseidon.contextOf, computeExtDataHash: poseidon.computeExtDataHash, randomPaymentRef: poseidon.randomPaymentRef, commitmentFor: poseidon.commitmentFor, nullifierFor: poseidon.nullifierFor,
   },
   // notes and master keys
   {
@@ -38,7 +40,7 @@ module.exports = Object.assign({},
   },
   // registry (deployments.json)
   {
-    loadDeployments: deployments.loadDeployments, findPool: deployments.findPool, poolById: deployments.poolById, findRouter: deployments.findRouter, routerById: deployments.routerById,
+    loadDeployments: deployments.loadDeployments, mergeV8: deployments.mergeV8, findPool: deployments.findPool, poolById: deployments.poolById, findRouter: deployments.findRouter, routerById: deployments.routerById,
     routerFor: deployments.routerFor, poolForNote: deployments.poolForNote, listPools: deployments.listPools, listRouters: deployments.listRouters,
     isDepositable: deployments.isDepositable, assertDepositable: deployments.assertDepositable,
   },
@@ -51,13 +53,14 @@ module.exports = Object.assign({},
   {
     loadCircuit: prove.loadCircuit, buildWithdrawInput: prove.buildWithdrawInput, proveWithdraw: prove.proveWithdraw, checkWithdrawBinding: prove.checkWithdrawBinding,
     verifyProofLocally: prove.verifyProofLocally, verificationKeyOf: prove.verificationKeyOf, buildDiscloseInput: prove.buildDiscloseInput, proveDisclose: prove.proveDisclose,
+    buildWithdrawInputV8: prove.buildWithdrawInputV8, buildDiscloseLinkInput: prove.buildDiscloseLinkInput, proveDiscloseLink: prove.proveDiscloseLink,
   },
   // one pool
   { deposit: pool.deposit, isSpent: pool.isSpent, isKnownRoot: pool.isKnownRoot, verifyOnChain: pool.verifyOnChain, withdraw: pool.withdraw, withdrawNote: pool.withdrawNote, ROOT_RETRIES: pool.ROOT_RETRIES },
   // router
   {
     toUnits: router.toUnits, fromUnits: router.fromUnits, planDeposit: router.planDeposit, checkRouterOnChain: router.checkRouterOnChain, depositAny: router.depositAny,
-    findNotes: router.findNotes, selectNotesForAmount: router.selectNotesForAmount, buildWithdrawManyItem: router.buildWithdrawManyItem, batchItems: router.batchItems,
+    findNotes: router.findNotes, findNotesAll: router.findNotesAll, selectNotesForAmount: router.selectNotesForAmount, buildWithdrawManyItem: router.buildWithdrawManyItem, batchItems: router.batchItems,
     withdrawMany: router.withdrawMany, withdrawByAmount: router.withdrawByAmount,
   },
   // payouts to a list of recipients

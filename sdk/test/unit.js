@@ -30,13 +30,13 @@ const v7pools = sdk.listPools(reg, { version: 'v7' });
 ok('four V7 pools on the Latheon test chain: 100 / 50 / 10 / 1 LTH', v7pools.length === 4 && v7pools.map((p) => p.amount).sort((a, b) => b - a).join() === '100,50,10,1' && v7pools.every((p) => p.network === 'latheon-testnet' && p.token === 'LTH'));
 ok('V7 pools: native coin, 20 levels, withdraw_v5, fee version, denomination in base units, verifier = v7Verifier', v7pools.every((p) => p.native && p.levels === 20 && p.circuit === 'withdraw_v5' && p.feeVersion && p.denomination === BigInt(p.amount) * E18 && p.verifierAddr === ethers.getAddress(reg.networks['latheon-testnet'].v7Verifier)));
 ok('V7 pool addresses are the ones in deployments.json (checksummed)', ['0x53a11072B55761Bc5e17C5B4c150a0443A7dA6ae', '0x5A3DA32BCc848a81A3a379620120ae06DfA7C657', '0xAe33ac9C4D5Ff55D571a0a2Ae4E6e96Db006A429', '0x358A6567F8Fd54D1d70482616dd24d0FeDD2678A'].every((a) => v7pools.some((p) => p.address === a)));
-ok('only the four V7 pools and the V7 router are depositable', sdk.listPools(reg, { depositable: true }).length === 4 && sdk.listPools(reg, { depositable: true }).every((p) => p.version === 'v7') && sdk.listRouters(reg, { depositable: true }).map((r) => r.id).join() === 'latheon-testnet:LTH:v7');
-ok('every V6 and V5 pool is frozen and forgeable (withdrawals only)', sdk.listPools(reg).filter((p) => p.version !== 'v7').every((p) => p.frozen && p.forgeable && !sdk.isDepositable(p)));
+ok('only the V8 and V7 pools and routers are depositable; the V8 router comes first', sdk.listPools(reg, { depositable: true }).length === 8 && sdk.listPools(reg, { depositable: true }).every((p) => p.version === 'v8' || p.version === 'v7') && sdk.listRouters(reg, { depositable: true }).map((r) => r.id).join() === 'latheon-testnet:LTH:v8,latheon-testnet:LTH:v7');
+ok('every V6 and V5 pool is frozen and forgeable (withdrawals only)', sdk.listPools(reg).filter((p) => p.version === 'v6' || p.version === 'v5').every((p) => p.frozen && p.forgeable && !sdk.isDepositable(p)));
 ok('V6 pools: 20 levels, withdraw_v4, v6Verifier; V5 pools: 8 levels, withdraw_v3, v5Verifier', sdk.listPools(reg, { version: 'v6' }).every((p) => p.levels === 20 && p.circuit === 'withdraw_v4' && p.verifierAddr === ethers.getAddress(p.net.v6Verifier)) && sdk.listPools(reg, { version: 'v5' }).every((p) => p.levels === 8 && p.circuit === 'withdraw_v3' && !p.feeVersion && p.verifierAddr === ethers.getAddress(p.net.v5Verifier)));
 ok('V4 legacy entries are left out', reg.pools.every((p) => !p.legacy && p.version !== 'v4') && reg.config.pools.some((p) => p.legacy));
 const r7 = sdk.routerById(reg, 'latheon-testnet:LTH:v7');
 ok('V7 router: address from deployments.json, four pools largest first, denominations, chain 60531373273, relayer listed', r7 && r7.address === '0x1D1189D5399B24BB40858AEACDb649977b596Cf2' && r7.pools.map((p) => p.amount).join() === '100,50,10,1' && r7.denominations.join() === [100n, 50n, 10n, 1n].map((d) => d * E18).join() && r7.net.chainId === 60531373273 && sdk.hasRelayer(r7.net));
-ok('every router has its four pools of its own generation; pre-V7 routers are frozen', reg.routers.length === 7 && reg.routers.every((r) => r.pools.length === 4 && r.pools.every((p) => p.version === r.version)) && reg.routers.filter((r) => r.version !== 'v7').every((r) => r.frozen));
+ok('every router has its four pools of its own generation; pre-V7 routers are frozen', reg.routers.length === 8 && reg.routers.every((r) => r.pools.length === 4 && r.pools.every((p) => p.version === r.version)) && reg.routers.filter((r) => r.version !== 'v7' && r.version !== 'v8').every((r) => r.frozen));
 ok('routerFor(pool) finds the router of the same generation', sdk.routerFor(reg, v7pools[0]) === r7 && sdk.routerFor(reg, sdk.poolById(reg, 'latheon-testnet:LTH-100:v6')).version === 'v6');
 ok('findPool / findRouter are case-insensitive on the address and strict on the chain', sdk.findPool(reg, 60531373273, v7pools[0].address.toLowerCase()) === v7pools[0] && sdk.findPool(reg, 1, v7pools[0].address) === null && sdk.findRouter(reg, 60531373273, r7.address.toLowerCase()) === r7);
 ok('assertDepositable throws for V6, V5 and a flagged V7 entry, passes for V7', throws(() => sdk.assertDepositable(sdk.poolById(reg, 'latheon-testnet:LTH-100:v6')), /pre-V7/) && throws(() => sdk.assertDepositable(sdk.poolById(reg, 'ethereum-sepolia:LTH-100')), /pre-V7/) && throws(() => sdk.assertDepositable(Object.assign({}, v7pools[0], { frozen: true })), /frozen/) && !throws(() => sdk.assertDepositable(v7pools[0])));
@@ -44,8 +44,52 @@ ok('a synthetic config: a V7 entry inferred not frozen, a V6 one frozen even wit
   const cfg = { networks: { x: { chainId: 1, tokens: { T: { address: ethers.ZeroAddress, decimals: 18, native: true } }, v7Verifier: ethers.ZeroAddress, v6Verifier: ethers.ZeroAddress }, y: { chainId: 2, deprecated: true, tokens: { T: { address: ethers.ZeroAddress, decimals: 18, native: true } }, v7Verifier: ethers.ZeroAddress } },
     pools: [{ id: 'a', network: 'x', version: 'v7-native', token: 'T', amount: 1, address: ethers.ZeroAddress, deployBlock: 5 }, { id: 'b', network: 'x', version: 'v6-native', token: 'T', amount: 1, address: ethers.ZeroAddress, deployBlock: 5 }, { id: 'c', network: 'y', version: 'v7-native', token: 'T', amount: 1, address: ethers.ZeroAddress, deployBlock: 5 }] };
   const r = sdk.loadDeployments(cfg);
-  return r.pools.length === 3 && !r.pools[0].frozen && r.pools[1].frozen && r.pools[1].forgeable && r.pools[2].frozen && r.routers.length === 0 && r.pools[0].startBlock === 5;
+  const by = (id) => r.pools.find((p) => p.id === id);
+  return r.pools.length === 3 && !by('a').frozen && by('b').frozen && by('b').forgeable && by('c').frozen && r.routers.length === 0 && by('a').startBlock === 5;
 })());
+
+console.log('-- V8 (circuits/latheon_v8.circom, deployments-v8.json)');
+const P8 = FIELD;
+const tag = (t) => BigInt(ethers.keccak256(ethers.toUtf8Bytes(t))) % P8;
+ok('V8 tags are keccak256("latheon.v8.commit" / "null" / "disc") mod p and match circuits/latheon_v8.circom', sdk.TAG_V8.COMMIT === tag('latheon.v8.commit') && sdk.TAG_V8.NULL === tag('latheon.v8.null') && sdk.TAG_V8.DISC === tag('latheon.v8.disc')
+  && (() => { const src = fs.readFileSync(path.join(__dirname, '..', '..', 'circuits', 'latheon_v8.circom'), 'utf8'); return src.includes(String(sdk.TAG_V8.COMMIT)) && src.includes(String(sdk.TAG_V8.NULL)) && src.includes(String(sdk.TAG_V8.DISC)); })());
+ok('V8 commitment differs from the V7 one for the same keys; commitmentFor picks by generation', sdk.computeCommitmentV8(5n, 7n) !== sdk.computeCommitment(5n, 7n) && sdk.commitmentFor('v8', 5n, 7n) === sdk.computeCommitmentV8(5n, 7n) && sdk.commitmentFor('v7', 5n, 7n) === sdk.computeCommitment(5n, 7n));
+const pv8 = sdk.listPools(reg, { version: 'v8' });
+const v8file = require('../deployments-v8.json');
+ok('four V8 pools merged from deployments-v8.json: 100 / 50 / 10 / 1, withdraw_v6, 20 levels, v8 verifiers, depositable', pv8.length === 4 && pv8.map((p) => p.amount).join() === '100,50,10,1' && pv8.every((p) => p.circuit === 'withdraw_v6' && p.levels === 20 && p.feeVersion && sdk.isDepositable(p) && p.verifierAddr === ethers.getAddress(v8file.verifiers.withdraw) && p.discloseCircuit === 'disclose_v2' && p.discloseVerifierAddr === ethers.getAddress(v8file.verifiers.disclose) && p.discloseLinkVerifierAddr === ethers.getAddress(v8file.verifiers.discloseLink)));
+const r8 = sdk.routerById(reg, 'latheon-testnet:LTH:v8');
+ok('V8 router from deployments-v8.json with its four pools', r8 && r8.address === ethers.getAddress(v8file.routers[0].address) && r8.pools.every((p) => p.version === 'v8') && r8.version === 'v8');
+ok('the demo file is not changed by the merge (mergeV8 copies); passing deployments.json alone gives no V8', !require('../deployments.json').pools.some((p) => /v8/.test(p.version)) && sdk.loadDeployments(require('../deployments.json')).pools.every((p) => p.version !== 'v8'));
+ok('poolContext = keccak256(abi.encode("latheon.v8.ctx", chainId, pool)) mod p; differs per pool and per chain', (() => {
+  const a = pv8[0], c = sdk.contextOf(a);
+  const want = BigInt(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['string', 'uint256', 'address'], ['latheon.v8.ctx', a.net.chainId, a.address]))) % P8;
+  return c === want && c !== sdk.contextOf(pv8[1]) && c !== sdk.poolContext(421614, a.address);
+})());
+ok('V8 nullifier depends on the pool: nullifierFor(v8 pool) = Poseidon(TAG_NULL, sk, ctx); the same keys give different nullifiers in two pools', sdk.nullifierFor(pv8[0], 9n) === sdk.computeNullifierHashV8(9n, sdk.contextOf(pv8[0])) && sdk.nullifierFor(pv8[0], 9n) !== sdk.nullifierFor(pv8[1], 9n) && sdk.nullifierFor(v7pools[0], 9n) === sdk.computeNullifierHash(9n));
+const extE = { recipient: '0x' + 'ab'.repeat(20), relayer: '0x' + 'cd'.repeat(20), fee: 25n * 10n ** 16n, paymentRef: '0x' + '11'.repeat(32), destChainId: 60531373273n };
+ok('extDataHash = keccak256(abi.encode(recipient, relayer, fee, paymentRef, destChainId)) mod p', sdk.computeExtDataHash(extE) === BigInt(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address', 'uint256', 'bytes32', 'uint256'], [ethers.getAddress(extE.recipient), ethers.getAddress(extE.relayer), extE.fee, extE.paymentRef, extE.destChainId]))) % P8);
+const g8 = sdk.generateNote(pv8[2], { spendKey: 11n, viewKey: 22n });
+ok('generateNote in a V8 pool: V8 commitment and pool-bound nullifier; the note text names the pool', g8.commitment === sdk.computeCommitmentV8(11n, 22n) && g8.nullifierHash === sdk.nullifierFor(pv8[2], 11n) && sdk.decodeNote(g8.note).address === pv8[2].address);
+ok('deriveNotes: the same master gives the same keys in V7 and V8; the V8 commitment uses the V8 formula and has no nullifier yet', (() => {
+  const a = sdk.deriveNotes(77n, 60531373273, 3, 'v7'), b = sdk.deriveNotes(77n, 60531373273, 3, 'v8');
+  return a.every((x, i) => x.spendKey === b[i].spendKey && x.viewKey === b[i].viewKey && b[i].commitment === sdk.computeCommitmentV8(x.spendKey, x.viewKey) && b[i].nullifierHash === undefined && x.nullifierHash !== undefined);
+})());
+{
+  const zeros = sdk.computeZeroCascade(20);
+  const base = { version: 'v8', spendKey: 3n, viewKey: 4n, pathElements: zeros.slice(0, 20), pathIndices: new Array(20).fill(0), root: zeros[20], ctx: sdk.contextOf(pv8[0]), recipient: extE.recipient, destChainId: 60531373273 };
+  const in8 = sdk.buildWithdrawInput(base);
+  ok('buildWithdrawInput v8: public inputs root, nullifierHash (pool-bound), ctx, extDataHash; a random paymentRef when none given; ext carried but not a circuit input',
+    in8.nullifierHash === sdk.computeNullifierHashV8(3n, sdk.contextOf(pv8[0])).toString() && in8.ctx === sdk.contextOf(pv8[0]).toString() && /^0x[0-9a-f]{64}$/.test(in8.ext.paymentRef)
+    && in8.extDataHash === sdk.computeExtDataHash(in8.ext).toString() && !Object.keys(in8).includes('ext') && in8.recipient === undefined);
+  ok('buildWithdrawInput v8 refuses: no destChainId, a bad paymentRef, a fee without relayer, a nullifier of another pool',
+    throws(() => sdk.buildWithdrawInput(Object.assign({}, base, { destChainId: undefined })), /destChainId/) && throws(() => sdk.buildWithdrawInput(Object.assign({}, base, { paymentRef: '0x12' })), /paymentRef/)
+    && throws(() => sdk.buildWithdrawInput(Object.assign({}, base, { fee: 1n })), /relayer/) && throws(() => sdk.buildWithdrawInput(Object.assign({}, base, { nullifierHash: sdk.nullifierFor(pv8[1], 3n) })), /nullifierHash/));
+  const d8 = sdk.buildDiscloseInput({ spendKey: 3n, viewKey: 4n, auditorNonce: 99n, version: 'v8' });
+  const l8 = sdk.buildDiscloseLinkInput({ spendKey: 3n, viewKey: 4n, ctx: sdk.contextOf(pv8[0]), auditorNonce: 99n });
+  ok('disclose_v2 input: V8 commitment and tag, no nullifier; disclose_link input: the same commitment and tag plus the pool-bound nullifier', d8.commitment === sdk.computeCommitmentV8(3n, 4n).toString() && d8.disclosureTag === sdk.computeDisclosureTagV8(4n, 99n).toString() && d8.nullifierHash === undefined
+    && l8.commitment === d8.commitment && l8.disclosureTag === d8.disclosureTag && l8.nullifierHash === in8.nullifierHash);
+}
+ok('V8 circuits pinned to the dev-ceremony commit with the SHA-256 of docs/dev-ceremony-v8.md', sdk.CIRCUITS.withdraw_v6.zkeySha256 === '967c4e8b90b427bd22ab14df138631de1ca680cc6f97548982bec3b6b238b81c' && sdk.CIRCUITS.disclose_v2.zkeySha256 === '2062e44c6685212eb87e19f3b34cf7943a4adeee1bfec6642ccf2250a1b751e8' && sdk.CIRCUITS.disclose_link.zkeySha256 === '3d010b4ce0b0ea7bfb5eeb63a57c4f6fb89083468815f7e817ee21c1e8049e97' && /c8c35ff043a5c7a8567f3931ecc88ac18d18ce10/.test(sdk.CIRCUITS.withdraw_v6.zkeyUrl));
 ok('sdk/deployments.json and demo/deployments.json are the same file', fs.readFileSync(path.join(__dirname, '..', 'deployments.json'), 'utf8') === fs.readFileSync(path.join(__dirname, '..', '..', 'demo', 'deployments.json'), 'utf8'));
 
 console.log('-- notes');
@@ -164,7 +208,8 @@ ok('assertDepositable refuses the frozen V5 router', throws(() => sdk.assertDepo
   try { await sdk.withdrawNote(fakeSigner, p100, note.note.replace(p100.address, sdk.poolById(reg, 'latheon-testnet:LTH-50:v7').address), recipient); } catch (e) { d = /another pool/.test(e.message); }
   ok('deposit into a V6 pool, depositAny through a V5 router, withdrawNote without a provider, a note of another pool: all refused', a && b && c && d);
   let e1 = false, e2 = false;
-  try { await sdk.findNotes({ getBlockNumber: async () => 0 }, r7, sdk.formatMasterKey(1, r7.address, 5n)); } catch (e) { e1 = /belongs to router/.test(e.message); }
+  try { await sdk.findNotes({ getBlockNumber: async () => 0 }, r7, sdk.formatMasterKey(1, r7.address, 5n)); } catch (e) { e1 = /belongs to chain/.test(e.message); }
+  try { await sdk.findNotes({ getBlockNumber: async () => 0 }, r7, sdk.formatMasterKey(r7.net.chainId, sdk.routerById(reg, 'latheon-testnet:LTH:v6').address, 5n)); e1 = false; } catch (e) { e1 = e1 && /belongs to router/.test(e.message); }
   try { await sdk.loadCircuit('withdraw_v5', { dir: '/nonexistent' }); } catch (e) { e2 = /not found/.test(e.message); }
   ok('findNotes refuses a master key of another router; loadCircuit names the missing directory', e1 && e2);
   try { await sdk.loadCircuit('withdraw_v5', { wasm: Buffer.from('x'), zkey: Buffer.from('y') }); ok('loadCircuit refuses files that do not match the published hash', false); } catch (e) { ok('loadCircuit refuses files that do not match the published hash', /SHA-256/.test(e.message)); }

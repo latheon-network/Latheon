@@ -12,7 +12,8 @@ const path = require('path');
 const crypto = require('crypto');
 const { getAddress, ZeroAddress } = require('ethers');
 const { CIRCUITS, PUBLIC_SIGNALS, circuitOf, levelsOf, feeVersion, FIELD_SIZE } = require('./constants');
-const { computeNullifierHash, computeCommitment, computeDisclosureTag, isFieldElement } = require('./poseidon');
+const { computeNullifierHash, computeCommitment, computeDisclosureTag, isFieldElement,
+  computeCommitmentV8, computeNullifierHashV8, computeDisclosureTagV8, computeExtDataHash, randomPaymentRef } = require('./poseidon');
 
 let snarkjsModule = null;
 function snarkjs() {
@@ -81,6 +82,7 @@ const addrField = (a) => BigInt(getAddress(a));
  */
 function buildWithdrawInput(p) {
   const version = p.version || 'v7';
+  if (version === 'v8') return buildWithdrawInputV8(p);
   const levels = levelsOf(version);
   if (!Array.isArray(p.pathElements) || p.pathElements.length !== levels) throw new Error(`pathElements must have ${levels} entries for ${version}`);
   if (!Array.isArray(p.pathIndices) || p.pathIndices.length !== levels) throw new Error(`pathIndices must have ${levels} entries for ${version}`);
@@ -110,6 +112,45 @@ function buildWithdrawInput(p) {
   return input;
 }
 
+/**
+ * The circuit input of a V8 withdrawal (withdraw_v6).
+ * @param {object} p
+ *   spendKey, viewKey, pathElements, pathIndices, root
+ *   ctx            the pool's context (contextOf(pool) or pool.ctx() on chain)
+ *   recipient      address paid DENOMINATION - fee
+ *   relayer, fee   address paid `fee` (ZeroAddress and 0 when there is no relayer)
+ *   paymentRef     32-byte hex payment reference; random when not given (every withdrawal carries one, §5 of docs/v8-design.md)
+ *   destChainId    the pool's chain id (V8 pools accept only their own chain)
+ * @returns {object} the snarkjs input, plus a non-input field `ext` (what the pool must be called with)
+ */
+function buildWithdrawInputV8(p) {
+  const levels = levelsOf('v8');
+  if (!Array.isArray(p.pathElements) || p.pathElements.length !== levels) throw new Error(`pathElements must have ${levels} entries for v8`);
+  if (!Array.isArray(p.pathIndices) || p.pathIndices.length !== levels) throw new Error(`pathIndices must have ${levels} entries for v8`);
+  if (!p.pathIndices.every((b) => b === 0 || b === 1 || b === 0n || b === 1n || b === '0' || b === '1')) throw new Error('pathIndices must be bits');
+  const spendKey = asField(p.spendKey, 'spendKey'), viewKey = asField(p.viewKey, 'viewKey');
+  const root = asField(p.root, 'root'), ctx = asField(p.ctx, 'ctx');
+  const nullifierHash = computeNullifierHashV8(spendKey, ctx);
+  if (p.nullifierHash !== undefined && asField(p.nullifierHash, 'nullifierHash') !== nullifierHash) throw new Error('nullifierHash does not match spendKey and ctx');
+  if (!p.recipient || getAddress(p.recipient) === ZeroAddress) throw new Error('recipient is required (the pool refuses the zero address)');
+  if (p.destChainId === undefined) throw new Error('destChainId (the pool\'s chain id) is required for V8');
+  const relayer = p.relayer ? getAddress(p.relayer) : ZeroAddress;
+  const fee = p.fee !== undefined ? BigInt(p.fee) : 0n;
+  if (fee < 0n || fee >= FIELD_SIZE) throw new Error('fee out of range');
+  if (fee > 0n && relayer === ZeroAddress) throw new Error('A fee needs a relayer address (the pool refuses "Fee without relayer")');
+  const paymentRef = p.paymentRef !== undefined ? p.paymentRef : randomPaymentRef();
+  if (!/^0x[0-9a-fA-F]{64}$/.test(String(paymentRef))) throw new Error('paymentRef must be 32 bytes of hex (0x + 64 hex digits)');
+  const ext = { recipient: getAddress(p.recipient), relayer, fee, paymentRef: String(paymentRef).toLowerCase(), destChainId: BigInt(p.destChainId) };
+  const input = {
+    root: root.toString(), nullifierHash: nullifierHash.toString(), ctx: ctx.toString(), extDataHash: computeExtDataHash(ext).toString(),
+    spendKey: spendKey.toString(), viewKey: viewKey.toString(),
+    pathElements: p.pathElements.map((x) => asField(x, 'pathElement').toString()),
+    pathIndices: p.pathIndices.map((b) => Number(b)),
+  };
+  Object.defineProperty(input, 'ext', { value: ext, enumerable: false });   // not a circuit input; carried to the proof
+  return input;
+}
+
 /** snarkjs's exportSolidityCallData string -> { pA, pB, pC, pubSignals } (0x-hex strings, as the contracts and the relayer take them; compare with BigInt()). */
 async function toCallData(proof, publicSignals) {
   const [pA, pB, pC, pubSignals] = JSON.parse('[' + (await snarkjs().groth16.exportSolidityCallData(proof, publicSignals)) + ']');
@@ -123,6 +164,13 @@ async function toCallData(proof, publicSignals) {
  * @returns {Promise<{pA, pB, pC, pubSignals, proof, publicSignals, version}>}
  */
 async function proveWithdraw(input, circuit) {
+  if (input.extDataHash !== undefined) {
+    if (circuit.name !== 'withdraw_v6') throw new Error(`Circuit ${circuit.name} does not fit this input (withdraw_v6)`);
+    const { proof, publicSignals } = await snarkjs().groth16.fullProve(input, circuit.wasm, circuit.zkey);
+    const cd = await toCallData(proof, publicSignals);
+    checkWithdrawBinding(cd.pubSignals, input, 'withdraw_v6');
+    return Object.assign(cd, { proof, publicSignals, version: 'v8', ext: input.ext });
+  }
   const version = input.relayer !== undefined ? (circuit.name === 'withdraw_v4' ? 'v6' : 'v7') : 'v5';
   const expected = input.relayer !== undefined ? ['withdraw_v5', 'withdraw_v4'] : ['withdraw_v3'];
   if (!expected.includes(circuit.name)) throw new Error(`Circuit ${circuit.name} does not fit this input (${expected.join(' or ')})`);
@@ -156,19 +204,43 @@ async function verifyProofLocally(key, proofResult) {
   return snarkjs().groth16.verify(vk, proofResult.publicSignals, proofResult.proof);
 }
 
-/** Circuit input of a disclosure: proves that `commitment` belongs to the holder of viewKey, tagged for one auditor code. */
-function buildDiscloseInput({ spendKey, viewKey, auditorNonce }) {
+/**
+ * Circuit input of a disclosure: proves that `commitment` belongs to the holder of viewKey, tagged for one auditor code.
+ * version 'v8' builds the disclose_v2 input (tagged hashes); anything else the disclose input of V5–V7 notes.
+ */
+function buildDiscloseInput({ spendKey, viewKey, auditorNonce, version }) {
   const sk = asField(spendKey, 'spendKey'), vk = asField(viewKey, 'viewKey'), nonce = asField(auditorNonce, 'auditorNonce');
+  if (version === 'v8') return { commitment: computeCommitmentV8(sk, vk).toString(), disclosureTag: computeDisclosureTagV8(vk, nonce).toString(), auditorNonce: nonce.toString(), spendKey: sk.toString(), viewKey: vk.toString() };
   return { commitment: computeCommitment(sk, vk).toString(), disclosureTag: computeDisclosureTag(vk, nonce).toString(), auditorNonce: nonce.toString(), spendKey: sk.toString(), viewKey: vk.toString() };
 }
 
 /** Makes a disclosure proof: { pA, pB, pC, pubSignals: [commitment, disclosureTag, auditorNonce], proof, publicSignals }. */
 async function proveDisclose(input, circuit) {
-  if (circuit.name !== 'disclose') throw new Error('Circuit ' + circuit.name + ' is not the disclose circuit');
+  if (circuit.name !== 'disclose' && circuit.name !== 'disclose_v2') throw new Error('Circuit ' + circuit.name + ' is not a disclose circuit');
   const { proof, publicSignals } = await snarkjs().groth16.fullProve(input, circuit.wasm, circuit.zkey);
   const cd = await toCallData(proof, publicSignals);
   PUBLIC_SIGNALS.disclose.forEach((n, i) => { if (BigInt(cd.pubSignals[i]) !== BigInt(input[n])) throw new Error(`Public signal ${n} is not bound as requested`); });
   return Object.assign(cd, { proof, publicSignals });
 }
 
-module.exports = { loadCircuit, buildWithdrawInput, proveWithdraw, checkWithdrawBinding, verificationKeyOf, verifyProofLocally, buildDiscloseInput, proveDisclose, toCallData, REPO_BUILD_DIR };
+/**
+ * Circuit input of a V8 link proof (disclose_link): this deposit and this nullifier belong to one note in the pool whose
+ * context is `ctx`, tagged for one auditor code. For a receipt or for reserves. It reveals the note's nullifier: an
+ * auditor who gets it for an unspent note will recognise its withdrawal later (docs/v8-design.md §5).
+ */
+function buildDiscloseLinkInput({ spendKey, viewKey, ctx, auditorNonce }) {
+  const sk = asField(spendKey, 'spendKey'), vk = asField(viewKey, 'viewKey'), c = asField(ctx, 'ctx'), nonce = asField(auditorNonce, 'auditorNonce');
+  return { commitment: computeCommitmentV8(sk, vk).toString(), nullifierHash: computeNullifierHashV8(sk, c).toString(), ctx: c.toString(), auditorNonce: nonce.toString(),
+    disclosureTag: computeDisclosureTagV8(vk, nonce).toString(), spendKey: sk.toString(), viewKey: vk.toString() };
+}
+
+/** Makes a disclose_link proof: { pA, pB, pC, pubSignals: [commitment, nullifierHash, ctx, auditorNonce, disclosureTag], proof, publicSignals }. */
+async function proveDiscloseLink(input, circuit) {
+  if (circuit.name !== 'disclose_link') throw new Error('Circuit ' + circuit.name + ' is not disclose_link');
+  const { proof, publicSignals } = await snarkjs().groth16.fullProve(input, circuit.wasm, circuit.zkey);
+  const cd = await toCallData(proof, publicSignals);
+  PUBLIC_SIGNALS.disclose_link.forEach((n, i) => { if (BigInt(cd.pubSignals[i]) !== BigInt(input[n])) throw new Error(`Public signal ${n} is not bound as requested`); });
+  return Object.assign(cd, { proof, publicSignals });
+}
+
+module.exports = { buildWithdrawInputV8, buildDiscloseLinkInput, proveDiscloseLink, loadCircuit, buildWithdrawInput, proveWithdraw, checkWithdrawBinding, verificationKeyOf, verifyProofLocally, buildDiscloseInput, proveDisclose, toCallData, REPO_BUILD_DIR };

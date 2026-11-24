@@ -1,12 +1,12 @@
 'use strict';
 /*
- * One fixed pool: deposit (V7 only), and withdraw with a proof bound to recipient, relayer and fee (V7/V6) or to the
- * recipient (V5, withdrawals of existing notes only).
+ * One fixed pool: deposit (V8 and V7), and withdraw with a proof bound to recipient, relayer, fee, payment reference and
+ * chain (V8), to recipient, relayer and fee (V7/V6) or to the recipient (V5, withdrawals of existing notes only).
  */
 const { Contract, ZeroAddress, getAddress } = require('ethers');
 const { POOL_ABI, VERIFIER_ABI, ERC20_ABI, ROOT_HISTORY } = require('./constants');
 const { assertDepositable } = require('./deployments');
-const { computeNullifierHash, computeCommitment } = require('./poseidon');
+const { computeNullifierHash, computeCommitment, commitmentFor, nullifierFor, contextOf } = require('./poseidon');
 const { generateNote, decodeNote } = require('./notes');
 const { getProofInputsForCommitment, fetchSpent } = require('./merkleTree');
 const { loadCircuit, buildWithdrawInput, proveWithdraw } = require('./prove');
@@ -62,9 +62,9 @@ async function isSpent(provider, pool, keyOrNote, opts = {}) {
   let nh;
   if (keyOrNote && typeof keyOrNote === 'object') {
     if (keyOrNote.nullifierHash !== undefined) nh = BigInt(keyOrNote.nullifierHash);
-    else if (keyOrNote.spendKey !== undefined) nh = computeNullifierHash(keyOrNote.spendKey);
+    else if (keyOrNote.spendKey !== undefined) nh = nullifierFor(pool, keyOrNote.spendKey);
     else throw new Error('isSpent: pass a note, a spendKey or { nullifierHash }');
-  } else nh = computeNullifierHash(keyOrNote);
+  } else nh = nullifierFor(pool, keyOrNote);
   if (opts.direct) return poolContract(pool, providerOf(provider)).nullifierHashes(nh);
   const spent = opts.spent || await fetchSpent(providerOf(provider), pool, opts.scanOpts);
   return spent.has(nh);
@@ -91,6 +91,17 @@ async function withdraw(signer, pool, proof, recipient, opts = {}) {
   const [root, nullifierHash] = proof.pubSignals;
   const to = getAddress(recipient);
   const overrides = Object.assign(await feeOverrides(signer.provider), opts.overrides || {});
+  if (pool.version === 'v8') {
+    // the proof carries the extData it was made for (proveWithdraw); the call must repeat it exactly
+    const ext = proof.ext;
+    if (!ext) throw new Error('This V8 proof carries no extData (make it with proveWithdraw)');
+    if (ext.recipient !== to) throw new Error('The proof was made for recipient ' + ext.recipient);
+    const args8 = [[proof.pA, proof.pB, proof.pC], root, nullifierHash, [ext.recipient, ext.relayer, ext.fee, ext.paymentRef, ext.destChainId]];
+    if (opts.simulate !== false) await c.withdraw.staticCall(...args8);
+    const tx8 = await c.withdraw(...args8, overrides);
+    const receipt8 = await tx8.wait();
+    return { txHash: receipt8.hash, receipt: receipt8 };
+  }
   const args = pool.feeVersion
     ? [proof.pA, proof.pB, proof.pC, root, nullifierHash, to, opts.relayer || ZeroAddress, opts.fee !== undefined ? BigInt(opts.fee) : 0n]
     : [proof.pA, proof.pB, proof.pC, root, nullifierHash, to];
@@ -126,22 +137,23 @@ async function withdrawNote(signerOrProvider, pool, note, recipient, opts = {}) 
   const log = opts.log || (() => {});
   const to = getAddress(recipient);
   const circuit = opts.circuit || await loadCircuit(pool.circuit, opts.circuitOpts);
-  const nullifierHash = computeNullifierHash(n.spendKey);
+  const nullifierHash = nullifierFor(pool, n.spendKey);
   const read = poolContract(pool, provider);
 
   for (let attempt = 1; ; attempt++) {
     try {
       const scanOpts = Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {});
-      const { leafIndex, pathElements, pathIndices, root } = await getProofInputsForCommitment(provider, pool, computeCommitment(n.spendKey, n.viewKey), scanOpts);
+      const { leafIndex, pathElements, pathIndices, root } = await getProofInputsForCommitment(provider, pool, commitmentFor(pool.version, n.spendKey, n.viewKey), scanOpts);
       log(`Found deposit at leaf ${leafIndex} of ${pool.id || pool.address}`);
       // spent or not is read from all the pool's withdrawals, not asked about this note (see fetchSpent)
       if ((await fetchSpent(provider, pool, scanOpts)).has(nullifierHash)) throw new Error('This note is already spent');
       if (!(await read.isKnownRoot(root))) throw Object.assign(new Error('Unknown root'), { staleRoot: true });
-      const input = buildWithdrawInput({ version: pool.version, spendKey: n.spendKey, viewKey: n.viewKey, pathElements, pathIndices, root, nullifierHash, recipient: to, relayer: opts.relayer, fee: opts.fee });
+      const input = buildWithdrawInput({ version: pool.version, spendKey: n.spendKey, viewKey: n.viewKey, pathElements, pathIndices, root, nullifierHash, recipient: to, relayer: opts.relayer, fee: opts.fee,
+        ctx: pool.version === 'v8' ? contextOf(pool) : undefined, paymentRef: opts.paymentRef, destChainId: pool.net.chainId });
       const proof = await proveWithdraw(input, circuit);
       if (pool.verifierAddr && opts.verifyOnChain !== false && !(await verifyOnChain(provider, pool, proof))) throw new Error('The verifier contract rejects this proof');
       if (viaRelayer) {
-        const r = await relayWithdraw(pool, proof, to, { relayer: opts.relayer, fee: opts.fee, fetch: opts.fetch, delay: opts.delay });
+        const r = await relayWithdraw(pool, proof, to, { relayer: opts.relayer, fee: opts.fee, paymentRef: proof.ext && proof.ext.paymentRef, fetch: opts.fetch, delay: opts.delay });
         // opts.delay: accepted, not sent yet. Keep the id (it shows the state and can cancel); see relayScheduled().
         if (r.scheduled) return { scheduled: true, id: r.id, notAfter: r.notAfter, proof, leafIndex, relayed: true };
         return { txHash: r.tx, gasUsed: r.gasUsed, proof, leafIndex, relayed: true };
@@ -150,7 +162,7 @@ async function withdrawNote(signerOrProvider, pool, note, recipient, opts = {}) 
       return { txHash, receipt, proof, leafIndex, relayed: false };
     } catch (e) {
       if (attempt >= ROOT_RETRIES || !isStaleRoot(e)) throw e;
-      log(`The pool no longer knows the root of this proof (${ROOT_HISTORY[pool.version]} newer deposits); proving again (attempt ${attempt + 1} of ${ROOT_RETRIES})`);
+      log(`The pool no longer knows the root of this proof (more than ${ROOT_HISTORY[pool.version]} newer deposits); proving again (attempt ${attempt + 1} of ${ROOT_RETRIES})`);
     }
   }
 }

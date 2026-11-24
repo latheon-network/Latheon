@@ -1,7 +1,7 @@
 {
   "name": "@latheon/sdk",
-  "version": "0.2.0",
-  "description": "JavaScript SDK for Latheon's V7 shielded pools and distribution router: notes and master keys, 20-level Merkle paths, withdraw_v5 proofs, deposits, withdraw and withdrawMany (recipient, relayer and fee bound into the proof).",
+  "version": "0.3.0",
+  "description": "JavaScript SDK for Latheon's V8 and V7 shielded pools and distribution routers: notes and master keys, 20-level Merkle paths, withdraw_v6 and withdraw_v5 proofs, deposits, withdraw and withdrawMany (recipient, relayer, fee and, in V8, payment reference and chain bound into the proof), disclose_v2 and disclose_link proofs.",
   "main": "src/index.js",
   "type": "commonjs",
   "license": "MIT",
@@ -14,7 +14,8 @@
     "test:proof": "node test/proof.js",
     "test:e2e": "node test/e2e.js",
     "test:report": "node test/report.js",
-    "test:all": "node test/unit.js && node test/proof.js && node test/report.js && node test/e2e.js"
+    "test:all": "node test/unit.js && node test/proof.js && node test/report.js && node test/e2e.js && node test/e2e-v8.js",
+    "test:e2e-v8": "node test/e2e-v8.js"
   },
   "dependencies": {
     "ethers": "^6.13.0",
@@ -31,9 +32,17 @@
   "devDependencies": {
     "ganache": "7.9.2",
     "snarkjs": "0.7.6",
-    "solc": "0.8.37"
+    "solc": "0.8.37",
+    "solc-0839": "npm:solc@0.8.39"
   },
-  "keywords": ["latheon", "zero-knowledge", "privacy", "ethereum", "merkle-tree", "groth16"],
+  "keywords": [
+    "latheon",
+    "zero-knowledge",
+    "privacy",
+    "ethereum",
+    "merkle-tree",
+    "groth16"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/latheon-network/latheon.git"
