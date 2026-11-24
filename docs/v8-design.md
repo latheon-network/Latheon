@@ -94,6 +94,8 @@ From `THREAT-MODEL.md` §8.5 and `docs/self-review-2026-11-06.md`:
 - New pools V8 and a router V8; V7 stays for withdrawals only (frozen for deposits in the interface).
 - New note string prefix (for example `latheon-v8:`); master keys stay (derivation unchanged; notes found per pool).
 - Demo, SDK, relayer, payout files and disclosure reports learn V8 next to V7. The disclosure report keeps layer 1 and 1b for V7 notes and uses `disclose_link` for V8 notes.
+- Requirement (decided 14 November 2026): a V7 master key and V7 notes stay usable after V8 is out. The same master key finds the user's V7 notes and V8 notes; nothing the user saved for V7 becomes worthless.
+- Demo "Move to V8" (planned with V8): withdraw V7 notes and deposit the same amounts into V8 from the same master key in one flow, through the relayer by default. A move is an ordinary withdrawal followed by an ordinary deposit, so it is public that some V7 note left and some V8 deposit arrived; with delayed sending the two are not linked by time. It cannot be done for the user without their keys, so there is no automatic transfer.
 
 ## 10. Tests and review before any deployment
 
@@ -123,6 +125,11 @@ Decided by Vladimir on 8 November 2026: see §13.
 2. Final circuits and their tests; constraint and time measurements; under-constraint tools.
 3. Contracts V8 and their tests; gas on a local chain.
 4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`.
+
+## 12a. Ideas after V8 (not in this revision)
+
+- Payment names (24 November 2026, idea only): a name a payer can send to, so that the payment lands in a shielded pool for the named person instead of at a public address. It needs a way to deliver a note to someone else, which V7 and this draft do not have, and that delivery is exactly the step where §8 (stealth addresses) and §11 question 6 apply. A plain public name registry is not planned: it would permanently link a label to an address.
+- Kohaku plugin interface (Ethereum Foundation wallet privacy framework; shield, unshield, balance): an adapter in the SDK after V8, decided 23 November 2026.
 
 ## 13. Decisions (8 November 2026)
 
