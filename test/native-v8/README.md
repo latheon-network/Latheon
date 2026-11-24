@@ -12,6 +12,8 @@ CIRCOM=/path/to/circom-2.2.3 npm test      # about 15 minutes on 2 vCPUs
 
 Exit code 0 means every check passed.
 
+`DEV_KEYS=1 npm test` runs the same checks with the committed development keys and verifier instead (`circuits/build/withdraw_v6`, `contracts/WithdrawVerifierV6.sol`, `docs/dev-ceremony-v8.md`): the set that gets deployed. No circom needed then. Passed on 24 November 2026 (56 checks).
+
 ## What is checked
 
 - **Compiler:** the V8 contracts compile with solc 0.8.39 (pinned in their pragma) without warnings.

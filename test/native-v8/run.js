@@ -77,16 +77,25 @@ contract RejectingNativePool {
 async function main() {
   const results = [];
   const rec = (name, ok, note) => { results.push(ok); console.log((ok ? 'PASS ' : 'FAIL ') + name + (note ? '   [' + note + ']' : '')); };
-  if (!process.env.CIRCOM || !fs.existsSync(process.env.CIRCOM)) throw new Error('Set CIRCOM to the circom 2.2.3 binary.');
-
-  // ---- circuit, throwaway keys, verifier
-  console.log('Building withdraw_v6 and THROWAWAY keys...');
-  const lib = path.join(OUT, 'lib'); fs.mkdirSync(lib);
-  fs.symlinkSync(path.join(__dirname, 'node_modules', 'circomlib', 'circuits'), path.join(lib, 'circomlib'));
-  execFileSync(process.env.CIRCOM, [path.join(ROOT, 'circuits', 'withdraw_v6.circom'), '--r1cs', '--wasm', '-l', lib, '-o', OUT], { encoding: 'utf8' });
-  const wasm = path.join(OUT, 'withdraw_v6_js', 'withdraw_v6.wasm'), zkey = path.join(OUT, 'withdraw_v6.zkey');
-  await quiet(() => snarkjs.zKey.newZKey(path.join(OUT, 'withdraw_v6.r1cs'), path.join(ROOT, 'circuits', 'ptau', 'pot14_final.ptau'), zkey));
-  const verifierSrc = await snarkjs.zKey.exportSolidityVerifier(zkey, { groth16: read(path.join(__dirname, 'node_modules', 'snarkjs', 'templates', 'verifier_groth16.sol.ejs')) });
+  // DEV_KEYS=1: use the committed development keys (circuits/build/withdraw_v6, contracts/WithdrawVerifierV6.sol, made in
+  // docs/dev-ceremony-v8.md) instead of throwaway ones; this is the set that gets deployed.
+  const DEV = process.env.DEV_KEYS === '1';
+  let wasm, zkey, verifierSrc, verifierName;
+  if (DEV) {
+    console.log('Using the committed development keys of withdraw_v6...');
+    wasm = path.join(ROOT, 'circuits', 'build', 'withdraw_v6', 'withdraw_v6.wasm'); zkey = path.join(ROOT, 'circuits', 'build', 'withdraw_v6', 'withdraw_v6_final.zkey');
+    verifierSrc = read(path.join(ROOT, 'contracts', 'WithdrawVerifierV6.sol')); verifierName = 'WithdrawVerifierV6';
+  } else {
+    if (!process.env.CIRCOM || !fs.existsSync(process.env.CIRCOM)) throw new Error('Set CIRCOM to the circom 2.2.3 binary (or DEV_KEYS=1 for the committed keys).');
+    console.log('Building withdraw_v6 and THROWAWAY keys...');
+    const lib = path.join(OUT, 'lib'); fs.mkdirSync(lib);
+    fs.symlinkSync(path.join(__dirname, 'node_modules', 'circomlib', 'circuits'), path.join(lib, 'circomlib'));
+    execFileSync(process.env.CIRCOM, [path.join(ROOT, 'circuits', 'withdraw_v6.circom'), '--r1cs', '--wasm', '-l', lib, '-o', OUT], { encoding: 'utf8' });
+    wasm = path.join(OUT, 'withdraw_v6_js', 'withdraw_v6.wasm'); zkey = path.join(OUT, 'withdraw_v6.zkey');
+    await quiet(() => snarkjs.zKey.newZKey(path.join(OUT, 'withdraw_v6.r1cs'), path.join(ROOT, 'circuits', 'ptau', 'pot14_final.ptau'), zkey));
+    verifierSrc = await snarkjs.zKey.exportSolidityVerifier(zkey, { groth16: read(path.join(__dirname, 'node_modules', 'snarkjs', 'templates', 'verifier_groth16.sol.ejs')) });
+    verifierName = 'Groth16Verifier';
+  }
 
   console.log('Compiling contracts with solc ' + solc.version() + '...');
   const sources = {
@@ -108,7 +117,7 @@ async function main() {
   rec('V8 contracts compile with solc 0.8.39 and no warnings', warnings.length === 0, warnings.map((w) => w.message).join('; ').slice(0, 120));
   const K = (f, n) => out.contracts['contracts/' + f][n];
   const C = { Pool: K('Pool.sol', 'LatheonShieldedPoolV8Native'), Dist: K('Dist.sol', 'LatheonDistributionPoolV8Native'), Poseidon: K('PoseidonT3.sol', 'PoseidonT3'),
-    Ver: K('Verifier.sol', 'Groth16Verifier'), Refusing: K('Doubles.sol', 'RefusingRecipient'), Burner: K('Doubles.sol', 'GasBurner'), Bomb: K('Doubles.sol', 'ReturnBomb'),
+    Ver: K('Verifier.sol', verifierName), Refusing: K('Doubles.sol', 'RefusingRecipient'), Burner: K('Doubles.sol', 'GasBurner'), Bomb: K('Doubles.sol', 'ReturnBomb'),
     Busy: K('Doubles.sol', 'BusyRecipient'), Hungry: K('Doubles.sol', 'HungryRecipient'), Reenter: K('Doubles.sol', 'ReenteringRecipient'), Rejecting: K('Doubles.sol', 'RejectingNativePool'),
     Timelock: out.contracts['@openzeppelin/contracts/governance/TimelockController.sol'].TimelockController };
   const slotOf = (c, label) => Number(c.storageLayout.storage.find((s) => s.label === label).slot);

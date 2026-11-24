@@ -146,7 +146,7 @@ Decided by Vladimir on 8 November 2026: see §13.
 1. Answers to §11 from the outside review; this document updated.
 2. Final circuits and their tests; constraint and time measurements; under-constraint tools. — done 24 November 2026 (except the further under-constraint tools).
 3. Contracts V8 and their tests; gas on a local chain. — native-coin pool and router done 24 November 2026 (`contracts/LatheonShieldedPoolV8Native.sol`, `LatheonDistributionPoolV8Native.sol`, `ILatheonV8.sol`; `test/native-v8`, 56 checks with real proofs). ERC-20 variants not written (not needed on the test chain; the ERC-20 items of §8 stay open for them).
-4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`.
+4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`. — development keys made 24 November 2026 (`docs/dev-ceremony-v8.md`); deployment next.
 
 ## 12a. Ideas after V8 (not in this revision)
 
