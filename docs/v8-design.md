@@ -1,6 +1,6 @@
 # V8: one circuit and contract revision (design draft, 7 November 2026)
 
-Status: being built. The final V8 circuits and the native-coin contracts exist since 24 November 2026 (`circuits/withdraw_v6.circom`, `disclose_v2.circom`, `disclose_link.circom`, shared `latheon_v8.circom`; tests `test/circuits-v8`); contracts `LatheonShieldedPoolV8Native` and `LatheonDistributionPoolV8Native`, tests `test/native-v8`); keys and deployment are not done yet, and nothing is deployed. The questions in §11 are still open and still meant for an outside review; work did not wait for one because none is arranged. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
+Status: being built. The final V8 circuits and the native-coin contracts exist since 24 November 2026 and are deployed on the test chain (not yet in the demo) (`circuits/withdraw_v6.circom`, `disclose_v2.circom`, `disclose_link.circom`, shared `latheon_v8.circom`; tests `test/circuits-v8`); contracts `LatheonShieldedPoolV8Native` and `LatheonDistributionPoolV8Native`, tests `test/native-v8`); development keys made (`docs/dev-ceremony-v8.md`); deployed on the test chain the same day. The questions in §11 are still open and still meant for an outside review; work did not wait for one because none is arranged. Decided on 8 November 2026 (§13): no association set in V8, a payment reference in every withdrawal, a deposit pause for the test chain held by a timelocked multisig. Testnet only; no audit; the V7 pools stay as they are.
 
 ## 1. Why one revision
 
@@ -146,7 +146,7 @@ Decided by Vladimir on 8 November 2026: see §13.
 1. Answers to §11 from the outside review; this document updated.
 2. Final circuits and their tests; constraint and time measurements; under-constraint tools. — done 24 November 2026 (except the further under-constraint tools).
 3. Contracts V8 and their tests; gas on a local chain. — native-coin pool and router done 24 November 2026 (`contracts/LatheonShieldedPoolV8Native.sol`, `LatheonDistributionPoolV8Native.sol`, `ILatheonV8.sol`; `test/native-v8`, 56 checks with real proofs). ERC-20 variants not written (not needed on the test chain; the ERC-20 items of §8 stay open for them).
-4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`. — development keys made 24 November 2026 (`docs/dev-ceremony-v8.md`); deployment next.
+4. Development ceremony; deployment on the test chain; SDK, demo, relayer; live runs recorded in `STATUS.md`. — development keys made and deployed on the test chain 24 November 2026, smoke test with real proofs passed (`STATUS.md` §4, addresses in `sdk/deployments-v8.json`); SDK, demo and relayer next.
 
 ## 12a. Ideas after V8 (not in this revision)
 

@@ -1,0 +1,139 @@
+{
+ "note": "V8 contracts on the Latheon test chain (testnet only, development keys, not reviewed). Not used by the demo yet; the demo reads deployments.json.",
+ "network": {
+  "id": "latheon-testnet",
+  "chainId": 60531373273,
+  "rpcUrl": "https://rpc.testnet.latheon.xyz",
+  "explorerUrl": "https://explorer.testnet.latheon.xyz",
+  "poseidon": "0x8caC8633D6399cDe24d58e1c42cfc55ab00830CF"
+ },
+ "version": "v8-native",
+ "verifiers": {
+  "withdraw": "0xa31fc230f5017663C5A86B4D637f9247A3313A93",
+  "disclose": "0xc111fF19d94490957638d677bC69F02DbA9683C6",
+  "discloseLink": "0xD56e01bB35bDCeFD7A8BE65158b2fEd500aab805"
+ },
+ "guardian": {
+  "address": "0x1719434AE21D573e650D36B6eb81609867235fD7",
+  "kind": "TimelockController",
+  "delaySeconds": 86400,
+  "proposer": "0x453fAbBEdf86cc7CC701a077F040c71d7a045b38",
+  "executor": "0x453fAbBEdf86cc7CC701a077F040c71d7a045b38",
+  "note": "one key plus a delay, not a multisig"
+ },
+ "pools": [
+  {
+   "id": "latheon-testnet:LTH-100:v8",
+   "network": "latheon-testnet",
+   "version": "v8-native",
+   "token": "LTH",
+   "amount": 100,
+   "address": "0x4E1D43E3eDA3c86926e2c1FCE7a4a0a2062F0947",
+   "deployBlock": 27304
+  },
+  {
+   "id": "latheon-testnet:LTH-50:v8",
+   "network": "latheon-testnet",
+   "version": "v8-native",
+   "token": "LTH",
+   "amount": 50,
+   "address": "0x23eb645317752150b69E2Ad248e4f79A383FDC1f",
+   "deployBlock": 27305
+  },
+  {
+   "id": "latheon-testnet:LTH-10:v8",
+   "network": "latheon-testnet",
+   "version": "v8-native",
+   "token": "LTH",
+   "amount": 10,
+   "address": "0xC8841c395ECFa12EF22507d81Dc5E50dd5de4eD3",
+   "deployBlock": 27306
+  },
+  {
+   "id": "latheon-testnet:LTH-1:v8",
+   "network": "latheon-testnet",
+   "version": "v8-native",
+   "token": "LTH",
+   "amount": 1,
+   "address": "0xC6923cA39b69155e5261DE6EA9a7ddF7f1Ab4e6d",
+   "deployBlock": 27307
+  }
+ ],
+ "routers": [
+  {
+   "id": "latheon-testnet:LTH:v8",
+   "network": "latheon-testnet",
+   "token": "LTH",
+   "native": true,
+   "version": "v8",
+   "address": "0xBF4eD99D217e3F38522ddb19C6a1692a8EA71C01",
+   "deployBlock": 27308
+  }
+ ],
+ "build": {
+  "compiler": "solc 0.8.39+commit.ce47f2c8.Emscripten.clang",
+  "settings": {
+   "optimizer": {
+    "enabled": true,
+    "runs": 200
+   },
+   "evmVersion": "paris"
+  },
+  "latheonCommit": "c8c35ff043a5c7a8567f3931ecc88ac18d18ce10",
+  "circuits": {
+   "withdraw_v6/withdraw_v6.wasm": "c35826903926dd200414616c9d7d60dd8f7340899c5a1ad41c58b234fa6af041",
+   "withdraw_v6/withdraw_v6_final.zkey": "967c4e8b90b427bd22ab14df138631de1ca680cc6f97548982bec3b6b238b81c",
+   "disclose_v2/disclose_v2.wasm": "1b09707268e800968d35e92ddbedfe9f82aa38094ce131227471bc96e9b83fa8",
+   "disclose_v2/disclose_v2_final.zkey": "2062e44c6685212eb87e19f3b34cf7943a4adeee1bfec6642ccf2250a1b751e8",
+   "disclose_link/disclose_link.wasm": "babfe878006e4868fd3daed5040d616972c5709e06b4f54463388c4950cfe387",
+   "disclose_link/disclose_link_final.zkey": "3d010b4ce0b0ea7bfb5eeb63a57c4f6fb89083468815f7e817ee21c1e8049e97"
+  }
+ },
+ "deployTx": {
+  "WithdrawVerifierV6": {
+   "hash": "0xa27043a45536e4a0e5f296aaaa397ed1dd5b78f28fb4cc9cfffcf0df0fe28b38",
+   "block": 27300,
+   "gasUsed": "170461086"
+  },
+  "DiscloseVerifierV2": {
+   "hash": "0x616e26f3e3f9845376c82529117b303ec1b350ede88417a382842629ec528ccc",
+   "block": 27301,
+   "gasUsed": "161927382"
+  },
+  "DiscloseLinkVerifier": {
+   "hash": "0x9eaf8bb7829b7326587a089fd5453f9006896d6b23132202eed7099ce92cf862",
+   "block": 27302,
+   "gasUsed": "178582796"
+  },
+  "TimelockV8": {
+   "hash": "0x1f5a8ca3f742a7ae97a46760a7485ca67585989bb0f0225a543441a34b751b68",
+   "block": 27303,
+   "gasUsed": "454462123"
+  },
+  "PoolV8_100": {
+   "hash": "0x4d1ec35c1f6a2a35c167c087dca41387edca30b57d565f43bc9b2cd845d761cb",
+   "block": 27304,
+   "gasUsed": "354310403"
+  },
+  "PoolV8_50": {
+   "hash": "0x6ee072fed5282b1835298fc1b82a36554f8fafc9327c8cccb21fcecb256cbe68",
+   "block": 27305,
+   "gasUsed": "354105277"
+  },
+  "PoolV8_10": {
+   "hash": "0x495e00c4e36012dfaf5a10a7b352a639c82b67bf3ef818139bbba9c680607a8f",
+   "block": 27306,
+   "gasUsed": "354002701"
+  },
+  "PoolV8_1": {
+   "hash": "0x0da80b604f37ddcbc97eef317db74e06afe45dce7115c0fc4fdfa1dbc7bd4bf0",
+   "block": 27307,
+   "gasUsed": "354515517"
+  },
+  "RouterV8": {
+   "hash": "0xcab8a7a4fe015819aac74d7e60937ca760a2c967eb568b37dbc94b80e0125724",
+   "block": 27308,
+   "gasUsed": "294207867"
+  }
+ }
+}
