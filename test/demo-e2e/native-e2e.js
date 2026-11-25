@@ -508,6 +508,14 @@ const RELAY_ROUTER = V8 ? [`function withdrawMany(tuple(uint256 pool, ${PROOF_T}
       await page.fill('#waKey', key8); await page.fill('#waAmount', ''); await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
       const plan8 = (await page.textContent('#waPlan')).replace(/\s+/g, ' ');
       rec('M3. The new key finds its 61 LTH in the V8 pools, and no move is offered for V8 notes', /61 LTH/.test(plan8) && !(await page.isVisible('#mvAny')), plan8.slice(0, 70));
+      // C-1 (review 25.11.2026): someone deposits a copy of the 50-LTH note's commitment into the 1-LTH pool. The copy is a
+      // gift the key can spend; it must not hide the 50-LTH note (before the fix the scan kept only the last pool's hit).
+      const p50 = new ethers.Contract(dep[N].pools['LTH-50'].addr, ['event Deposit(uint256 indexed commitment, uint32 leafIndex, uint256 timestamp)', 'function deposit(uint256) payable'], eth[N]);
+      const evs = await p50.queryFilter(p50.filters.Deposit(), 0, 'latest'), c50 = evs[evs.length - 1].args.commitment;
+      await (await new ethers.Contract(dep[N].pools['LTH-1'].addr, ['function deposit(uint256) payable'], flooder).deposit(c50, { value: E18 })).wait();
+      await page.click('#waFindBtn'); await page.waitForFunction(() => !document.getElementById('waFindBtn').disabled, null, { timeout: 120000 });
+      const plan8c = (await page.textContent('#waPlan')).replace(/\s+/g, ' ');
+      rec('C-1. A copy of the 50-LTH commitment deposited by someone else into the 1-LTH pool: the key now shows 62 LTH (the original 50 is not hidden)', /62 LTH/.test(plan8c), plan8c.slice(0, 70));
       // a single V7 note
       await pickNT(N, 'LTH'); await page.click('#depMode-fixed'); await page.selectOption('#poolSelect', N + ':LTH-1:v7'); await page.waitForTimeout(300);
       const oldN = (await page.locator('#noteText').count()) ? (await page.textContent('#noteText')).trim() : '';

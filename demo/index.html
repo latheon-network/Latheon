@@ -514,6 +514,11 @@ const $ = (id) => document.getElementById(id);
 // data-i18n sets innerHTML: nested markup lives inside the strings, in every language.
 const I18N = {
   en: {
+    'dep.frozenV7': "Deposits into the V7 pools are closed in our interface: V8 is the current generation. Notes in V7 pools can still be withdrawn, or moved to V8 from the Withdraw tab. Deposit into a V8 pool instead.",
+    'pool.frozenV7Banner': "This V7 pool is closed for new deposits in our interface because V8 supersedes it. V7 has the circuit fix; its notes can be withdrawn as before, or moved to V8 from the Withdraw tab.",
+    'au.frozenV7': "V7 pool, closed for new deposits (superseded by V8; not affected by the pre-V7 flaw)",
+    'dep.unconfirmed': "The deposit was sent, but its confirmation could not be read ({err}). Keep the secret above: check the transaction on the explorer; if it is in a block, the secret is valid.",
+    'dep.reverted': "The deposit transaction failed on chain; nothing was deposited.",
     'au.passLink': "Verified: the sender controls this specific deposit, and the receipt shows whether and where it was withdrawn. You did not receive their keys or their other deposits.",
     'mv.lead': "This note is in a V7 pool. V8 is the current generation. Moving withdraws it to your connected wallet and deposits the same amount into the V8 pools with a new master key, in two transactions.",
     'mv.leadKey': "These notes are in V7 pools. V8 is the current generation. Moving withdraws all unspent notes of this key to your connected wallet and deposits the same amount into the V8 pools with a new master key.",
@@ -760,6 +765,11 @@ const I18N = {
     'footer': 'Public prototype on testnets. Dev trusted-setup keys, no independent audit. Source: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
   },
   ru: {
+    'dep.frozenV7': "Депозиты в пулы V7 закрыты в нашем интерфейсе: текущее поколение — V8. Ноты в пулах V7 можно вывести или перенести в V8 во вкладке «Вывод». Внесите депозит в пул V8.",
+    'pool.frozenV7Banner': "Этот пул V7 закрыт для новых депозитов в нашем интерфейсе, потому что его сменил V8. В V7 ошибка схемы исправлена; его ноты можно выводить как прежде или перенести в V8 во вкладке «Вывод».",
+    'au.frozenV7': "пул V7, закрыт для новых депозитов (сменён V8; ошибка до V7 его не касается)",
+    'dep.unconfirmed': "Депозит отправлен, но подтверждение прочитать не удалось ({err}). Сохраните секрет выше: проверьте транзакцию в обозревателе; если она в блоке, секрет действителен.",
+    'dep.reverted': "Транзакция депозита не прошла в сети; ничего не внесено.",
     'au.passLink': "Подтверждено: отправитель контролирует именно этот депозит, а квитанция показывает, выведен ли он и куда. Вы не получили его ключи и другие депозиты.",
     'err.ctx': "Пул в сети не совпадает с этой страницей (другой контекст). Ничего не отправлено.",
     'ds.link': "Ноты V8: также доказать, какой вывод относится к этой ноте (квитанция)",
@@ -1006,6 +1016,11 @@ const I18N = {
     'footer': 'Публичный прототип в тестовых сетях. Dev-ключи trusted setup, независимого аудита нет. Исходный код: <a href="https://github.com/latheon-network/latheon" target="_blank" rel="noopener">github.com/latheon-network/latheon</a>',
   },
   zh: {
+    'dep.frozenV7': "我们的界面已关闭向 V7 资金池存款：当前一代是 V8。V7 资金池中的凭证仍可取出，或在“取款”标签页中迁移到 V8。请改向 V8 资金池存款。",
+    'pool.frozenV7Banner': "此 V7 资金池在我们的界面中已停止接受新存款，因为已被 V8 取代。V7 已包含电路修复；其凭证可照常取出，或在“取款”标签页中迁移到 V8。",
+    'au.frozenV7': "V7 资金池，已停止新存款（已被 V8 取代；不受 V7 之前缺陷影响）",
+    'dep.unconfirmed': "存款已发送，但无法读取其确认（{err}）。请保存上方的密钥：在区块浏览器中查看该交易；如果它已在区块中，密钥有效。",
+    'dep.reverted': "存款交易在链上失败；没有存入任何资金。",
     'au.passLink': "已验证：发送方控制这笔特定存款，回执显示它是否已取出以及取往何处。您没有获得其密钥或其他存款。",
     'err.ctx': "链上的资金池与本页面不一致（上下文不同）。未发送任何交易。",
     'ds.link': "V8 凭证：同时证明哪一笔取款属于这张凭证（回执）",
@@ -1405,6 +1420,8 @@ function computeCommitment(spendKey, viewKey) { return hash2(hash2(BigInt(spendK
 function computeNullifierHash(spendKey) { return hash2(BigInt(spendKey), 1n); }
 function computeDisclosureTag(viewKey, auditorNonce) { return hash2(BigInt(viewKey), BigInt(auditorNonce)); }
 function computeZeroCascade(levels = LEVELS) { const z = [0n]; let c = 0n; for (let i = 0; i < levels; i++) { c = hash2(c, c); z.push(c); } return z; }
+// Why a pool takes no deposits: V7 is closed because V8 supersedes it (V7 has the circuit fix); older ones are pre-V7.
+const frozenKey = (p, banner) => (p && p.version === 'v7' ? (banner ? 'pool.frozenV7Banner' : 'dep.frozenV7') : (banner ? 'pool.frozenBanner' : 'dep.frozen'));
 function randomFieldElement() { return BigInt(ethers.hexlify(ethers.randomBytes(32))) % FIELD_SIZE; }
 // V8 hashes (the same as sdk/src/poseidon.js): domain tags keccak256(string) mod p, Poseidon over three inputs.
 const tagOf = (str) => BigInt(ethers.keccak256(ethers.toUtf8Bytes(str))) % FIELD_SIZE;
@@ -1707,7 +1724,7 @@ function updatePoolUI() {
   $('depositAmountOut').textContent = p.amount + ' ' + p.token;
   const banner = $('legacyBanner');
   if (p.legacy) { banner.textContent = t('pool.legacyBanner'); banner.style.display = 'block'; }
-  else if (p.frozen) { banner.textContent = t('pool.frozenBanner'); banner.style.display = 'block'; }
+  else if (p.frozen) { banner.textContent = t(frozenKey(p, true)); banner.style.display = 'block'; }
   else if (p.version === 'v7' && POOLS.some((q) => q.network === p.network && q.token === p.token && q.version === 'v8' && !q.frozen)) { banner.textContent = t('pool.v7note'); banner.style.display = 'block'; }
   else banner.style.display = 'none';
   $('withdrawHelp').textContent = p.legacy ? t('wd.helpLegacy') : t('wd.help');
@@ -2108,9 +2125,9 @@ TABS.forEach((tb, i) => {
 function syncDepositBtn() {
   const frozen = !!(currentPool() && currentPool().frozen);   // deposits into pre-V7 / deprecated / legacy pools are frozen
   $('depositBtn').disabled = !signer || unsavedNote || frozen;
-  $('depositHint').textContent = frozen ? t('dep.frozen') : unsavedNote ? t('dep.hint') : '';
+  $('depositHint').textContent = frozen ? t(frozenKey(currentPool())) : unsavedNote ? t('dep.hint') : '';
   $('daDepositBtn').disabled = !signer || unsavedNote || !daPlan || frozen;
-  $('daHint').textContent = frozen ? t('dep.frozen') : unsavedNote ? t('da.hint') : '';
+  $('daHint').textContent = frozen ? t(frozenKey(currentPool())) : unsavedNote ? t('da.hint') : '';
   syncWaButtons();
 }
 
@@ -2167,10 +2184,11 @@ $('claimBtn').addEventListener('click', async () => {
 
 $('depositBtn').addEventListener('click', async () => {
   const btn = $('depositBtn'); btn.disabled = true;
-  if (currentPool() && currentPool().frozen) { $('depositResult').innerHTML = '<div class="status err">' + esc(t('dep.frozen')) + '</div>'; btn.disabled = false; return; }
+  if (currentPool() && currentPool().frozen) { $('depositResult').innerHTML = '<div class="status err">' + esc(t(frozenKey(currentPool()))) + '</div>'; btn.disabled = false; return; }
   const p0 = currentPool();
   const st = Steps('depSteps', p0 && p0.native ? ['dep.s1n', 'dep.s2n', 'dep.s3', 'dep.s4'] : ['dep.s1', 'dep.s2', 'dep.s3', 'dep.s4']);
   $('depositResult').innerHTML = '';
+  let shown = false, confirmed = false;   // note on screen / deposit seen in a block
   try {
     const p = currentPool(); await ensureCorrectNetwork(p);
     st.go(0);
@@ -2197,25 +2215,17 @@ $('depositBtn').addEventListener('click', async () => {
     log('Depositing…');
     const tx = await sendWithGasMargin(new ethers.Contract(p.address, POOL_ABI[p.version], signer), 'deposit', [commitment], p.native ? { value: p.denomination } : {});
     log('Deposit tx: ' + tx.hash);
-    st.extra(2, t('x.block'));
-    const rc = await tx.wait();
-    st.extra(2, '');
-    let leafIndex = null;
-    for (const lg of rc.logs || []) {
-      if (lg.address.toLowerCase() !== p.address.toLowerCase()) continue;
-      try { const ev = DEPOSIT_IFACE.parseLog(lg); if (ev && BigInt(ev.args.commitment) === commitment) leafIndex = Number(ev.args.leafIndex); } catch (e) {}
-    }
-    depositWallets.add(userAddress.toLowerCase());
-    st.go(3);
-    unsavedNote = true; syncDepositBtn();
-    const explorerTx = p.net.explorerUrl + '/tx/' + tx.hash;
+    // the note is shown as soon as the transaction is sent, before waiting for its block (D-1)
+    shown = true; unsavedNote = true; syncDepositBtn();
+    let leafIndex = null, explorerTx = p.net.explorerUrl + '/tx/' + tx.hash;
+    const metaHtml = () => esc(p.net.name) + ' · ' + esc(p.label) + (leafIndex != null ? ' · ' + th('note.leaf', { n: leafIndex }) : '') +
+      ' · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a>';
     $('depositResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('note.title')) + '</strong>' +
       '<div class="muted small" style="margin-top:4px">' + esc(t('note.sub')) + '</div>' +
       '<code id="noteText"></code>' +
       '<div class="btn-row"><button id="downloadNoteBtn" class="small">' + esc(t('btn.download')) + '</button><button id="copyNoteBtn" class="secondary small">' + esc(t('btn.copyNote')) + '</button></div>' +
       '<label class="check"><input type="checkbox" id="noteSavedChk"><span>' + esc(t('note.saved')) + '</span></label>' +
-      '<div class="muted small" style="margin-top:10px">' + esc(p.net.name) + ' · ' + esc(p.label) + (leafIndex != null ? ' · ' + th('note.leaf', { n: leafIndex }) : '') +
-      ' · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a></div></div>';
+      '<div class="muted small" style="margin-top:10px" id="noteMeta">' + metaHtml() + '</div></div>';
     $('noteText').textContent = note;
     $('copyNoteBtn').addEventListener('click', () => { copyText(note, 'what.note'); $('copyNoteBtn').textContent = t('btn.copied'); });
     $('downloadNoteBtn').addEventListener('click', () => {
@@ -2230,11 +2240,27 @@ $('depositBtn').addEventListener('click', async () => {
     });
     $('noteSavedChk').addEventListener('change', (e) => {
       unsavedNote = !e.target.checked; syncDepositBtn();
-      if (e.target.checked) st.done();
+      if (e.target.checked && confirmed) st.done();
     });
+    st.extra(2, t('x.block'));
+    const rc = await waitMined(tx);
+    st.extra(2, '');
+    if (!rc || rc.status !== 1) throw new Error(t('dep.reverted'));
+    for (const lg of rc.logs || []) {
+      if (lg.address.toLowerCase() !== p.address.toLowerCase()) continue;
+      try { const ev = DEPOSIT_IFACE.parseLog(lg); if (ev && BigInt(ev.args.commitment) === commitment) leafIndex = Number(ev.args.leafIndex); } catch (e) {}
+    }
+    explorerTx = p.net.explorerUrl + '/tx/' + rc.hash; $('noteMeta').innerHTML = metaHtml();
+    confirmed = true; depositWallets.add(userAddress.toLowerCase());
+    st.go(3); if ($('noteSavedChk').checked) st.done();
     log('Deposit confirmed' + (leafIndex != null ? ' at leaf index ' + leafIndex : '') + '.'); await refreshBalances();
     updateWarnings();
-  } catch (e) { st.fail(); log('ERROR: ' + errText(e)); $('depositResult').innerHTML = ''; setWalletStatus('dep.failed', null, 'err', errText(e)); }
+  } catch (e) {
+    st.fail(); log('ERROR: ' + errText(e));
+    // once the note is on screen it stays there: the deposit may be in a block even if we could not read that (D-1)
+    if (shown && !confirmed) setWalletStatus('dep.unconfirmed', { err: errText(e) }, 'err');
+    else { if (!shown) $('depositResult').innerHTML = ''; setWalletStatus('dep.failed', null, 'err', errText(e)); }
+  }
   finally { syncDepositBtn(); }
 });
 window.addEventListener('beforeunload', (e) => { if (unsavedNote) { e.preventDefault(); e.returnValue = ''; } });
@@ -2450,7 +2476,7 @@ function refreshDepositAny() {
   const pool = CONFIG && currentPool();
   const router = routerFor(pool);
   if (!pool) return;
-  if (!router || pool.legacy || pool.frozen) { setStatus('daRouter', t(pool && pool.frozen ? 'dep.frozen' : 'da.noRouter', { token: pool.token, net: pool.net && pool.net.name }), pool && pool.frozen ? 'info' : 'err'); $('daPreview').style.display = 'none'; syncDepositBtn(); return; }
+  if (!router || pool.legacy || pool.frozen) { setStatus('daRouter', t(pool && pool.frozen ? frozenKey(pool) : 'da.noRouter', { token: pool.token, net: pool.net && pool.net.name }), pool && pool.frozen ? 'info' : 'err'); $('daPreview').style.display = 'none'; syncDepositBtn(); return; }
   setStatus('daRouter', t('da.router', { net: router.net.name, token: router.token, addr: short(router.address) }), 'info');
   $('daAmountLabel').textContent = t('da.amount', { token: router.token });
   const txt = $('daAmount').value.trim().replace(',', '.');
@@ -2481,9 +2507,10 @@ document.querySelectorAll('input[name="daRound"]').forEach((r) => r.addEventList
 // -- deposit through the router
 $('daDepositBtn').addEventListener('click', async () => {
   const btn = $('daDepositBtn'); btn.disabled = true;
-  if (currentPool() && currentPool().frozen) { setStatus('daRouter', t('dep.frozen'), 'err'); btn.disabled = false; return; }
+  if (currentPool() && currentPool().frozen) { setStatus('daRouter', t(frozenKey(currentPool())), 'err'); btn.disabled = false; return; }
   const st = Steps('depAnySteps', ['da.s1', daPlan && daPlan.router.tok.native ? 'da.s2n' : 'da.s2', 'da.s3', 'da.s4']);
   $('depAnyResult').innerHTML = '';
+  let shown = false, confirmed = false;   // key on screen / deposit seen in a block
   try {
     if (!daPlan) throw new Error(t('da.errNum'));
     const { router, plan } = daPlan, dec = router.decimals, total = Number(plan.total);
@@ -2513,19 +2540,18 @@ $('daDepositBtn').addEventListener('click', async () => {
     }
     st.go(2, t('x.confirm'));
     const tx = await sendWithGasMargin(new ethers.Contract(router.address, ROUTER_ABI, signer), 'deposit', [plan.amount, commitments], native ? { value: plan.amount } : {});
-    log('Router deposit tx: ' + tx.hash); st.extra(2, t('x.block'));
-    const rc = await tx.wait(); st.extra(2, '');
-    log('Router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
-    depositWallets.add(userAddress.toLowerCase());
-    st.go(3); unsavedNote = true; syncDepositBtn();
-    const explorerTx = router.net.explorerUrl + '/tx/' + tx.hash;
+    log('Router deposit tx: ' + tx.hash);
+    // the master key is shown as soon as the transaction is sent, before waiting for its block (D-1)
+    shown = true; unsavedNote = true; syncDepositBtn();
+    let explorerTx = router.net.explorerUrl + '/tx/' + tx.hash;
     const parts = partsText(plan.counts.map(Number), router.pools.map((p) => p.amount));
+    const metaHtml = () => esc(router.net.name) + ' · ' + th('da.sum', { n: total, amt: fmt(plan.amount, dec), token: router.token }) + ' (' + esc(parts) + ') · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a>';
     $('depAnyResult').innerHTML = '<div class="secret-box"><strong>' + esc(t('da.keyTitle')) + '</strong>' +
       '<div class="muted small" style="margin-top:4px">' + th('da.keySub', { n: total }) + '</div>' +
       '<code id="masterText"></code>' +
       '<div class="btn-row"><button id="downloadKeyBtn" class="small">' + esc(t('btn.download')) + '</button><button id="copyKeyBtn" class="secondary small">' + esc(t('btn.copyKey')) + '</button></div>' +
       '<label class="check"><input type="checkbox" id="keySavedChk"><span>' + esc(t('da.saved')) + '</span></label>' +
-      '<div class="muted small" style="margin-top:10px">' + esc(router.net.name) + ' · ' + th('da.sum', { n: total, amt: fmt(plan.amount, dec), token: router.token }) + ' (' + esc(parts) + ') · <a href="' + esc(explorerTx) + '" target="_blank" rel="noopener">' + esc(t('note.tx')) + '</a></div></div>';
+      '<div class="muted small" style="margin-top:10px" id="masterMeta">' + metaHtml() + '</div></div>';
     $('masterText').textContent = keyText;
     $('copyKeyBtn').addEventListener('click', () => { copyText(keyText, 'what.key'); $('copyKeyBtn').textContent = t('btn.copied'); });
     $('downloadKeyBtn').addEventListener('click', () => {
@@ -2537,9 +2563,20 @@ $('daDepositBtn').addEventListener('click', async () => {
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       $('downloadKeyBtn').textContent = t('btn.downloaded');
     });
-    $('keySavedChk').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked) st.done(); });
+    $('keySavedChk').addEventListener('change', (e) => { unsavedNote = !e.target.checked; syncDepositBtn(); if (e.target.checked && confirmed) st.done(); });
+    st.extra(2, t('x.block'));
+    const rc = await waitMined(tx); st.extra(2, '');
+    if (!rc || rc.status !== 1) throw new Error(t('dep.reverted'));
+    log('Router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
+    explorerTx = router.net.explorerUrl + '/tx/' + rc.hash; $('masterMeta').innerHTML = metaHtml();
+    confirmed = true; depositWallets.add(userAddress.toLowerCase());
+    st.go(3); if ($('keySavedChk').checked) st.done();
     await refreshBalances();
-  } catch (e) { st.fail(); log('ERROR: ' + errText(e)); $('depAnyResult').innerHTML = ''; setStatus('daRouter', t('da.failed') + errText(e), 'err'); }
+  } catch (e) {
+    st.fail(); log('ERROR: ' + errText(e));
+    if (shown && !confirmed) setStatus('daRouter', t('dep.unconfirmed', { err: errText(e) }), 'err');   // the key stays on screen (D-1)
+    else { if (!shown) $('depAnyResult').innerHTML = ''; setStatus('daRouter', t('da.failed') + errText(e), 'err'); }
+  }
   finally { syncDepositBtn(); }
 });
 
@@ -2571,6 +2608,15 @@ function syncWaButtons() {
 $('waUseRelay').addEventListener('change', () => { $('waRelayDelayWrap').hidden = !$('waUseRelay').checked; syncWaButtons(); waWarnings(); });
 $('waRelayDelay').addEventListener('change', waWarnings);
 $('waKey').addEventListener('input', () => waWarnings());
+// Deposits of a router's four pools by commitment. A commitment does not depend on the pool, so anyone can deposit a copy
+// of someone's commitment into another pool (a gift: the owner's keys spend it too). Every pool that holds it is kept, not
+// only the last one scanned, so a copy cannot hide the real note (internal review of 25 November 2026, finding C-1).
+// Within one pool only the first deposit counts: a second identical one has the same nullifier and cannot be withdrawn.
+function hitsByCommitment(deps) {
+  const m = new Map();
+  deps.forEach((list, pi) => list.forEach((d) => { const h = m.get(d.commitment) || []; if (!h.some((x) => x.pi === pi)) h.push({ pi, leafIndex: d.leafIndex }); m.set(d.commitment, h); }));
+  return m;
+}
 async function waScan(st) {
   const mk = parseMasterKey($('waKey').value);
   const router = ROUTERS.find((r) => r.net.chainId === mk.chainId && r.address.toLowerCase() === mk.router.toLowerCase());
@@ -2579,13 +2625,11 @@ async function waScan(st) {
   st.go(0);
   const deps = await Promise.all(router.pools.map((p) => fetchDeposits(p, true)));
   st.go(1);
-  const byCommit = new Map();
-  deps.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex })));
+  const byCommit = hitsByCommitment(deps);
   const found = [];
   for (let i = 0; i < MASTER_SCAN_LIMIT; i++) {
     const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i);
-    const hit = byCommit.get(commitFor(router.version, k.spendKey, k.viewKey));
-    if (hit) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: nullifierOf(router.pools[hit.pi], k.spendKey) });
+    for (const hit of byCommit.get(commitFor(router.version, k.spendKey, k.viewKey)) || []) found.push({ index: i, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: nullifierOf(router.pools[hit.pi], k.spendKey) });
   }
   const isSpentNow = spentLookup();
   await Promise.all(found.map((n) => isSpentNow(router.pools[n.pi], n.nullifierHash).then((x) => { n.spent = x; })));
@@ -2727,6 +2771,14 @@ $('waGoBtn').addEventListener('click', async () => {
   finally { syncWaButtons(); }
 });
 
+// Waits for a deposit. "Speed up" in the wallet replaces the transaction: ethers then throws TRANSACTION_REPLACED even
+// though the deposit is mined (in the replacement); that receipt is used. Anything else is thrown to the caller, which by
+// then has already shown the secret (internal review of 25 November 2026, finding D-1).
+async function waitMined(tx) {
+  try { return await tx.wait(); }
+  catch (e) { if (e && e.code === 'TRANSACTION_REPLACED' && !e.cancelled && e.receipt) { log('The wallet replaced the transaction (' + e.reason + '); using ' + e.receipt.hash + '.'); return e.receipt; } throw e; }
+}
+
 // ---------- move V7 notes to V8 ----------
 // Withdraws the given notes of a V7 router to the connected wallet (through the relayer when that box is ticked), then
 // deposits the same amount into the V8 router of the same network and token with a fresh master key. Two public steps
@@ -2771,7 +2823,7 @@ async function moveToV8(which) {
   const P = which === 'one' ? 'mvOne' : 'mvAny', btn = $(P + 'Btn'); btn.disabled = true;
   $(P + 'Result').innerHTML = ''; hideStatus(P + 'Status');
   const st = Steps(P + 'Steps', ['wa.s4', 'wa.s5', 'mv.s3', 'mv.s4', 'mv.s5']);
-  let withdrawn = false;
+  let withdrawn = false, keyShown = false;
   try {
     if (!signer) throw new Error(t('wallet.notConnected'));
     const { router, rp, deps, notes } = ctx, target = v8RouterOf(router.network, router.token), dec = target.decimals;
@@ -2795,18 +2847,21 @@ async function moveToV8(which) {
     const keyText = formatMasterKey(target.net.chainId, target.address, master);
     st.go(3, t('x.confirm'));
     const tx = await sendWithGasMargin(new ethers.Contract(target.address, ROUTER_ABI, signer), 'deposit', [amount, commitments], { value: amount });
-    st.extra(3, t('x.block')); const rc = await tx.wait(); st.extra(3, '');
+    // the new key is shown as soon as the deposit is sent, before waiting for its block (D-1)
+    unsavedNote = true; syncDepositBtn();
+    const parts = partsText(plan.counts.map(Number), target.pools.map((p) => p.amount));
+    const kb = keyBox(P, target, keyText, total, amount, parts, tx.hash, null);
+    $(P + 'Result').innerHTML = kb.html; kb.bind(); keyShown = true;
+    st.extra(3, t('x.block')); const rc = await waitMined(tx); st.extra(3, '');
+    if (!rc || rc.status !== 1) throw new Error(t('dep.reverted'));
     log('V8 router deposit confirmed in block ' + rc.blockNumber + ', gas ' + rc.gasUsed.toString());
     depositWallets.add(me.toLowerCase());
-    st.go(4); unsavedNote = true; syncDepositBtn();
-    const parts = partsText(plan.counts.map(Number), target.pools.map((p) => p.amount));
-    const kb = keyBox(P, target, keyText, total, amount, parts, tx.hash, st);
-    $(P + 'Result').innerHTML = kb.html; kb.bind();
+    st.go(4); if ($(P + 'SavedChk').checked) st.done(); else $(P + 'SavedChk').addEventListener('change', (e) => { if (e.target.checked) st.done(); });
     setStatus(P + 'Status', t('mv.ok', { amt: fmt(amount, dec), token: router.token, n: total }), 'ok');
     mvCtx[which] = null; await refreshBalances();
   } catch (e) {
     st.fail(); log('ERROR: ' + errText(e));
-    setStatus(P + 'Status', (withdrawn ? t('mv.halfway') : t('mv.failed')) + errText(e), 'err');
+    setStatus(P + 'Status', keyShown ? t('dep.unconfirmed', { err: errText(e) }) : (withdrawn ? t('mv.halfway') : t('mv.failed')) + errText(e), 'err');
     if (withdrawn) mvCtx[which] = null;
   } finally { mvSync(); }
 }
@@ -2934,10 +2989,10 @@ $('poPayBtn').addEventListener('click', async () => {
     const rp = readProvider(router.net);
     st.go(0);
     const deps = await Promise.all(router.pools.map((p) => fetchDeposits(p, true)));
-    const byCommit = new Map(); deps.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex })));
+    const byCommit = hitsByCommitment(deps);
     st.go(1);
     const notes = [];
-    mks.forEach((mk, m) => { for (let i = 0; i < MASTER_SCAN_LIMIT; i++) { const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i), hit = byCommit.get(commitFor(router.version, k.spendKey, k.viewKey)); if (hit) notes.push({ mk: m, index: i, poolIndex: hit.pi, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: nullifierOf(router.pools[hit.pi], k.spendKey) }); } });
+    mks.forEach((mk, m) => { for (let i = 0; i < MASTER_SCAN_LIMIT; i++) { const k = deriveNoteKeys(poseidon4, mk.master, mk.chainId, i), hits = byCommit.get(commitFor(router.version, k.spendKey, k.viewKey)) || []; for (const hit of hits) notes.push({ mk: m, index: i, poolIndex: hit.pi, pi: hit.pi, leafIndex: hit.leafIndex, value: router.pools[hit.pi].amount, spendKey: k.spendKey, viewKey: k.viewKey, nullifierHash: nullifierOf(router.pools[hit.pi], k.spendKey) }); } });
     const isSpentNow = spentLookup();
     await mapLimit(notes, 4, (n) => isSpentNow(router.pools[n.pi], n.nullifierHash).then((x) => { n.spent = !!x; }));
     let assigned; try { assigned = assignNotes(payees.map((p) => p.counts), notes, 4); } catch (e) { throw new Error(t('po.errNotes')); }
@@ -3102,14 +3157,15 @@ async function reportNotes(text) {
         const maps = await Promise.all(router.pools.map((p) => depositMap(p)));
         for (let k = 0; k < MASTER_SCAN_LIMIT; k++) {
           const key = deriveNoteKeys(poseidon4, mk.master, mk.chainId, k), c = commitFor(router.version, key.spendKey, key.viewKey);
-          const pi = maps.findIndex((m) => m.has(c));
-          if (pi >= 0 && !notes.has(c)) notes.set(c, { pool: router.pools[pi], spendKey: key.spendKey, viewKey: key.viewKey, commitment: c, label });
+          // every pool that holds the commitment (a copy deposited by someone else is a real note of this key too, C-1)
+          maps.forEach((m, pi) => { const id = router.pools[pi].address.toLowerCase() + ':' + c; if (m.has(c) && !notes.has(id)) notes.set(id, { pool: router.pools[pi], spendKey: key.spendKey, viewKey: key.viewKey, commitment: c, label }); });
         }
       } else {
         const note = decodeNote(keyText);
         if (note.kind !== 'v5') throw new Error(t('rp.errV5'));
         const pool = poolForNote(note), c = commitFor(pool.version, note.spendKey, note.viewKey);
-        if (!notes.has(c)) notes.set(c, { pool, spendKey: note.spendKey, viewKey: note.viewKey, commitment: c, label });
+        const id = pool.address.toLowerCase() + ':' + c;
+        if (!notes.has(id)) notes.set(id, { pool, spendKey: note.spendKey, viewKey: note.viewKey, commitment: c, label });
       }
     } catch (e) { throw new Error(t('rp.errLine', { n: i + 1, err: errText(e) })); }
   }
@@ -3221,7 +3277,8 @@ async function verifyReport(b) {
   });
   // The same note twice proves nothing new: only its first row counts.
   const seen = new Set();
-  for (const r of rows) { if (r.commitment == null) continue; const k = r.commitment.toString(); if (seen.has(k)) r.dup = true; else seen.add(k); }
+  // the same deposit twice is a repeat; the same commitment in two different pools is two deposits (C-1)
+  for (const r of rows) { if (r.commitment == null) continue; const k = (r.pool ? r.pool.address.toLowerCase() : String(r.x.pool).toLowerCase()) + ':' + r.commitment.toString(); if (seen.has(k)) r.dup = true; else seen.add(k); }
   st.go(2);
   for (const r of rows) {
     if (!r.pool || r.commitment == null || r.dup) continue;
@@ -3250,7 +3307,8 @@ async function verifyReport(b) {
   }
   st.done();
   const codeOk = (r) => issuedNonce != null ? r.nonce === issuedNonce : r.nonce === nonce;
-  const good = rows.filter((r) => r.valid === true && r.found === true && r.nonce === nonce && !r.dup && r.pool);
+  // totals count only rows bound to the auditor's own code (or, with no code issued here, the file's code) — review I-1
+  const good = rows.filter((r) => r.valid === true && r.found === true && r.nonce === nonce && codeOk(r) && !r.dup && r.pool);
   const cols = t('au.rpCols').split('|');
   const cell = (cls, html) => '<td class="' + cls + '">' + html + '</td>';
   const mark = (v) => v === true ? ['ok', '✓'] : v === false ? ['no', '✗'] : ['warn', '?'];
@@ -3264,7 +3322,7 @@ async function verifyReport(b) {
     const [vc, vs] = mark(r.valid), [fc, fs] = r.dup ? ['no', '✗'] : mark(r.found);
     const wdCell = r.dup ? esc(t('au.dup')) : proven(r) ? (r.spentOnChain ? yes : no) + (r.linked ? '<br><small>' + esc(t('au.receipt')) + '</small>' : '') : '<small>' + esc(wdText(r)) + '</small>';
     return '<tr>' + cell('', i + 1) +
-      cell(pool ? (pool.frozen ? 'warn' : '') : 'no', pool ? esc(poolLabel(pool)) + (pool.frozen ? '<br><small>' + esc(t('au.frozen')) + '</small>' : '') : esc(t('au.unknown'))) +
+      cell(pool ? (pool.frozen ? 'warn' : '') : 'no', pool ? esc(poolLabel(pool)) + (pool.frozen ? '<br><small>' + esc(t(pool.version === 'v7' ? 'au.frozenV7' : 'au.frozen')) + '</small>' : '') : esc(t('au.unknown'))) +
       cell('', esc(pool ? pool.amount + ' ' + pool.token : '?')) +
       cell('', esc(utc(r.timestamp))) + cell(vc, vs) + cell(codeOk(r) ? (issuedNonce != null ? 'ok' : 'warn') : 'no', codeOk(r) ? (issuedNonce != null ? '✓' : '?') : '✗') +
       cell(fc, fs) + cell(r.dup ? 'no' : '', wdCell) +

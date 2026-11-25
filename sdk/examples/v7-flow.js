@@ -1,5 +1,6 @@
 /**
- * V7 flow on the Latheon test chain, end to end with the SDK:
+ * V7 flow on the Latheon test chain, end to end with the SDK (historical: run on 6 November 2026; since site v48 the
+ * V7 pools are frozen for deposits in deployments.json, so the SDK now refuses steps 1 and 4; V8 is the current generation):
  *   1. deposit any amount through the router under one master key (161 LTH = 100 + 50 + 10 + 1)
  *   2. find the notes of that master key
  *   3. withdraw an exact amount to a fresh address, in one withdrawMany, through the network's relayer

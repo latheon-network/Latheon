@@ -12,7 +12,7 @@ const clone = (x) => JSON.parse(JSON.stringify(x));
 
 (async () => {
   const reg = sdk.loadDeployments();
-  const pools = sdk.listPools(reg, { depositable: true, version: 'v7' }), net = pools[0].net;   // report files hold V5–V7 notes
+  const pools = sdk.listPools(reg, { version: 'v7' }), net = pools[0].net;   // report files hold V5–V7 notes (V7 frozen for deposits since site v48)
   const pool1 = pools.find((p) => p.amount === 1), pool100 = pools.find((p) => p.amount === 100);
   const circuit = await sdk.loadCircuit('disclose');
   // Fixed keys of the vector: public on purpose. Never deposit to a note made from them.

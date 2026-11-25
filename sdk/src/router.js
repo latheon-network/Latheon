@@ -96,12 +96,14 @@ async function findNotes(provider, router, masterKey, opts = {}) {
   const p = providerOf(provider);
   const scanOpts = Object.assign({}, opts.scanOpts, opts.minBlock !== undefined ? { minBlock: opts.minBlock } : {});
   const deposits = opts.deposits || await Promise.all(router.pools.map((pool) => fetchDeposits(p, pool, scanOpts)));
+  // Every pool that holds a key's commitment is kept: a commitment does not depend on the pool, so a copy deposited by
+  // someone else into another pool is a real (gifted) note of this key, and must not hide the original (review 25.11.2026,
+  // C-1). Within one pool only the first deposit counts (a second identical one shares its nullifier).
   const byCommit = new Map();
-  deposits.forEach((list, pi) => list.forEach((d) => byCommit.set(d.commitment, { pi, leafIndex: d.leafIndex, timestamp: d.timestamp })));
+  deposits.forEach((list, pi) => list.forEach((d) => { const h = byCommit.get(d.commitment) || []; if (!h.some((x) => x.pi === pi)) h.push({ pi, leafIndex: d.leafIndex, timestamp: d.timestamp }); byCommit.set(d.commitment, h); }));
   const notes = [];
-  for (const k of deriveNotes(mk.master, mk.chainId, opts.scanLimit || MASTER_SCAN_LIMIT, router.version)) {
-    const hit = byCommit.get(k.commitment);
-    if (!hit) continue;
+  for (const k0 of deriveNotes(mk.master, mk.chainId, opts.scanLimit || MASTER_SCAN_LIMIT, router.version)) for (const hit of byCommit.get(k0.commitment) || []) {
+    const k = Object.assign({}, k0);
     const pool = router.pools[hit.pi];
     notes.push(Object.assign(k, { poolIndex: hit.pi, pool, leafIndex: hit.leafIndex, timestamp: hit.timestamp, value: pool.amount, nullifierHash: nullifierFor(pool, k.spendKey), note: encodeNote(pool, k.spendKey, k.viewKey) }));
   }
