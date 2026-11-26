@@ -23,6 +23,7 @@ const circom = require('./circom');
 const quiet = { info() {}, warn() {}, error() {}, debug() {} };
 
 const DEPLOYED = '129a4c0d38af03b0ad2db59e8ad01823e813ed77';
+const DEPLOYED_V8 = 'c8c35ff043a5c7a8567f3931ecc88ac18d18ce10';   // V8 circuits and contracts deployed on 24 November 2026 (docs/dev-ceremony-v8.md)
 const L2 = process.env.L2_EVAL_CI || path.resolve(ROOT, '..', 'l2-eval-ci');
 const ART = path.join(L2, 'testnet', 'latheon', 'artifacts', 'latheon-testnet.json');
 
@@ -77,7 +78,7 @@ async function main() {
       if (sha256(path.join(BUILD, m[1], m[1] + '.wasm')) !== m[2] || sha256(path.join(BUILD, m[1], m[1] + '_final.zkey')) !== m[3]) ok = false;
     }
     t.rec('demo/index.html: circuit files pinned to commit 129a4c0 and every pinned sha256 = the committed file', ok && n === 5, n + ' circuits');
-    t.rec("demo/index.html: V7 pools prove with withdraw_v5 (circuit: v7 ? 'v5' …)", /circuit: v7 \? 'v5' : v6 \? 'v4' : v5 \? 'v3' : 'v2'/.test(demo));
+    t.rec("demo/index.html: V8 pools prove with withdraw_v6 and V7 pools with withdraw_v5 (circuit: v8 ? 'v6' : v7 ? 'v5' …)", /circuit: v8 \? 'v6' : v7 \? 'v5' : v6 \? 'v4' : v5 \? 'v3' : 'v2'/.test(demo));
   }
 
   // 2. vk: file = zkey export = Solidity
@@ -140,8 +141,14 @@ async function main() {
 
   // 5. deployed commit = HEAD for contracts and circuits; deployed bytecode reproduced
   try {
-    const diff = git('diff', '--stat', DEPLOYED, 'HEAD', '--', 'contracts', 'circuits', ':(exclude)circuits/ptau', ':(exclude)circuits/drafts').trim();   // the phase-1 ptau was published later (30 October 2026); circuits/drafts holds unbuilt design drafts (V8)
-    t.rec('contracts/ and circuits/ (except the later-published ptau) at the deployed commit 129a4c0 = this checkout', diff === '', diff.split('\n').pop());
+    // Files that existed at 129a4c0 must be unchanged (modified, deleted, renamed or retyped). Files added later (the V8
+    // generation, deployed from c8c35ff on 24 November 2026) are checked against that commit below.
+    const SCOPE = ['--', 'contracts', 'circuits', ':(exclude)circuits/ptau', ':(exclude)circuits/drafts'];   // the phase-1 ptau was published later (30 October 2026); circuits/drafts holds unbuilt design drafts
+    const diff = git('diff', '--stat', '--diff-filter=MDRT', DEPLOYED, 'HEAD', ...SCOPE).trim();
+    t.rec('contracts/ and circuits/ (except the later-published ptau): every file of the deployed commit 129a4c0 unchanged in this checkout', diff === '', diff.split('\n').pop());
+    const added = git('diff', '--name-only', '--diff-filter=A', DEPLOYED, 'HEAD', ...SCOPE).trim().split('\n').filter(Boolean);
+    const diff8 = added.length ? git('diff', '--stat', DEPLOYED_V8, 'HEAD', '--', ...added).trim() : '';
+    t.rec('files added after 129a4c0 (' + added.length + ', the V8 generation) = the V8 deployed commit c8c35ff', added.length > 0 && diff8 === '', diff8.split('\n').pop());
   } catch (e) { t.skip('129a4c0 vs HEAD', 'commit not in this checkout'); }
   if (art) {
     const srcFiles = Object.keys(art.source.sha256);

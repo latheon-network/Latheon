@@ -8,6 +8,10 @@
 # "contracts/ and circuits/ at the deployed commit 129a4c0 = this checkout" fails on the new circuits/drafts/v8 files.
 # Two review checks that need the l2-eval-ci repository next to this one are skipped in CI (they print SKIP).
 #
+# Since 26 November 2026 also the V8 generation: test/circuits-v8 (circuits with throwaway keys) and test/native-v8 (pool
+# and router, once with throwaway keys and once with the committed development keys); the SDK job already runs the SDK's
+# V8 end-to-end test (sdk/test/e2e-v8.js, part of npm run test:all). The relayer's V8 tests run in latheon-network/l2-eval-ci.
+#
 # Not included yet: the browser tests in test/demo-e2e (they need Playwright, Chromium and the browser bundles) and the
 # older generations (test/v5-integration, test/distribution, test/native).
 #
@@ -105,6 +109,83 @@ jobs:
         working-directory: test/native-v7
       - run: npm test
         working-directory: test/native-v7
+
+  circuits-v8:
+    name: V8 circuits (withdraw_v6, disclose_v2, disclose_link; throwaway keys)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: test/circuits-v8/package-lock.json
+      - name: Restore the circom build
+        id: circom-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/circom-2.2.3
+          key: circom-${{ runner.os }}-${{ env.CIRCOM_REV }}
+      - name: Build circom 2.2.3 from the pinned commit
+        if: steps.circom-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --quiet https://github.com/iden3/circom.git "$RUNNER_TEMP/circom-src"
+          git -C "$RUNNER_TEMP/circom-src" checkout --quiet "$CIRCOM_REV"
+          test "$(git -C "$RUNNER_TEMP/circom-src" describe --tags --exact-match)" = "v2.2.3"
+          (cd "$RUNNER_TEMP/circom-src" && cargo build --release --locked)
+          mkdir -p "$HOME/circom-2.2.3"
+          cp "$RUNNER_TEMP/circom-src/target/release/circom" "$HOME/circom-2.2.3/circom"
+      - run: npm ci
+        working-directory: test/circuits-v8
+      - name: Circuit tests
+        run: |
+          export CIRCOM="$HOME/circom-2.2.3/circom"
+          npm test
+        working-directory: test/circuits-v8
+
+  contracts-v8:
+    name: V8 pools and router (real proofs, local EVM)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: test/native-v8/package-lock.json
+      - name: Restore the circom build
+        id: circom-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/circom-2.2.3
+          key: circom-${{ runner.os }}-${{ env.CIRCOM_REV }}
+      - name: Build circom 2.2.3 from the pinned commit
+        if: steps.circom-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --quiet https://github.com/iden3/circom.git "$RUNNER_TEMP/circom-src"
+          git -C "$RUNNER_TEMP/circom-src" checkout --quiet "$CIRCOM_REV"
+          test "$(git -C "$RUNNER_TEMP/circom-src" describe --tags --exact-match)" = "v2.2.3"
+          (cd "$RUNNER_TEMP/circom-src" && cargo build --release --locked)
+          mkdir -p "$HOME/circom-2.2.3"
+          cp "$RUNNER_TEMP/circom-src/target/release/circom" "$HOME/circom-2.2.3/circom"
+      - run: npm ci
+        working-directory: test/native-v8
+      - name: With throwaway keys (circuit built here)
+        run: |
+          export CIRCOM="$HOME/circom-2.2.3/circom"
+          npm test
+        working-directory: test/native-v8
+      - name: With the committed development keys and verifier (the deployed set)
+        env:
+          DEV_KEYS: "1"
+        run: npm test
+        working-directory: test/native-v8
 
   fuzz-v7:
     name: V7 property tests (anvil)

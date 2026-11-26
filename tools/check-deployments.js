@@ -5,13 +5,15 @@
  *
  * Fails (exit 1) when:
  *   1. sdk/deployments.json and demo/deployments.json differ;
- *   2. a pool that is not V7 lacks "frozen": true and "forgeable": true, or a router that is not V7 lacks "frozen": true;
+ *   2. a pool older than V7 lacks "frozen": true and "forgeable": true, a router older than V7 lacks "frozen": true, or a
+ *      V7 entry is marked "forgeable" (V7 has the circuit fix: since site v48 it is frozen for deposits, never forgeable);
  *   3. a document (every *.md in the repository, and site/index.html, where each line is judged on its own) shows the address of a frozen or forgeable pool
  *      or router next to a deposit instruction, without a warning (frozen / deprecated / do not deposit / withdrawals
  *      only ...) in the same paragraph, table row or section;
  *   4. a document shows such an address with no warning at all: not in its paragraph or table row, not in its section,
  *      and not at the top of the file (first 15 lines), so a reader could take it for a current contract.
- * Warns (no failure) on a V7 entry marked frozen and on addresses of frozen entries in code outside deployments.json.
+ * Warns (no failure) on a current (V8) entry marked frozen, a V7 entry not marked frozen, and on addresses of frozen
+ * entries in code outside deployments.json. The current generation is V8 (since 24 November 2026).
  *
  *   node tools/check-deployments.js [--verbose] [extra-dir ...]
  * Extra directories (for example a checkout of latheon-network/l2-eval-ci) have their *.md files checked as documents too.
@@ -41,6 +43,7 @@ const failures = [], warnings = [];
 const fail = (m) => failures.push(m), warn = (m) => warnings.push(m);
 const rel = (f) => path.relative(ROOT, f) || f;
 const isV7 = (x) => /^v7/.test(String(x.version || ''));
+const isCurrent = (x) => /^v8/.test(String(x.version || ''));   // the current generation (V8, since 24 November 2026)
 
 // ---------- 1. the two copies of deployments.json
 const sdkPath = path.join(ROOT, 'sdk', 'deployments.json'), demoPath = path.join(ROOT, 'demo', 'deployments.json');
@@ -51,15 +54,17 @@ if (sdkRaw !== demoRaw) {
   else fail('sdk/deployments.json and demo/deployments.json differ (they must be identical; copy one over the other)');
 }
 
-// ---------- 2. flags of every pre-V7 entry
+// ---------- 2. flags: current (V8) open, V7 frozen but never forgeable, everything older frozen and forgeable
 for (const p of dep.pools || []) {
-  if (isV7(p)) { if (p.frozen || p.forgeable) warn(`V7 pool ${p.id} is marked frozen/forgeable`); continue; }
+  if (isCurrent(p)) { if (p.frozen || p.forgeable) warn(`current V8 pool ${p.id} is marked frozen/forgeable`); continue; }
+  if (isV7(p)) { if (p.forgeable) fail(`V7 pool ${p.id} is marked "forgeable" (V7 has the circuit fix)`); if (!p.frozen) warn(`V7 pool ${p.id} is not marked frozen (closed for deposits since site v48)`); continue; }
   const miss = ['frozen', 'forgeable'].filter((k) => p[k] !== true);
-  if (miss.length) fail(`pool ${p.id} (${p.version || 'no version'}, ${p.address}) is not V7 but lacks ${miss.map((k) => '"' + k + '": true').join(' and ')}`);
+  if (miss.length) fail(`pool ${p.id} (${p.version || 'no version'}, ${p.address}) is older than V7 but lacks ${miss.map((k) => '"' + k + '": true').join(' and ')}`);
 }
 for (const r of dep.routers || []) {
-  if (isV7(r)) { if (r.frozen) warn(`V7 router ${r.id} is marked frozen`); continue; }
-  if (r.frozen !== true) fail(`router ${r.id} (${r.version || 'v5'}, ${r.address}) is not V7 but lacks "frozen": true`);
+  if (isCurrent(r)) { if (r.frozen) warn(`current V8 router ${r.id} is marked frozen`); continue; }
+  if (isV7(r)) { if (!r.frozen) warn(`V7 router ${r.id} is not marked frozen (closed for deposits since site v48)`); continue; }
+  if (r.frozen !== true) fail(`router ${r.id} (${r.version || 'v5'}, ${r.address}) is older than V7 but lacks "frozen": true`);
 }
 
 // ---------- 2b. provenance fields (filled by tools/registry-fill.js): malformed ones fail, missing ones on a current V7 entry are a warning
@@ -67,21 +72,21 @@ for (const x of [...(dep.pools || []), ...(dep.routers || [])]) {
   if (x.deployTx !== undefined && !/^0x[0-9a-f]{64}$/.test(String(x.deployTx))) fail(`${x.id}: deployTx is not a 0x + 64 lower-case hex transaction hash`);
   if (x.commit !== undefined && !/^[0-9a-f]{40}$/.test(String(x.commit))) fail(`${x.id}: commit is not a full 40-character lower-case sha`);
   if (x.verification !== undefined && (typeof x.verification.blockscout !== 'boolean' || !/^\d{4}-\d{2}-\d{2}$/.test(String(x.verification.checked)))) fail(`${x.id}: verification must be { "blockscout": true|false, "checked": "YYYY-MM-DD" }`);
-  if (isV7(x) && !x.frozen) { const miss = ['deployTx', 'commit', 'verification'].filter((k) => x[k] === undefined); if (miss.length) warn(`current V7 entry ${x.id} has no ${miss.join(', ')} (run node tools/registry-fill.js --write)`); }
+  if (isCurrent(x) && !x.frozen) { const miss = ['deployTx', 'commit', 'verification'].filter((k) => x[k] === undefined); if (miss.length) warn(`current V8 entry ${x.id} has no ${miss.join(', ')} (run node tools/registry-fill.js --write)`); }
 }
 
 // ---------- 3. documents
 const frozen = new Map();   // lower-case address -> ids
 const add = (a, id) => { const k = a.toLowerCase(); frozen.set(k, [...(frozen.get(k) || []), id]); };
-for (const x of [...(dep.pools || []), ...(dep.routers || [])]) if (x.frozen || x.forgeable || !isV7(x)) add(x.address, x.id);
+for (const x of [...(dep.pools || []), ...(dep.routers || [])]) if (x.frozen || x.forgeable || !isCurrent(x)) add(x.address, x.id);
 for (const x of EXTRA_FROZEN) add(x.address, x.id);
-const current = new Set([...(dep.pools || []), ...(dep.routers || [])].filter((x) => isV7(x) && !x.frozen).map((x) => x.address.toLowerCase()));
-for (const a of frozen.keys()) if (current.has(a)) warn(`address ${a} is listed both as current V7 and as frozen`);
+const current = new Set([...(dep.pools || []), ...(dep.routers || [])].filter((x) => isCurrent(x) && !x.frozen).map((x) => x.address.toLowerCase()));
+for (const a of frozen.keys()) if (current.has(a)) warn(`address ${a} is listed both as current V8 and as frozen`);
 
 // A deposit instruction: words that tell the reader to deposit (not counts of deposits or event names).
 const DEPOSIT_RE = /\b(deposit (in|into|to)\b|to deposit\b|you deposit\b|please deposit|deposit (100|50|10|1|any|your|some|test)\b|deposit (LTH|USDG|funds|tokens)\b|\.deposit\(|depositBtn|approve\b.*\bdeposit|try it)/i;
 // A warning that makes the address safe to show.
-const WARN_RE = /(do not deposit|don't deposit|never deposit|must not (receive|get|take)? ?deposit|not deposit|frozen|deprecated|forgeable|superseded|withdrawals? (of existing notes )?only|only (so|for) (that )?(existing |their |its )?notes|kept only|legacy|retired|replaced|pre-V7|before V7)/i;
+const WARN_RE = /(do not deposit|don't deposit|never deposit|must not (receive|get|take)? ?deposit|not deposit|frozen|deprecated|forgeable|superseded|withdrawals? (of existing notes )?only|only (so|for) (that )?(existing |their |its )?notes|kept only|legacy|retired|replaced|pre-V7|before V7|deposits closed|closed for deposits)/i;
 
 function walk(dir, out) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
