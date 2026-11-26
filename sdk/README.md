@@ -54,7 +54,9 @@ const note = await sdk.deposit(signer, pool);        // save note.note: latheon-
 await sdk.withdrawNote(otherSigner, pool, note.note, recipient, { circuit, relayer, fee });
 ```
 
-`examples/v7-flow.js` runs this against the test chain.
+`examples/v8-flow.js` runs the V8 version of this against the test chain (router deposit, relayed and wallet
+`withdrawMany`, a single-pool withdrawal with a payment reference, a `disclose_v2` disclosure and a `disclose_link`
+receipt checked by the deployed verifiers); `examples/v7-flow.js` is the V7 run of 6 November 2026.
 
 ## V8 in this SDK
 
@@ -84,7 +86,7 @@ What changes for a caller (design: `docs/v8-design.md`):
 - **Circuits.** `withdraw_v6`, `disclose_v2`, `disclose_link`, development keys from `docs/dev-ceremony-v8.md`, pinned
   to commit `c8c35ff` with their SHA-256.
 - **Relayer.** V8 requests carry `paymentRef` and `destChainId` next to `relayer` and `fee`. The test chain's relayer
-  does not accept V8 yet (next step); until then send V8 withdrawals from a wallet.
+  accepts V8 since 24 November 2026 (`viaRelayer: true`).
 
 ## What a V7 withdrawal is
 
@@ -225,7 +227,7 @@ that read the chain take an ethers `Provider` (or a `Signer` with one); function
 ```bash
 npm test                # unit (94 checks, no network, no proofs) + proof (19 checks, real withdraw_v6 / v5 / v4 / v3, disclose, disclose_v2, disclose_link proofs) + report
 npm run test:e2e        # the SDK against the repository's V7, V6 and V5 contracts on a local EVM (ganache), real proofs
-npm run test:e2e-v8     # 21 checks: the SDK against the V8 (and V7) contracts with the committed V8 development keys
+npm run test:e2e-v8     # 22 checks (the last runs examples/v8-flow.js): the SDK against the V8 (and V7) contracts with the committed V8 development keys
 ```
 
 The e2e test compiles `LatheonShieldedPoolV7Native`, `LatheonDistributionPoolV7Native`, `WithdrawVerifierV5` (and the

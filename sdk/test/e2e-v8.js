@@ -188,6 +188,10 @@ async function main() {
   ok('disclose_link: accepted, and its nullifier is the one in the pool\'s Withdrawal event of that note (a receipt)', await DL.verifyProof(pl.pA, pl.pB, pl.pC, pl.pubSignals) && BigInt(pl.pubSignals[1]) === BigInt(w2.proof.pubSignals[1]));
   ok('buildReport refuses V8 notes for now (the report file format is V5–V7)', await rejects(() => sdk.buildReport({ net: REG.networks.local, auditorNonce: nonce, notes: [{ pool: P('v8', 10), spendKey: d2.spendKey, viewKey: d2.viewKey, leafIndex: 1, depositTime: 1 }], circuit: cd2 }), /V8 notes/));
 
+  console.log('\nexamples/v8-flow.js on the local chain');
+  const ex = await require('../examples/v8-flow.js').run({ signer: alice, provider, registry: REG, log: (m) => console.log('   ' + m) });
+  ok('examples/v8-flow.js runs end to end (' + ex.checks.length + ' checks of its own)', ex.failed === 0 && ex.checks.length === 8);
+
   await new Promise((r) => server.close(r));
   console.log(fails ? '\n' + fails + ' of ' + n + ' FAILED' : '\nALL ' + n + ' CHECKS PASSED');
   process.exit(fails ? 1 : 0);
